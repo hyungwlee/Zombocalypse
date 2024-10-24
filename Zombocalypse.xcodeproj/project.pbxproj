@@ -6,6 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		FC070A882CCAB90300946357 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FC070A842CCAB90300946357 /* Assets.xcassets */; };
+		FC070A972CCAD22700946357 /* GameType.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A962CCAD22700946357 /* GameType.swift */; };
+		FC070A982CCAD22700946357 /* GameContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A942CCAD22700946357 /* GameContext.swift */; };
+		FC070A992CCAD22700946357 /* Dependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A932CCAD22700946357 /* Dependencies.swift */; };
+		FC070A9A2CCAD22700946357 /* GameModeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A952CCAD22700946357 /* GameModeType.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		FC070A662CCAB85700946357 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +35,11 @@
 		FC070A552CCAB85600946357 /* Zombocalypse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zombocalypse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC070A652CCAB85700946357 /* ZombocalypseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZombocalypseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC070A6F2CCAB85700946357 /* ZombocalypseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZombocalypseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC070A842CCAB90300946357 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FC070A932CCAD22700946357 /* Dependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dependencies.swift; sourceTree = "<group>"; };
+		FC070A942CCAD22700946357 /* GameContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContext.swift; sourceTree = "<group>"; };
+		FC070A952CCAD22700946357 /* GameModeType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModeType.swift; sourceTree = "<group>"; };
+		FC070A962CCAD22700946357 /* GameType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameType.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +88,9 @@
 		FC070A4C2CCAB85600946357 = {
 			isa = PBXGroup;
 			children = (
+				FC070A9F2CCAD36A00946357 /* Base */,
+				FC070A9E2CCAD36200946357 /* Assets */,
+				FC070A9D2CCAD35400946357 /* Code */,
 				FC070A572CCAB85600946357 /* Zombocalypse */,
 				FC070A682CCAB85700946357 /* ZombocalypseTests */,
 				FC070A722CCAB85700946357 /* ZombocalypseUITests */,
@@ -90,6 +106,32 @@
 				FC070A6F2CCAB85700946357 /* ZombocalypseUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		FC070A9D2CCAD35400946357 /* Code */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Code;
+			sourceTree = "<group>";
+		};
+		FC070A9E2CCAD36200946357 /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				FC070A842CCAB90300946357 /* Assets.xcassets */,
+			);
+			path = Assets;
+			sourceTree = "<group>";
+		};
+		FC070A9F2CCAD36A00946357 /* Base */ = {
+			isa = PBXGroup;
+			children = (
+				FC070A932CCAD22700946357 /* Dependencies.swift */,
+				FC070A942CCAD22700946357 /* GameContext.swift */,
+				FC070A952CCAD22700946357 /* GameModeType.swift */,
+				FC070A962CCAD22700946357 /* GameType.swift */,
+			);
+			path = Base;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -212,6 +254,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FC070A882CCAB90300946357 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -236,6 +279,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FC070A972CCAD22700946357 /* GameType.swift in Sources */,
+				FC070A982CCAD22700946357 /* GameContext.swift in Sources */,
+				FC070A992CCAD22700946357 /* Dependencies.swift in Sources */,
+				FC070A9A2CCAD22700946357 /* GameModeType.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
