@@ -12,6 +12,12 @@
 		FC070A982CCAD22700946357 /* GameContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A942CCAD22700946357 /* GameContext.swift */; };
 		FC070A992CCAD22700946357 /* Dependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A932CCAD22700946357 /* Dependencies.swift */; };
 		FC070A9A2CCAD22700946357 /* GameModeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A952CCAD22700946357 /* GameModeType.swift */; };
+		FC070AA52CCAEB9A00946357 /* ZPLayoutInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AA42CCAEB9A00946357 /* ZPLayoutInfo.swift */; };
+		FC070AA72CCAEBC500946357 /* ZPGameInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AA62CCAEBC500946357 /* ZPGameInfo.swift */; };
+		FC070AA92CCAF0FE00946357 /* ZPGameContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AA82CCAF0FE00946357 /* ZPGameContext.swift */; };
+		FC070AAB2CCAF10E00946357 /* ZPGameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AAA2CCAF10E00946357 /* ZPGameScene.swift */; };
+		FC070AAD2CCAF86200946357 /* ZPBoxNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AAC2CCAF86200946357 /* ZPBoxNode.swift */; };
+		FC070AAF2CCAF9CA00946357 /* ZPGameIdleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +46,12 @@
 		FC070A942CCAD22700946357 /* GameContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContext.swift; sourceTree = "<group>"; };
 		FC070A952CCAD22700946357 /* GameModeType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModeType.swift; sourceTree = "<group>"; };
 		FC070A962CCAD22700946357 /* GameType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameType.swift; sourceTree = "<group>"; };
+		FC070AA42CCAEB9A00946357 /* ZPLayoutInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPLayoutInfo.swift; sourceTree = "<group>"; };
+		FC070AA62CCAEBC500946357 /* ZPGameInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameInfo.swift; sourceTree = "<group>"; };
+		FC070AA82CCAF0FE00946357 /* ZPGameContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameContext.swift; sourceTree = "<group>"; };
+		FC070AAA2CCAF10E00946357 /* ZPGameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameScene.swift; sourceTree = "<group>"; };
+		FC070AAC2CCAF86200946357 /* ZPBoxNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPBoxNode.swift; sourceTree = "<group>"; };
+		FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameIdleState.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -111,6 +123,12 @@
 		FC070A9D2CCAD35400946357 /* Code */ = {
 			isa = PBXGroup;
 			children = (
+				FC070AA32CCAEB4600946357 /* Helpers */,
+				FC070AA22CCAEB3F00946357 /* Models */,
+				FC070AA12CCAEB3800946357 /* Nodes */,
+				FC070AA02CCAEB2F00946357 /* States */,
+				FC070AA82CCAF0FE00946357 /* ZPGameContext.swift */,
+				FC070AAA2CCAF10E00946357 /* ZPGameScene.swift */,
 			);
 			path = Code;
 			sourceTree = "<group>";
@@ -132,6 +150,38 @@
 				FC070A962CCAD22700946357 /* GameType.swift */,
 			);
 			path = Base;
+			sourceTree = "<group>";
+		};
+		FC070AA02CCAEB2F00946357 /* States */ = {
+			isa = PBXGroup;
+			children = (
+				FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */,
+			);
+			path = States;
+			sourceTree = "<group>";
+		};
+		FC070AA12CCAEB3800946357 /* Nodes */ = {
+			isa = PBXGroup;
+			children = (
+				FC070AAC2CCAF86200946357 /* ZPBoxNode.swift */,
+			);
+			path = Nodes;
+			sourceTree = "<group>";
+		};
+		FC070AA22CCAEB3F00946357 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		FC070AA32CCAEB4600946357 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				FC070AA42CCAEB9A00946357 /* ZPLayoutInfo.swift */,
+				FC070AA62CCAEBC500946357 /* ZPGameInfo.swift */,
+			);
+			path = Helpers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -281,8 +331,14 @@
 			files = (
 				FC070A972CCAD22700946357 /* GameType.swift in Sources */,
 				FC070A982CCAD22700946357 /* GameContext.swift in Sources */,
+				FC070AAF2CCAF9CA00946357 /* ZPGameIdleState.swift in Sources */,
+				FC070AA72CCAEBC500946357 /* ZPGameInfo.swift in Sources */,
+				FC070AAB2CCAF10E00946357 /* ZPGameScene.swift in Sources */,
 				FC070A992CCAD22700946357 /* Dependencies.swift in Sources */,
 				FC070A9A2CCAD22700946357 /* GameModeType.swift in Sources */,
+				FC070AA92CCAF0FE00946357 /* ZPGameContext.swift in Sources */,
+				FC070AAD2CCAF86200946357 /* ZPBoxNode.swift in Sources */,
+				FC070AA52CCAEB9A00946357 /* ZPLayoutInfo.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
