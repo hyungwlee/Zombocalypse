@@ -28,17 +28,11 @@ class ZPGameIdleState: GKState {
         guard let scene, let context else { return }
         print("touched \(touch)")
         let touchLocation = touch.location(in: scene)
-        let newBoxPos = CGPoint(x: touchLocation.x - context.layoutInfo.boxSize.width / 2.0,
-                                y: touchLocation.y - context.layoutInfo.boxSize.height / 2.0)
-        scene.box?.position = newBoxPos
     }
     
     func handleTouchMoved(_ touch: UITouch) {
         guard let scene, let context else { return }
         let touchLocation = touch.location(in: scene)
-        let newBoxPos = CGPoint(x: touchLocation.x - context.layoutInfo.boxSize.width / 2.0,
-                                y: touchLocation.y - context.layoutInfo.boxSize.height / 2.0)
-        scene.box?.position = newBoxPos
     }
     
     func handleTouchEnded(_ touch: UITouch) {

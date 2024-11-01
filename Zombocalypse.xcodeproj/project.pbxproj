@@ -18,6 +18,8 @@
 		FC070AAB2CCAF10E00946357 /* ZPGameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AAA2CCAF10E00946357 /* ZPGameScene.swift */; };
 		FC070AAD2CCAF86200946357 /* ZPBoxNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AAC2CCAF86200946357 /* ZPBoxNode.swift */; };
 		FC070AAF2CCAF9CA00946357 /* ZPGameIdleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */; };
+		FCC9B8D72CD4592A006077B4 /* ZPJoystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8D62CD4592A006077B4 /* ZPJoystick.swift */; };
+		FCC9B8D92CD4767C006077B4 /* ZPZombieNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +54,8 @@
 		FC070AAA2CCAF10E00946357 /* ZPGameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameScene.swift; sourceTree = "<group>"; };
 		FC070AAC2CCAF86200946357 /* ZPBoxNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPBoxNode.swift; sourceTree = "<group>"; };
 		FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameIdleState.swift; sourceTree = "<group>"; };
+		FCC9B8D62CD4592A006077B4 /* ZPJoystick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPJoystick.swift; sourceTree = "<group>"; };
+		FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPZombieNode.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -129,6 +133,7 @@
 				FC070AA02CCAEB2F00946357 /* States */,
 				FC070AA82CCAF0FE00946357 /* ZPGameContext.swift */,
 				FC070AAA2CCAF10E00946357 /* ZPGameScene.swift */,
+				FCC9B8D62CD4592A006077B4 /* ZPJoystick.swift */,
 			);
 			path = Code;
 			sourceTree = "<group>";
@@ -164,6 +169,7 @@
 			isa = PBXGroup;
 			children = (
 				FC070AAC2CCAF86200946357 /* ZPBoxNode.swift */,
+				FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */,
 			);
 			path = Nodes;
 			sourceTree = "<group>";
@@ -339,6 +345,8 @@
 				FC070AA92CCAF0FE00946357 /* ZPGameContext.swift in Sources */,
 				FC070AAD2CCAF86200946357 /* ZPBoxNode.swift in Sources */,
 				FC070AA52CCAEB9A00946357 /* ZPLayoutInfo.swift in Sources */,
+				FCC9B8D92CD4767C006077B4 /* ZPZombieNode.swift in Sources */,
+				FCC9B8D72CD4592A006077B4 /* ZPJoystick.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
