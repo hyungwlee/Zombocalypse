@@ -16,6 +16,7 @@ class ZPGameScene: SKScene {
     
     let zombieCount = 3 // 3 For now as we are testing.
     let zombieSpeed: CGFloat = 0.3
+    let zombieBufferDistance: CGFloat = 10 // Adjust this value to experiment with zombie spacing w one another
     var playerLivesLabel: SKLabelNode!
     var playerLives: Int = 3 {
         didSet {
@@ -23,6 +24,23 @@ class ZPGameScene: SKScene {
         }
     }
     var gameOver: Bool = false
+    
+    //TEMPORARY 'KILL' BUTTON UNTIL AUTO ATTACK FEATURE IS IMPLEMENTED.
+    var killButton: SKLabelNode!
+    
+    // Zombie Wave Settings
+    private var currentWave: Int = 1
+    private var zombieHealth: Int = 1
+    private let maxWave: Int = 4
+    private let zombiesPerWave: Int = 3
+    
+    //Score Settings
+    var score: Int = 0 {
+        didSet {
+            scoreLabel.text = "Score: \(score)"
+        }
+    }
+    var scoreLabel: SKLabelNode!
     
     // Track time since the last frame for smoother movement
     private var lastUpdateTime: TimeInterval = 0
@@ -64,15 +82,35 @@ class ZPGameScene: SKScene {
         }
         playerLives = 3 // Reset playerLives
         
+        // Set up score label at the top
+        if scoreLabel == nil {
+            scoreLabel = SKLabelNode(fontNamed: "Arial")
+            scoreLabel.fontSize = 20
+            scoreLabel.fontColor = .black
+            scoreLabel.position = CGPoint(x: 50, y: size.height - 30)
+            addChild(scoreLabel)
+        }
+        score = 0
+        
         // Clear any existing enemies
         removeZombies()
-        spawnZombies(count: zombieCount)
+        startWave(wave: currentWave)
         
         //Set up joystick
         if joystick == nil {
             joystick = ZPJoystick(baseRadius: 50, knobRadius: 25)
             joystick.position = CGPoint(x: 100, y: 100)
             addChild(joystick)
+        }
+        
+        //TEMPORARILY 'KILL' BUTTON UNTIL AUTO ATTACK FEATURE IS IMPLEMENTED.
+        if killButton == nil {
+            killButton = SKLabelNode(text: "Kill Zombie")
+            killButton.fontSize = 20
+            killButton.fontColor = .red
+            killButton.position = CGPoint(x: size.width - 70, y: size.height - 60)
+            killButton.name = "killButton"
+            addChild(killButton)
         }
     }
     
@@ -83,31 +121,55 @@ class ZPGameScene: SKScene {
         zombies.removeAll()
     }
     
-    func spawnZombies(count: Int) {
-        while zombies.count < count {
-            let zombie = ZPZombie()
-            zombie.position = CGPoint(x: CGFloat.random(in: 0...size.width), y: CGFloat.random(in: 0...size.height))
-            addChild(zombie)
-            zombies.append(zombie)
+    func startWave(wave: Int) {
+        let zombieCount = wave * zombiesPerWave
+        for _ in 0..<zombieCount {
+            spawnZombies(withHealth: zombieHealth)
         }
+    }
+    
+    func spawnZombies(withHealth health: Int) {
+        let zombie = ZPZombie(health: health)
+        var position: CGPoint
+        //Ensure zombies do NOT overlap one another on spawn
+        repeat{
+            position = CGPoint(x: CGFloat.random(in: 0...size.width), y: CGFloat.random(in: 0...size.height))
+        } while zombies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: zombie.size)) })
+        zombie.position = position
+        addChild(zombie)
+        zombies.append(zombie)
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
+        let tappedNodes = nodes(at: location)
         
-        if joystick.contains(location) && !gameOver {
-            let location = touch.location(in: joystick)
-            joystick.startTouch(at: location)
-            
-        } else if gameOver {
-            let tappedNodes = nodes(at: location)
-            for node in tappedNodes {
-                if node.name == "retryButton" {
+        for node in tappedNodes {
+            if node.name == "killButton" {
+                //Temporary zombie removeal to simulate killing a zombie
+                if let zombie = zombies.first {
+                    zombie.removeFromParent()
+                    zombies.removeFirst()
+                    
+                    //Temporary increase score by 1 when button is pressed to simulate killing a zombie
+                    score += 1
+                    
+                    //Check if wave is complete
+                    if zombies.isEmpty {
+                        advanceToNextWave()
+                    }
+                }
+            } else if joystick.contains(location) && !gameOver {
+                let location = touch.location(in: joystick)
+                joystick.startTouch(at: location)
+            } else if gameOver {
+                for node in tappedNodes where node.name == "retryButton" {
                     restartGame()
                 }
             }
         }
+        
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -144,8 +206,38 @@ class ZPGameScene: SKScene {
         //Update zombies positions to move towards the player
         for (index, zombie) in zombies.enumerated().reversed() {
             zombie.moveTowards(player: player, speed: zombieSpeed)
+            
+            //PREVENT ZOMBIES FROM OVERLAPPING ONE ANOTHER
+            preventZombieOverlap(zombie: zombie, index: index)
+            
             if zombie.frame.intersects(player.frame) {
                 handlePlayerHit(zombieIndex: index)
+            }
+        }
+        
+        //Check if all zombies have been defeated before going to next wave. IN THE MEAN TIME,
+        //IMPLEMENT AUTO-CLEAR SINCE WE DO NOT HAVE AUTO ATTACK FEATURE YET.
+        if zombies.isEmpty {
+            advanceToNextWave()
+        }
+    }
+    
+    func preventZombieOverlap(zombie: ZPZombie, index: Int){
+        for (otherIndex, otherZombie) in zombies.enumerated() where otherIndex != index {
+            if zombie.frame.intersects(otherZombie.frame) {
+                let zombieCenter = zombie.position
+                let otherZombieCenter = otherZombie.position
+                
+                let direction = CGVector(dx: zombieCenter.x - otherZombieCenter.x, dy: zombieCenter.y - otherZombieCenter.y)
+                let distance = sqrt(direction.dx * direction.dx + direction.dy * direction.dy)
+                let targetDistance = zombie.size.width / 2 + otherZombie.size.width / 2 + zombieBufferDistance
+                
+                if distance < targetDistance {
+                    let overlapDistance = targetDistance - distance
+                    let normalizedDirection = CGVector(dx: direction.dx / distance, dy: direction.dy / distance)
+                    let adjustment = CGVector(dx: normalizedDirection.dx * overlapDistance * 0.1, dy: normalizedDirection.dy * overlapDistance * 0.1)
+                    zombie.position = CGPoint(x: zombie.position.x + adjustment.dx, y: zombie.position.y + adjustment.dy)
+                }
             }
         }
     }
@@ -157,10 +249,18 @@ class ZPGameScene: SKScene {
         
         if playerLives <= 0 {
             showGameOverScreen()
-        } else {
-            // Respawn an enemy to keep the count of enemies consistent. Can change later on.
-            spawnZombies(count: zombieCount)
         }
+    }
+    
+    func advanceToNextWave() {
+        if currentWave < maxWave {
+            currentWave += 1
+        } else {
+            currentWave = 1
+            zombieHealth += 2
+        }
+        
+        startWave(wave: currentWave)
     }
     
     //Note: Can change this at a later time to match HYEL gameoverscreen style
@@ -177,7 +277,7 @@ class ZPGameScene: SKScene {
         gameOverLabel.position = CGPoint(x: size.width / 2, y: size.height * 0.6)
         gameOverNode.addChild(gameOverLabel)
         
-        let scoreLabel = SKLabelNode(text: "Score: 0") //Placeholder for score to be implemented later
+        let scoreLabel = SKLabelNode(text: "Score: \(score)") //Placeholder for score to be implemented later
         scoreLabel.fontSize = 30
         scoreLabel.fontColor = .white
         scoreLabel.position = CGPoint(x: size.width / 2, y: size.height * 0.55)
@@ -212,6 +312,8 @@ class ZPGameScene: SKScene {
         }
         player.position = centerPosition
         joystick.endTouch()
+        currentWave = 1
+        zombieHealth = 1
         setUpGame()
     }
     
