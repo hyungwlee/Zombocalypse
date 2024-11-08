@@ -1,0 +1,142 @@
+
+class Player {
+    var attackRange: CGFloat
+    var attackDistance: CGFloat
+    var attackSpeed: TimeInterval
+    
+    init(attackRange: CGFloat, attackDistance: CGFloat, attackSpeed: TimeInterval) {
+        self.attackRange = attackRange
+        self.attackDistance = attackDistance
+        self.attackSpeed = attackSpeed
+    }
+    
+    func upgradeRange(by amount: CGFloat) {
+        attackRange += amount
+    }
+    
+    func upgradeDistance(by amount: CGFloat) {
+        attackDistance += amount
+    }
+    
+    func upgradeSpeed(by amount: TimeInterval) {
+        attackSpeed = max(0.1, attackSpeed - amount) // Ensure attack speed doesn’t go too low
+    }
+}
+
+
+import SpriteKit
+
+class GameScene: SKScene {
+    var player: SKSpriteNode!
+    var playerStats: Player!
+    var enemies: [SKSpriteNode] = []
+    
+    override func didMove(to view: SKView) {
+        backgroundColor = .black
+        setupPlayer()
+        playerStats = Player(attackRange: 100.0, attackDistance: 200.0, attackSpeed: 1.0)
+    }
+
+    func setupPlayer() {
+        player = SKSpriteNode(color: .blue, size: CGSize(width: 50, height: 50))
+        player.position = CGPoint(x: frame.midX, y: frame.midY)
+        addChild(player)
+    }
+}
+func findNearestEnemy() -> SKSpriteNode? {
+    guard !enemies.isEmpty else { return nil }
+    
+    var nearestEnemy: SKSpriteNode?
+    var shortestDistance: CGFloat = .greatestFiniteMagnitude
+    
+    for enemy in enemies {
+        let distance = distanceBetween(player.position, enemy.position)
+        if distance < shortestDistance {
+            shortestDistance = distance
+            nearestEnemy = enemy
+        }
+    }
+    
+    return nearestEnemy
+}
+
+func distanceBetween(_ point1: CGPoint, _ point2: CGPoint) -> CGFloat {
+    return hypot(point2.x - point1.x, point2.y - point1.y)
+}
+func fireWeapon() {
+    guard let nearestEnemy = findNearestEnemy() else { return }
+    
+    let projectile = SKSpriteNode(color: .yellow, size: CGSize(width: 10, height: 10))
+    projectile.position = player.position
+    
+    // Move the projectile to the nearest enemy using the attack speed
+    let moveAction = SKAction.move(to: nearestEnemy.position, duration: playerStats.attackSpeed)
+    projectile.run(moveAction)
+    
+    addChild(projectile)
+}
+var lastAttackTime: TimeInterval = 0
+
+override func update(_ currentTime: TimeInterval) {
+    // Fire weapon based on attack cooldown
+    if currentTime - lastAttackTime >= playerStats.attackSpeed {
+        fireWeapon()
+        lastAttackTime = currentTime
+    }
+}
+func spawnEnemy() {
+    let enemy = SKSpriteNode(color: .red, size: CGSize(width: 30, height: 30))
+    enemy.position = CGPoint(
+        x: CGFloat(arc4random_uniform(UInt32(frame.width))),
+        y: CGFloat(arc4random_uniform(UInt32(frame.height)))
+    )
+    enemies.append(enemy)
+    addChild(enemy)
+}
+enum PowerUpType {
+    case range, distance, speed
+}
+
+func spawnPowerUp() {
+    let types: [PowerUpType] = [.range, .distance, .speed]
+    let chosenType = types.randomElement() ?? .range
+
+    let powerUp = SKSpriteNode(color: .green, size: CGSize(width: 20, height: 20))
+    powerUp.position = CGPoint(
+        x: CGFloat(arc4random_uniform(UInt32(frame.width))),
+        y: CGFloat(arc4random_uniform(UInt32(frame.height)))
+    )
+    powerUp.name = "\(chosenType)"
+    addChild(powerUp)
+}
+func checkCollisions() {
+    for node in children {
+        if let enemy = node as? SKSpriteNode, enemy.color == .red,
+           player.frame.intersects(enemy.frame) {
+            removeEnemy(enemy)
+        }
+
+        if let powerUp = node as? SKSpriteNode, powerUp.color == .green,
+           player.frame.intersects(powerUp.frame) {
+            if let type = powerUp.name {
+                switch type {
+                case "\(PowerUpType.range)":
+                    playerStats.upgradeRange(by: 20.0)
+                case "\(PowerUpType.distance)":
+                    playerStats.upgradeDistance(by: 50.0)
+                case "\(PowerUpType.speed)":
+                    playerStats.upgradeSpeed(by: 0.1)
+                default: break
+                }
+            }
+            powerUp.removeFromParent()
+        }
+    }
+}
+
+func removeEnemy(_ enemy: SKSpriteNode) {
+    if let index = enemies.firstIndex(of: enemy) {
+        enemies.remove(at: index)
+    }
+    enemy.removeFromParent()
+}
