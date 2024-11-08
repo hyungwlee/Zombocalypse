@@ -237,6 +237,13 @@ class ZPGameScene: SKScene {
                         zombie.removeFromParent()
                         zombies.remove(at: index)
                         score += 1
+                        //Powerup
+                        let randomNumber = Int.random(in: 1...5)
+
+                        // Check if the random number is 5, and increment the variable if true
+                        if randomNumber == 5 {
+                            attackDamage += 1
+                        }
                     }
                     break // only attack one zombie per interval
                 }
