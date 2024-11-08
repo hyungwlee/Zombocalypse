@@ -13,8 +13,12 @@ class ZPZombie: SKSpriteNode {
             healthLabel.text = "\(health)"
         }
     }
+    var isDead: Bool {
+        return health <= 0
+    }
     
     private let healthLabel: SKLabelNode
+    
     
     init(health: Int) {
         self.health = health
@@ -43,7 +47,7 @@ class ZPZombie: SKSpriteNode {
     
     func takeDamage(amount: Int) {
         health -= amount
-        if health <= 0 {
+        if isDead {
             removeFromParent()
         }
     }

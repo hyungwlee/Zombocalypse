@@ -7,6 +7,15 @@
 
 import SpriteKit
 import GameplayKit
+import CoreGraphics
+
+extension CGPoint {
+    func distance(to otherPoint: CGPoint) -> CGFloat {
+        let dx = otherPoint.x - self.x
+        let dy = otherPoint.y - self.y
+        return sqrt(dx * dx + dy * dy)
+    }
+}
 
 class ZPGameScene: SKScene {
     weak var context: ZPGameContext?
@@ -25,14 +34,17 @@ class ZPGameScene: SKScene {
     }
     var gameOver: Bool = false
     
-    //TEMPORARY 'KILL' BUTTON UNTIL AUTO ATTACK FEATURE IS IMPLEMENTED.
-    var killButton: SKLabelNode!
-    
     // Zombie Wave Settings
     private var currentWave: Int = 1
     private var zombieHealth: Int = 1
     private let maxWave: Int = 4
     private let zombiesPerWave: Int = 3
+    
+    // Auto-attack variables
+    private var attackDamage: Int = 1
+    private var attackInterval: TimeInterval = 1.0 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (speed)
+    private var lastAttackTime: TimeInterval = 0
+    private let attackRange: CGFloat = 150 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (range)
     
     //Score Settings
     var score: Int = 0 {
@@ -102,16 +114,6 @@ class ZPGameScene: SKScene {
             joystick.position = CGPoint(x: 100, y: 100)
             addChild(joystick)
         }
-        
-        //TEMPORARILY 'KILL' BUTTON UNTIL AUTO ATTACK FEATURE IS IMPLEMENTED.
-        if killButton == nil {
-            killButton = SKLabelNode(text: "Kill Zombie")
-            killButton.fontSize = 20
-            killButton.fontColor = .red
-            killButton.position = CGPoint(x: size.width - 70, y: size.height - 60)
-            killButton.name = "killButton"
-            addChild(killButton)
-        }
     }
     
     func removeZombies() {
@@ -146,21 +148,7 @@ class ZPGameScene: SKScene {
         let tappedNodes = nodes(at: location)
         
         for node in tappedNodes {
-            if node.name == "killButton" {
-                //Temporary zombie removeal to simulate killing a zombie
-                if let zombie = zombies.first {
-                    zombie.removeFromParent()
-                    zombies.removeFirst()
-                    
-                    //Temporary increase score by 1 when button is pressed to simulate killing a zombie
-                    score += 1
-                    
-                    //Check if wave is complete
-                    if zombies.isEmpty {
-                        advanceToNextWave()
-                    }
-                }
-            } else if joystick.contains(location) && !gameOver {
+            if joystick.contains(location) && !gameOver {
                 let location = touch.location(in: joystick)
                 joystick.startTouch(at: location)
             } else if gameOver {
@@ -215,10 +203,44 @@ class ZPGameScene: SKScene {
             }
         }
         
-        //Check if all zombies have been defeated before going to next wave. IN THE MEAN TIME,
-        //IMPLEMENT AUTO-CLEAR SINCE WE DO NOT HAVE AUTO ATTACK FEATURE YET.
+        autoAttackZombies(currentTime: currentTime)
+        
+        //Check if all zombies have been defeated before going to next wave.
         if zombies.isEmpty {
             advanceToNextWave()
+        }
+    }
+    
+    func autoAttackZombies(currentTime: TimeInterval){
+        //This ensures enough time has passed since last attack
+        if currentTime - lastAttackTime >= attackInterval {
+            lastAttackTime = currentTime
+            
+            //Check for nearby zombies within range
+            for (index, zombie) in zombies.enumerated().reversed() {
+                if zombie.position.distance(to: player.position) <= attackRange {
+                    //TEMPORARY VISUAL CUE OF SHOOTING UNTIL WE DO ANIMATIONS IN THE FUTURE
+                    let line = SKShapeNode()
+                    let path = CGMutablePath()
+                    path.move(to: player.position)
+                    path.addLine(to: zombie.position)
+                    line.path = path
+                    line.strokeColor = .green
+                    line.lineWidth = 3
+                    addChild(line)
+                    let fadeOut = SKAction.fadeOut(withDuration: 0.1)
+                    let remove = SKAction.removeFromParent()
+                    line.run(SKAction.sequence([fadeOut, remove]))
+                    //
+                    zombie.takeDamage(amount: attackDamage)
+                    if zombie.isDead {
+                        zombie.removeFromParent()
+                        zombies.remove(at: index)
+                        score += 1
+                    }
+                    break // only attack one zombie per interval
+                }
+            }
         }
     }
     
