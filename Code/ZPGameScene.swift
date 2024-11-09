@@ -44,7 +44,7 @@ class ZPGameScene: SKScene {
     private var attackDamage: Int = 1
     private var attackInterval: TimeInterval = 1.0 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (speed)
     private var lastAttackTime: TimeInterval = 0
-    private let attackRange: CGFloat = 150 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (range)
+    private var attackRange: CGFloat = 150 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (range)
     
     //Score Settings
     var score: Int = 0 {
@@ -57,6 +57,15 @@ class ZPGameScene: SKScene {
     // Track time since the last frame for smoother movement
     private var lastUpdateTime: TimeInterval = 0
     private let centerPosition: CGPoint
+    
+    //Upgrades Settings
+    private var enemiesDefeated: Int = 0
+    private var nextPowerUpThreshold: Int = 5
+    private var powerUpAvailable: Bool = false
+    private var isGamePaused: Bool = false
+    var upgradePopup: SKShapeNode!
+    var upgradeStatsLabel: SKLabelNode!
+    var powerUpLabel: SKLabelNode!
 
     init(context: ZPGameContext, size: CGSize) {
         self.context = context
@@ -104,6 +113,26 @@ class ZPGameScene: SKScene {
         }
         score = 0
         
+        //Displaying upgrade stats label
+        if upgradeStatsLabel == nil {
+            upgradeStatsLabel = SKLabelNode(fontNamed: "Arial")
+            upgradeStatsLabel.fontSize = 14
+            upgradeStatsLabel.fontColor = .black
+            upgradeStatsLabel.position = CGPoint(x: size.width / 2, y: size.height - 80)
+            addChild(upgradeStatsLabel)
+        }
+        updateUpgradeStatsLabel()
+        
+        //Displaying power up label
+        if powerUpLabel == nil {
+            powerUpLabel = SKLabelNode(fontNamed: "Arial")
+            powerUpLabel.fontSize = 14
+            powerUpLabel.fontColor = .black
+            powerUpLabel.position = CGPoint(x: size.width / 2, y: size.height - 110)
+            addChild(powerUpLabel)
+        }
+        updatePowerUpLabel()
+        
         // Clear any existing enemies
         removeZombies()
         startWave(wave: currentWave)
@@ -114,6 +143,62 @@ class ZPGameScene: SKScene {
             joystick.position = CGPoint(x: 100, y: 100)
             addChild(joystick)
         }
+        updateUpgradeStatsLabel()
+        updatePowerUpLabel()
+    }
+    
+    func showUpgradePopup() {
+        isGamePaused = true
+        self.isPaused = true // Pauses all SKAction updates
+        //create popup background
+        let popupWidth = size.width * 0.6
+        let popupHeight = size.height * 0.4
+        let popup = SKShapeNode(rectOf: CGSize(width: popupWidth, height: popupHeight), cornerRadius: 10)
+        popup.fillColor = .darkGray
+        popup.alpha = 0.9
+        popup.name = "upgradePopup"
+        popup.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        
+        //Attack damage button
+        let atkDamageButton = SKLabelNode(text: "Increase Attack Damage")
+        atkDamageButton.name = "attack"
+        atkDamageButton.fontSize = 20
+        atkDamageButton.position = CGPoint(x: 0, y:40)
+        popup.addChild(atkDamageButton)
+        //Attack range button
+        let atkRangeButton = SKLabelNode(text: "Increase Attack Range")
+        atkRangeButton.name = "range"
+        atkRangeButton.fontSize = 20
+        atkRangeButton.position = CGPoint(x: 0, y:0)
+        popup.addChild(atkRangeButton)
+        //Attack speed button
+        let atkSpeedButton = SKLabelNode(text: "Increase Attack Speed")
+        atkSpeedButton.name = "speed"
+        atkSpeedButton.fontSize = 20
+        atkSpeedButton.position = CGPoint(x: 0, y:-40)
+        popup.addChild(atkSpeedButton)
+        
+        addChild(popup)
+        upgradePopup = popup
+    }
+    
+    func applyUpgrade(_ choice: String) {
+        switch choice {
+        case "attack":
+            attackDamage += 1
+        case "range":
+            attackRange += 25
+        case "speed":
+            attackInterval = max(0.1, attackInterval - 0.1) //THIS TEMPORARILY ENSURES IT DOES NOT GO BELOW 0.1
+        default:
+            break
+        }
+        powerUpAvailable = false
+        isGamePaused = false
+        self.isPaused = false // Resumes game updates
+        upgradePopup?.removeFromParent()
+        upgradePopup = nil
+        updateUpgradeStatsLabel()
     }
     
     func removeZombies() {
@@ -147,17 +232,24 @@ class ZPGameScene: SKScene {
         let location = touch.location(in: self)
         let tappedNodes = nodes(at: location)
         
-        for node in tappedNodes {
-            if joystick.contains(location) && !gameOver {
-                let location = touch.location(in: joystick)
-                joystick.startTouch(at: location)
-            } else if gameOver {
-                for node in tappedNodes where node.name == "retryButton" {
-                    restartGame()
+        if isGamePaused {
+            for node in tappedNodes {
+                if let nodeName = node.name, ["attack", "range", "speed"].contains(nodeName) {
+                    applyUpgrade(nodeName)
+                    return
                 }
             }
         }
         
+        if joystick.contains(location) && !gameOver {
+            let location = touch.location(in: joystick)
+            joystick.startTouch(at: location)
+        }
+        if gameOver {
+            for node in tappedNodes where node.name == "retryButton" {
+                restartGame()
+            }
+        }
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -176,7 +268,12 @@ class ZPGameScene: SKScene {
     }
     
     override func update(_ currentTime: TimeInterval) {
-        guard !gameOver else { return }
+        guard !gameOver, !isGamePaused else { return }
+        
+        if powerUpAvailable {
+            showUpgradePopup()
+        }
+        
         // Calculate time delta for consistent movement
         let deltaTime = currentTime - lastUpdateTime
         lastUpdateTime = currentTime
@@ -237,12 +334,12 @@ class ZPGameScene: SKScene {
                         zombie.removeFromParent()
                         zombies.remove(at: index)
                         score += 1
-                        //Powerup
-                        let randomNumber = Int.random(in: 1...5)
-
-                        // Check if the random number is 5, and increment the variable if true
-                        if randomNumber == 5 {
-                            attackDamage += 1
+                        enemiesDefeated += 1
+                        updatePowerUpLabel()
+                        if enemiesDefeated >= nextPowerUpThreshold {
+                            enemiesDefeated = 0
+                            powerUpAvailable = true
+                            nextPowerUpThreshold += 5
                         }
                     }
                     break // only attack one zombie per interval
@@ -343,6 +440,11 @@ class ZPGameScene: SKScene {
         joystick.endTouch()
         currentWave = 1
         zombieHealth = 1
+        enemiesDefeated = 0
+        attackDamage = 1
+        attackInterval = 1.0
+        attackRange = 150
+        nextPowerUpThreshold = 5
         setUpGame()
     }
     
@@ -353,5 +455,19 @@ class ZPGameScene: SKScene {
         let clampedX = min(size.width - halfWidth, max(halfWidth, position.x))
         let clampedY = min(size.height - halfHeight, max(halfHeight, position.y))
         return CGPoint(x: clampedX, y: clampedY)
+    }
+    
+    func updateUpgradeStatsLabel() {
+        upgradeStatsLabel.text = "Attack Damage: \(attackDamage) | Attack Range: \(attackRange) | Attacks/Second: \(attackInterval)"
+    }
+    
+    func updatePowerUpLabel() {
+        let enemiesLeft = nextPowerUpThreshold - enemiesDefeated
+        if enemiesLeft > 0 {
+            powerUpLabel.text = "Defeat \(enemiesLeft) more enemies!"
+        } else {
+            //STILL DECIDING IF WE WANT TO USE THIS OR NOT. SO FAR, IT IS NOT USED.
+            powerUpLabel.text = "Power Up Ready!"
+        }
     }
 }
