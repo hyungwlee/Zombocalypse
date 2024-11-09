@@ -210,7 +210,15 @@ class ZPGameScene: SKScene {
             advanceToNextWave()
         }
     }
-    
+    func powerUp() {
+        //Powerup
+        let randomNumber = Int.random(in: 1...10)
+
+        // Check if the random number is 5, and increment the variable if true
+        if randomNumber == 5 {
+            attackDamage += 1
+        }
+    }
     func autoAttackZombies(currentTime: TimeInterval){
         //This ensures enough time has passed since last attack
         if currentTime - lastAttackTime >= attackInterval {
@@ -237,13 +245,7 @@ class ZPGameScene: SKScene {
                         zombie.removeFromParent()
                         zombies.remove(at: index)
                         score += 1
-                        //Powerup
-                        let randomNumber = Int.random(in: 1...5)
-
-                        // Check if the random number is 5, and increment the variable if true
-                        if randomNumber == 5 {
-                            attackDamage += 1
-                        }
+                        powerUp()
                     }
                     break // only attack one zombie per interval
                 }
