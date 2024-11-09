@@ -41,7 +41,11 @@ class ZPGameScene: SKScene {
     private let zombiesPerWave: Int = 3
     
     // Auto-attack variables
-    private var attackDamage: Int = 1
+    var attackDamage: Int = 1 {
+        didSet {
+            playerAttackDamageLabel.text = "AD; \(attackDamage)"
+        }
+    }
     private var attackInterval: TimeInterval = 1.0 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (speed)
     private var lastAttackTime: TimeInterval = 0
     private let attackRange: CGFloat = 150 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (range)
@@ -93,6 +97,15 @@ class ZPGameScene: SKScene {
             addChild(playerLivesLabel)
         }
         playerLives = 3 // Reset playerLives
+
+        if playerAttackDamageLabel == nil {
+            playerAttackDamageLabel = SKLabelNode(fontNamed: "Arial")
+            playerAttackDamageLabel.fontSize = 20
+            playerAttackDamageLabel.fontColor = .black
+            playerAttackDamageLabel.position = CGPoint(x: size.width - 50, y: size.height - 40)
+            addChild(playerAttackDamageLabel)
+        }
+        attackDamage = 1 // Reset attackDamage
         
         // Set up score label at the top
         if scoreLabel == nil {
