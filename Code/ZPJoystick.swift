@@ -11,6 +11,8 @@ class ZPJoystick: SKNode {
     private let base: SKShapeNode
     private let knob: SKShapeNode
     var positionDelta = CGPoint.zero
+    var isActive: Bool = false
+    var direction: CGVector = .zero
 
     init(baseRadius: CGFloat, knobRadius: CGFloat) {
         base = SKShapeNode(circleOfRadius: baseRadius)
@@ -51,6 +53,18 @@ class ZPJoystick: SKNode {
     func endTouch() {
         knob.position = .zero
         positionDelta = .zero
+    }
+    
+    func activate() {
+        isActive = true
+    }
+    
+    func deactivate() {
+        isActive = false
+    }
+    
+    func updateDirection(newDirection: CGVector) {
+        direction = newDirection
     }
 
     private func updatePositionDelta() {
