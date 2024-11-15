@@ -20,6 +20,8 @@
 		FC070AAF2CCAF9CA00946357 /* ZPGameIdleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */; };
 		FCC9B8D72CD4592A006077B4 /* ZPJoystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8D62CD4592A006077B4 /* ZPJoystick.swift */; };
 		FCC9B8D92CD4767C006077B4 /* ZPZombieNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */; };
+		FCC9B8DB2CE55505006077B4 /* ZPChargerZombieNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8DA2CE55505006077B4 /* ZPChargerZombieNode.swift */; };
+		FCC9B8DD2CE5B404006077B4 /* ZPExploderZombieNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8DC2CE5B404006077B4 /* ZPExploderZombieNode.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +58,8 @@
 		FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameIdleState.swift; sourceTree = "<group>"; };
 		FCC9B8D62CD4592A006077B4 /* ZPJoystick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPJoystick.swift; sourceTree = "<group>"; };
 		FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPZombieNode.swift; sourceTree = "<group>"; };
+		FCC9B8DA2CE55505006077B4 /* ZPChargerZombieNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPChargerZombieNode.swift; sourceTree = "<group>"; };
+		FCC9B8DC2CE5B404006077B4 /* ZPExploderZombieNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPExploderZombieNode.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -170,6 +174,8 @@
 			children = (
 				FC070AAC2CCAF86200946357 /* ZPBoxNode.swift */,
 				FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */,
+				FCC9B8DA2CE55505006077B4 /* ZPChargerZombieNode.swift */,
+				FCC9B8DC2CE5B404006077B4 /* ZPExploderZombieNode.swift */,
 			);
 			path = Nodes;
 			sourceTree = "<group>";
@@ -335,6 +341,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FCC9B8DB2CE55505006077B4 /* ZPChargerZombieNode.swift in Sources */,
 				FC070A972CCAD22700946357 /* GameType.swift in Sources */,
 				FC070A982CCAD22700946357 /* GameContext.swift in Sources */,
 				FC070AAF2CCAF9CA00946357 /* ZPGameIdleState.swift in Sources */,
@@ -346,6 +353,7 @@
 				FC070AAD2CCAF86200946357 /* ZPBoxNode.swift in Sources */,
 				FC070AA52CCAEB9A00946357 /* ZPLayoutInfo.swift in Sources */,
 				FCC9B8D92CD4767C006077B4 /* ZPZombieNode.swift in Sources */,
+				FCC9B8DD2CE5B404006077B4 /* ZPExploderZombieNode.swift in Sources */,
 				FCC9B8D72CD4592A006077B4 /* ZPJoystick.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

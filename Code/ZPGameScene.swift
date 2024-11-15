@@ -225,11 +225,15 @@ class ZPGameScene: SKScene {
     }
     
     func startWave(wave: Int) {
-        let zombieCount = wave * zombiesPerWave
-        for _ in 0..<zombieCount {
-            spawnZombies(withHealth: zombieHealth)
+            let zombieCount = wave * zombiesPerWave
+            for _ in 0..<zombieCount {
+                spawnZombies(withHealth: zombieHealth)
+            }
+            
+            //TESTING. ADD ONE CHARGER ZOMBIE AND EXPLODER ZOMBIE PER WAVE
+            spawnChargerZombie()
+            //spawnExploderZombie()
         }
-    }
     
     func spawnZombies(withHealth health: Int) {
         let zombie = ZPZombie(health: health)
@@ -242,6 +246,28 @@ class ZPGameScene: SKScene {
         addChild(zombie)
         zombies.append(zombie)
     }
+    
+    func spawnChargerZombie() {
+            let chargerZombie = ZPChargerZombieNode(health: zombieHealth, movementSpeed: zombieSpeed)
+            var position: CGPoint
+            repeat {
+                position = CGPoint(x: CGFloat.random(in: 0...size.width), y: CGFloat.random(in: 0...size.height))
+            } while zombies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: chargerZombie.size)) })
+            chargerZombie.position = position
+            addChild(chargerZombie)
+            zombies.append(chargerZombie)
+        }
+        
+        func spawnExploderZombie() {
+            let exploderZombie = ZPExploderZombieNode(health: zombieHealth, movementSpeed: zombieSpeed)
+            var position: CGPoint
+            repeat {
+                position = CGPoint(x: CGFloat.random(in: 0...size.width), y: CGFloat.random(in: 0...size.height))
+            } while zombies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: exploderZombie.size)) })
+            exploderZombie.position = position
+            addChild(exploderZombie)
+            zombies.append(exploderZombie)
+        }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
@@ -293,6 +319,7 @@ class ZPGameScene: SKScene {
     }
     
     override func update(_ currentTime: TimeInterval) {
+        super.update(currentTime)
         guard !gameOver, !isGamePaused else { return }
         
         if powerUpAvailable {
@@ -336,6 +363,17 @@ class ZPGameScene: SKScene {
         }
         //comment out for now just incase we go back to autoattack
         //autoAttackZombies(currentTime: currentTime)
+        
+        //Update method for each charger/exploder zombie in the scene
+        for zombie in zombies {
+            if let chargerZombie = zombie as? ZPChargerZombieNode {
+                chargerZombie.update(deltaTime: currentTime, playerPosition: player.position)
+            }
+            if let exploderZombie = zombie as? ZPExploderZombieNode {
+                exploderZombie.update(deltaTime: currentTime, playerPosition: player.position)
+            }
+        }
+        
         
         //Check if all zombies have been defeated before going to next wave.
         if zombies.isEmpty {
