@@ -16,14 +16,20 @@ extension CGPoint {
         return sqrt(dx * dx + dy * dy)
     }
 }
+extension CGVector {
+    var normalized: CGVector {
+        let length = sqrt(dx * dx + dy * dy)
+        return length > 0 ? CGVector(dx: dx / length, dy: dy / length) : .zero
+    }
+}
 
 class ZPGameScene: SKScene {
     weak var context: ZPGameContext?
     var joystick: ZPJoystick!
+    var shootJoystick: ZPJoystick!
     var player: SKSpriteNode!
     var zombies: [ZPZombie] = [] // Array to hold the zombies
-    var wizard: ZPWizard! // The wizard enemy
-
+    
     let zombieCount = 3 // 3 For now as we are testing.
     let zombieSpeed: CGFloat = 0.3
     let zombieBufferDistance: CGFloat = 10 // Adjust this value to experiment with zombie spacing w one another
@@ -43,9 +49,12 @@ class ZPGameScene: SKScene {
     
     // Auto-attack variables
     private var attackDamage: Int = 1
+    private var projectileMoveDistance: CGFloat = 200 //attack range of bullet
+    private var shootInterval: TimeInterval = 1.0 //attack speed of bullet
     private var attackInterval: TimeInterval = 1.0 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (speed)
+    private var lastShootTime: TimeInterval = 0
     private var lastAttackTime: TimeInterval = 0
-    private var attackRange: CGFloat = 150 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (range)
+    //private var attackRange: CGFloat = 150 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (range)
     
     //Score Settings
     var score: Int = 0 {
@@ -145,19 +154,78 @@ class ZPGameScene: SKScene {
             addChild(joystick)
         }
         
-        // Spawn the wizard enemy if not already present
-        if wizard == nil {
-            wizard = ZPWizard()
-            addChild(wizard)
-            wizard.position = CGPoint(x: size.width / 2, y: size.height - 50)
+        //Set up shooting joystick
+        if shootJoystick == nil {
+            shootJoystick = ZPJoystick(baseRadius: 50, knobRadius: 25)
+            shootJoystick.position = CGPoint(x: size.width - 100, y: 100)
+            addChild(shootJoystick)
         }
-        
         updateUpgradeStatsLabel()
         updatePowerUpLabel()
     }
-
-    // Other methods here (e.g., showUpgradePopup, applyUpgrade, etc.)
-
+    
+    func showUpgradePopup() {
+        isGamePaused = true
+        self.isPaused = true // Pauses all SKAction updates
+        //create popup background
+        let popupWidth = size.width * 0.6
+        let popupHeight = size.height * 0.4
+        let popup = SKShapeNode(rectOf: CGSize(width: popupWidth, height: popupHeight), cornerRadius: 10)
+        popup.fillColor = .darkGray
+        popup.alpha = 0.9
+        popup.name = "upgradePopup"
+        popup.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        
+        //Attack damage button
+        let atkDamageButton = SKLabelNode(text: "Increase Attack Damage")
+        atkDamageButton.name = "attack"
+        atkDamageButton.fontSize = 20
+        atkDamageButton.position = CGPoint(x: 0, y:40)
+        popup.addChild(atkDamageButton)
+        //Attack range button
+        let atkRangeButton = SKLabelNode(text: "Increase Attack Range")
+        atkRangeButton.name = "range"
+        atkRangeButton.fontSize = 20
+        atkRangeButton.position = CGPoint(x: 0, y:0)
+        popup.addChild(atkRangeButton)
+        //Attack speed button
+        let atkSpeedButton = SKLabelNode(text: "Increase Attack Speed")
+        atkSpeedButton.name = "speed"
+        atkSpeedButton.fontSize = 20
+        atkSpeedButton.position = CGPoint(x: 0, y:-40)
+        popup.addChild(atkSpeedButton)
+        //1+ Health option button
+        let addHealthButton = SKLabelNode(text: "+1 Health")
+        addHealthButton.name = "health"
+        addHealthButton.fontSize = 20
+        addHealthButton.position = CGPoint(x: 0, y:-80)
+        popup.addChild(addHealthButton)
+        
+        addChild(popup)
+        upgradePopup = popup
+    }
+    
+    func applyUpgrade(_ choice: String) {
+        switch choice {
+        case "attack":
+            attackDamage += 1
+        case "range":
+            projectileMoveDistance += 100
+        case "speed":
+            shootInterval = max(0.3, shootInterval - 0.1) //THIS TEMPORARILY ENSURES IT DOES NOT GO BELOW 0.1
+        case "health":
+            playerLives += 1
+        default:
+            break
+        }
+        powerUpAvailable = false
+        isGamePaused = false
+        self.isPaused = false // Resumes game updates
+        upgradePopup?.removeFromParent()
+        upgradePopup = nil
+        updateUpgradeStatsLabel()
+    }
+    
     func removeZombies() {
         for zombie in zombies {
             zombie.removeFromParent()
@@ -166,17 +234,21 @@ class ZPGameScene: SKScene {
     }
     
     func startWave(wave: Int) {
-        let zombieCount = wave * zombiesPerWave
-        for _ in 0..<zombieCount {
-            spawnZombies(withHealth: zombieHealth)
+            let zombieCount = wave * zombiesPerWave
+            for _ in 0..<zombieCount {
+                spawnZombies(withHealth: zombieHealth)
+            }
+            
+            //TESTING. ADD ONE CHARGER ZOMBIE AND EXPLODER ZOMBIE PER WAVE
+            spawnChargerZombie()
+            spawnExploderZombie()
         }
-    }
     
     func spawnZombies(withHealth health: Int) {
         let zombie = ZPZombie(health: health)
         var position: CGPoint
         //Ensure zombies do NOT overlap one another on spawn
-        repeat {
+        repeat{
             position = CGPoint(x: CGFloat.random(in: 0...size.width), y: CGFloat.random(in: 0...size.height))
         } while zombies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: zombie.size)) })
         zombie.position = position
@@ -184,7 +256,79 @@ class ZPGameScene: SKScene {
         zombies.append(zombie)
     }
     
+    func spawnChargerZombie() {
+            let chargerZombie = ZPChargerZombieNode(health: zombieHealth, movementSpeed: zombieSpeed)
+            var position: CGPoint
+            repeat {
+                position = CGPoint(x: CGFloat.random(in: 0...size.width), y: CGFloat.random(in: 0...size.height))
+            } while zombies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: chargerZombie.size)) })
+            chargerZombie.position = position
+            addChild(chargerZombie)
+            zombies.append(chargerZombie)
+        }
+        
+        func spawnExploderZombie() {
+            let exploderZombie = ZPExploderZombieNode(health: zombieHealth, movementSpeed: zombieSpeed)
+            var position: CGPoint
+            repeat {
+                position = CGPoint(x: CGFloat.random(in: 0...size.width), y: CGFloat.random(in: 0...size.height))
+            } while zombies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: exploderZombie.size)) })
+            exploderZombie.position = position
+            addChild(exploderZombie)
+            zombies.append(exploderZombie)
+        }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+        let tappedNodes = nodes(at: location)
+        
+        if isGamePaused {
+            for node in tappedNodes {
+                if let nodeName = node.name, ["attack", "range", "speed", "health"].contains(nodeName) {
+                    applyUpgrade(nodeName)
+                    return
+                }
+            }
+        }
+        
+        if joystick.contains(location) && !gameOver {
+            let location = touch.location(in: joystick)
+            joystick.startTouch(at: location)
+        }
+        else if shootJoystick.contains(location) && !gameOver {
+            shootJoystick.startTouch(at: touch.location(in: shootJoystick))
+            shootJoystick.activate()
+        }
+        if gameOver {
+            for node in tappedNodes where node.name == "retryButton" {
+                restartGame()
+            }
+        }
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+        if joystick.contains(location) && !gameOver {
+            let joystickLocation = touch.location(in: joystick)
+            joystick.moveTouch(to: joystickLocation)
+        }
+        else if shootJoystick.contains(location) && !gameOver {
+            shootJoystick.moveTouch(to: touch.location(in: shootJoystick))
+        }
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if !gameOver {
+            joystick.endTouch()
+            shootJoystick.endTouch()
+            shootJoystick.deactivate()
+        }
+    }
+    
     override func update(_ currentTime: TimeInterval) {
+        super.update(currentTime)
         guard !gameOver, !isGamePaused else { return }
         
         if powerUpAvailable {
@@ -205,24 +349,169 @@ class ZPGameScene: SKScene {
         let newPlayerPosition = CGPoint(x: player.position.x + dx, y: player.position.y + dy)
         player.position = boundPosition(newPlayerPosition)
         
-        // Update wizard's actions
-        wizard.update(currentTime: currentTime, playerPosition: player.position)
+        //Check shoot joystick to aim and shoot projectiles
+        if shootJoystick.isActive {
+            let aimDirection = shootJoystick.positionDelta
+            //IF ANY ERROR OCCURS WITH SHOOTING, POTENTIAL REASON IS BC WE ARE REUSING CURRENTTIME
+            if aimDirection != .zero && currentTime - lastShootTime >= shootInterval{
+                lastShootTime = currentTime
+                shootProjectile(in: aimDirection)
+            }
+        }
         
-        // Update zombie positions and actions
+        //Update zombies positions to move towards the player
         for (index, zombie) in zombies.enumerated().reversed() {
             zombie.moveTowards(player: player, speed: zombieSpeed)
+            
+            //PREVENT ZOMBIES FROM OVERLAPPING ONE ANOTHER
             preventZombieOverlap(zombie: zombie, index: index)
+            
             if zombie.frame.intersects(player.frame) {
                 handlePlayerHit(zombieIndex: index)
             }
         }
+        //comment out for now just incase we go back to autoattack
+        //autoAttackZombies(currentTime: currentTime)
         
-        autoAttackZombies(currentTime: currentTime)
+        //Update method for each charger/exploder zombie in the scene
+        for zombie in zombies {
+            if let chargerZombie = zombie as? ZPChargerZombieNode {
+                chargerZombie.update(deltaTime: currentTime, playerPosition: player.position)
+            }
+            if let exploderZombie = zombie as? ZPExploderZombieNode {
+                exploderZombie.update(deltaTime: currentTime, playerPosition: player.position)
+            }
+        }
         
-        // Check if all zombies have been defeated before going to the next wave
+        
+        //Check if all zombies have been defeated before going to next wave.
         if zombies.isEmpty {
             advanceToNextWave()
         }
+    }
+    
+    func shootProjectile(in direction: CGPoint) {
+        //Create projectile node
+        let projectile = SKSpriteNode(color: .green, size: CGSize(width: 15, height: 15))
+        projectile.position = player.position
+        projectile.name = "projectile"
+        addChild(projectile)
+        //Set up movement action in the specified direction
+        let normalizedDirection = CGVector(dx: direction.x, dy: direction.y).normalized
+        //let moveDistance: CGFloat = 800
+        let moveAction = SKAction.move(by: CGVector(dx: normalizedDirection.dx * projectileMoveDistance, dy: normalizedDirection.dy * projectileMoveDistance), duration: 2)
+        //Collision check
+        let collisionAction = SKAction.run {
+            self.checkProjectileCollision(projectile)
+        }
+        let collisionCheckSequence = SKAction.sequence([collisionAction, SKAction.wait(forDuration: 0.05)])
+        let repeatCollisionCheck = SKAction.repeat(collisionCheckSequence, count: Int(2.0 / 0.05)) // Run for duration of 'moveAction'
+        
+        let combinedAction = SKAction.group([moveAction, repeatCollisionCheck])
+        projectile.run(SKAction.sequence([combinedAction, SKAction.removeFromParent()]))
+    }
+    
+    func checkProjectileCollision(_ projectile: SKSpriteNode) {
+        for (index, zombie) in zombies.enumerated().reversed() {
+            if projectile.frame.intersects(zombie.frame) {
+                zombie.takeDamage(amount: attackDamage)
+                if zombie.isDead {
+                    zombie.removeFromParent()
+                    zombies.remove(at: index)
+                    score += 1
+                    enemiesDefeated += 1
+                    updatePowerUpLabel()
+                    if enemiesDefeated >= nextPowerUpThreshold {
+                        enemiesDefeated = 0
+                        powerUpAvailable = true
+                        nextPowerUpThreshold += 5
+                    }
+                }
+                projectile.removeFromParent()
+                break //Ensure projectile stops after hitting first zombie
+            }
+        }
+    }
+    //COMMENT OUT FOR NOW JUST IN CASE WE WANT TO GO BACK TO AUTO ATTACK.
+//    func autoAttackZombies(currentTime: TimeInterval){
+//        //This ensures enough time has passed since last attack
+//        if currentTime - lastAttackTime >= attackInterval {
+//            lastAttackTime = currentTime
+//            
+//            //Check for nearby zombies within range
+//            for (index, zombie) in zombies.enumerated().reversed() {
+//                if zombie.position.distance(to: player.position) <= attackRange {
+//                    //TEMPORARY VISUAL CUE OF SHOOTING UNTIL WE DO ANIMATIONS IN THE FUTURE
+//                    let line = SKShapeNode()
+//                    let path = CGMutablePath()
+//                    path.move(to: player.position)
+//                    path.addLine(to: zombie.position)
+//                    line.path = path
+//                    line.strokeColor = .green
+//                    line.lineWidth = 3
+//                    addChild(line)
+//                    let fadeOut = SKAction.fadeOut(withDuration: 0.1)
+//                    let remove = SKAction.removeFromParent()
+//                    line.run(SKAction.sequence([fadeOut, remove]))
+//                    //
+//                    zombie.takeDamage(amount: attackDamage)
+//                    if zombie.isDead {
+//                        zombie.removeFromParent()
+//                        zombies.remove(at: index)
+//                        score += 1
+//                        enemiesDefeated += 1
+//                        updatePowerUpLabel()
+//                        if enemiesDefeated >= nextPowerUpThreshold {
+//                            enemiesDefeated = 0
+//                            powerUpAvailable = true
+//                            nextPowerUpThreshold += 5
+//                        }
+//                    }
+//                    break // only attack one zombie per interval
+//                }
+//            }
+//        }
+//    }
+    
+    func preventZombieOverlap(zombie: ZPZombie, index: Int){
+        for (otherIndex, otherZombie) in zombies.enumerated() where otherIndex != index {
+            if zombie.frame.intersects(otherZombie.frame) {
+                let zombieCenter = zombie.position
+                let otherZombieCenter = otherZombie.position
+                
+                let direction = CGVector(dx: zombieCenter.x - otherZombieCenter.x, dy: zombieCenter.y - otherZombieCenter.y)
+                let distance = sqrt(direction.dx * direction.dx + direction.dy * direction.dy)
+                let targetDistance = zombie.size.width / 2 + otherZombie.size.width / 2 + zombieBufferDistance
+                
+                if distance < targetDistance {
+                    let overlapDistance = targetDistance - distance
+                    let normalizedDirection = CGVector(dx: direction.dx / distance, dy: direction.dy / distance)
+                    let adjustment = CGVector(dx: normalizedDirection.dx * overlapDistance * 0.1, dy: normalizedDirection.dy * overlapDistance * 0.1)
+                    zombie.position = CGPoint(x: zombie.position.x + adjustment.dx, y: zombie.position.y + adjustment.dy)
+                }
+            }
+        }
+    }
+    
+    func handlePlayerHit(zombieIndex: Int) {
+        playerLives -= 1
+        zombies[zombieIndex].removeFromParent()
+        zombies.remove(at: zombieIndex)
+        
+        if playerLives <= 0 {
+            showGameOverScreen()
+        }
+    }
+    
+    func advanceToNextWave() {
+        if currentWave < maxWave {
+            currentWave += 1
+        } else {
+            currentWave = 1
+            zombieHealth += 2
+        }
+        
+        startWave(wave: currentWave)
     }
     
     //Note: Can change this at a later time to match HYEL gameoverscreen style
@@ -274,12 +563,13 @@ class ZPGameScene: SKScene {
         }
         player.position = centerPosition
         joystick.endTouch()
+        shootJoystick.endTouch()
         currentWave = 1
         zombieHealth = 1
         enemiesDefeated = 0
         attackDamage = 1
-        attackInterval = 1.0
-        attackRange = 150
+        shootInterval = 1.0
+        projectileMoveDistance = 200
         nextPowerUpThreshold = 5
         setUpGame()
     }
@@ -294,7 +584,7 @@ class ZPGameScene: SKScene {
     }
     
     func updateUpgradeStatsLabel() {
-        upgradeStatsLabel.text = "Attack Damage: \(attackDamage) | Attack Range: \(attackRange) | Attacks/Second: \(attackInterval)"
+        upgradeStatsLabel.text = "Attack Damage: \(attackDamage) | Attack Range: \(projectileMoveDistance) | Attacks/Second: \(shootInterval)"
     }
     
     func updatePowerUpLabel() {
