@@ -49,11 +49,12 @@ class ZPGameScene: SKScene {
     
     // Auto-attack variables
     private var attackDamage: Int = 1
-    private var shootInterval: TimeInterval = 1.0
+    private var projectileMoveDistance: CGFloat = 200 //attack range of bullet
+    private var shootInterval: TimeInterval = 1.0 //attack speed of bullet
     private var attackInterval: TimeInterval = 1.0 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (speed)
     private var lastShootTime: TimeInterval = 0
     private var lastAttackTime: TimeInterval = 0
-    private var attackRange: CGFloat = 150 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (range)
+    //private var attackRange: CGFloat = 150 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (range)
     
     //Score Settings
     var score: Int = 0 {
@@ -193,6 +194,12 @@ class ZPGameScene: SKScene {
         atkSpeedButton.fontSize = 20
         atkSpeedButton.position = CGPoint(x: 0, y:-40)
         popup.addChild(atkSpeedButton)
+        //1+ Health option button
+        let addHealthButton = SKLabelNode(text: "+1 Health")
+        addHealthButton.name = "health"
+        addHealthButton.fontSize = 20
+        addHealthButton.position = CGPoint(x: 0, y:-80)
+        popup.addChild(addHealthButton)
         
         addChild(popup)
         upgradePopup = popup
@@ -203,9 +210,11 @@ class ZPGameScene: SKScene {
         case "attack":
             attackDamage += 1
         case "range":
-            attackRange += 25
+            projectileMoveDistance += 100
         case "speed":
-            attackInterval = max(0.1, attackInterval - 0.1) //THIS TEMPORARILY ENSURES IT DOES NOT GO BELOW 0.1
+            shootInterval = max(0.3, shootInterval - 0.1) //THIS TEMPORARILY ENSURES IT DOES NOT GO BELOW 0.1
+        case "health":
+            playerLives += 1
         default:
             break
         }
@@ -232,7 +241,7 @@ class ZPGameScene: SKScene {
             
             //TESTING. ADD ONE CHARGER ZOMBIE AND EXPLODER ZOMBIE PER WAVE
             spawnChargerZombie()
-            //spawnExploderZombie()
+            spawnExploderZombie()
         }
     
     func spawnZombies(withHealth health: Int) {
@@ -276,7 +285,7 @@ class ZPGameScene: SKScene {
         
         if isGamePaused {
             for node in tappedNodes {
-                if let nodeName = node.name, ["attack", "range", "speed"].contains(nodeName) {
+                if let nodeName = node.name, ["attack", "range", "speed", "health"].contains(nodeName) {
                     applyUpgrade(nodeName)
                     return
                 }
@@ -389,8 +398,8 @@ class ZPGameScene: SKScene {
         addChild(projectile)
         //Set up movement action in the specified direction
         let normalizedDirection = CGVector(dx: direction.x, dy: direction.y).normalized
-        let moveDistance: CGFloat = 400
-        let moveAction = SKAction.move(by: CGVector(dx: normalizedDirection.dx * moveDistance, dy: normalizedDirection.dy * moveDistance), duration: 2)
+        //let moveDistance: CGFloat = 800
+        let moveAction = SKAction.move(by: CGVector(dx: normalizedDirection.dx * projectileMoveDistance, dy: normalizedDirection.dy * projectileMoveDistance), duration: 2)
         //Collision check
         let collisionAction = SKAction.run {
             self.checkProjectileCollision(projectile)
@@ -559,8 +568,8 @@ class ZPGameScene: SKScene {
         zombieHealth = 1
         enemiesDefeated = 0
         attackDamage = 1
-        attackInterval = 1.0
-        attackRange = 150
+        shootInterval = 1.0
+        projectileMoveDistance = 200
         nextPowerUpThreshold = 5
         setUpGame()
     }
@@ -575,7 +584,7 @@ class ZPGameScene: SKScene {
     }
     
     func updateUpgradeStatsLabel() {
-        upgradeStatsLabel.text = "Attack Damage: \(attackDamage) | Attack Range: \(attackRange) | Attacks/Second: \(attackInterval)"
+        upgradeStatsLabel.text = "Attack Damage: \(attackDamage) | Attack Range: \(projectileMoveDistance) | Attacks/Second: \(shootInterval)"
     }
     
     func updatePowerUpLabel() {
