@@ -8,6 +8,7 @@ class ZPWizard: SKSpriteNode {
     private let moveSpeed: CGFloat = 150.0
     private var currentDirection: CGVector = .zero
     private(set) var health: Int
+    private var isChargingBeam: Bool = false // Prevents movement during beam charging
 
     init(health: Int = 100) {
         let texture = SKTexture(imageNamed: "wizard")
@@ -21,11 +22,13 @@ class ZPWizard: SKSpriteNode {
     }
 
     func update(currentTime: TimeInterval, playerPosition: CGPoint) {
-        moveAlongScreenEdge(currentTime: currentTime)
+        if !isChargingBeam {
+            moveAlongScreenEdge(currentTime: currentTime)
+        }
 
         // Handle meteor attack
         if currentTime - lastMeteorTime >= meteorInterval {
-            telegraphMeteor(at: playerPosition)
+            spawnRandomMeteors()
             lastMeteorTime = currentTime
         }
 
@@ -67,8 +70,17 @@ class ZPWizard: SKSpriteNode {
         }
     }
 
+    private func spawnRandomMeteors() {
+        for _ in 0..<3 {
+            let randomX = CGFloat.random(in: 0...scene!.size.width)
+            let randomY = CGFloat.random(in: 0...scene!.size.height)
+            let targetPosition = CGPoint(x: randomX, y: randomY)
+            telegraphMeteor(at: targetPosition)
+        }
+    }
+
     private func telegraphMeteor(at targetPosition: CGPoint) {
-        let warning = SKShapeNode(circleOfRadius: 30)
+        let warning = SKShapeNode(circleOfRadius: 40) // Larger warning size
         warning.position = targetPosition
         warning.strokeColor = .red
         warning.lineWidth = 2
@@ -85,7 +97,7 @@ class ZPWizard: SKSpriteNode {
     }
 
     private func spawnMeteor(at position: CGPoint) {
-        let meteor = SKShapeNode(circleOfRadius: 20)
+        let meteor = SKShapeNode(circleOfRadius: 50) // Larger meteor size
         meteor.position = position
         meteor.fillColor = .orange
         meteor.strokeColor = .red
@@ -104,48 +116,77 @@ class ZPWizard: SKSpriteNode {
     }
 
     private func performBeamAttack(towards targetPosition: CGPoint) {
+        isChargingBeam = true // Stop moving while charging the beam
+
         // Telegraph the beam attack
-        let warning = SKShapeNode(rectOf: CGSize(width: 10, height: scene!.size.height))
-        warning.position = CGPoint(x: targetPosition.x, y: scene!.size.height / 2)
+        let warning = SKShapeNode()
+        let path = CGMutablePath()
+        path.move(to: position)
+        path.addLine(to: extendedBeamEnd(from: position, to: targetPosition))
+        warning.path = path
         warning.strokeColor = .red
         warning.lineWidth = 2
         warning.alpha = 0.5
         scene?.addChild(warning)
-    
-        // Animate the warning to grow slightly and flash
-        let grow = SKAction.scaleX(to: 1.5, duration: 0.2)
-        let shrink = SKAction.scaleX(to: 1.0, duration: 0.2)
-        let flash = SKAction.sequence([grow, shrink])
+
+        // Animate the warning to flash
+        let fadeIn = SKAction.fadeAlpha(to: 1.0, duration: 0.3)
+        let fadeOut = SKAction.fadeAlpha(to: 0.5, duration: 0.3)
+        let flash = SKAction.sequence([fadeIn, fadeOut])
         let repeatFlash = SKAction.repeat(flash, count: 5)
-    
+
         // After telegraphing, spawn the actual beam
         let spawnBeam = SKAction.run { [weak self] in
-            self?.spawnBeam(at: targetPosition)
+            self?.spawnBeam(towards: targetPosition)
         }
-    
+
         // Remove the telegraphing warning
         let removeWarning = SKAction.removeFromParent()
-        let sequence = SKAction.sequence([repeatFlash, spawnBeam, removeWarning])
+        let resumeMovement = SKAction.run { [weak self] in
+            self?.resumeMovementAfterDelay()
+        }
+        let sequence = SKAction.sequence([repeatFlash, spawnBeam, removeWarning, resumeMovement])
         warning.run(sequence)
     }
-    
-    private func spawnBeam(at targetPosition: CGPoint) {
-        let beam = SKShapeNode(rectOf: CGSize(width: 10, height: scene!.size.height))
-        beam.position = CGPoint(x: targetPosition.x, y: scene!.size.height / 2)
-        beam.fillColor = .yellow
+
+    private func spawnBeam(towards targetPosition: CGPoint) {
+        let beam = SKShapeNode()
+        let path = CGMutablePath()
+        path.move(to: position)
+        path.addLine(to: extendedBeamEnd(from: position, to: targetPosition))
+        beam.path = path
+        beam.strokeColor = .yellow
+        beam.lineWidth = 5
         beam.alpha = 0.7
         scene?.addChild(beam)
-    
-        // Deal damage to the player if they intersect the beam
-        if let scene = scene as? ZPGameScene, beam.frame.intersects(scene.player.frame) {
-            scene.playerLives -= 1
+
+        // Continuously check for collision while the beam exists
+        let dealDamage = SKAction.run { [weak self] in
+            if let scene = self?.scene as? ZPGameScene, beam.frame.intersects(scene.player.frame) {
+                scene.playerLives -= 1
+            }
         }
-    
+
         // Remove the beam after a short delay
         let remove = SKAction.removeFromParent()
         let wait = SKAction.wait(forDuration: 1.0)
-        beam.run(SKAction.sequence([wait, remove]))
+        beam.run(SKAction.sequence([SKAction.repeat(dealDamage, count: 10), wait, remove]))
     }
 
-}
+    private func extendedBeamEnd(from start: CGPoint, to target: CGPoint) -> CGPoint {
+        let dx = target.x - start.x
+        let dy = target.y - start.y
+        let magnitude = sqrt(dx * dx + dy * dy)
+        let normalized = CGPoint(x: dx / magnitude, y: dy / magnitude)
+        let extendedDistance: CGFloat = 1000 // Extend the beam far beyond the target
+        return CGPoint(x: start.x + normalized.x * extendedDistance, y: start.y + normalized.y * extendedDistance)
+    }
 
+    private func resumeMovementAfterDelay() {
+        let delay = SKAction.wait(forDuration: 1.0) // 1 second delay
+        let resume = SKAction.run { [weak self] in
+            self?.isChargingBeam = false // Resume movement
+        }
+        self.run(SKAction.sequence([delay, resume]))
+    }
+}
