@@ -22,6 +22,7 @@
 		FCC9B8D92CD4767C006077B4 /* ZPZombieNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */; };
 		FCC9B8DB2CE55505006077B4 /* ZPChargerZombieNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8DA2CE55505006077B4 /* ZPChargerZombieNode.swift */; };
 		FCC9B8DD2CE5B404006077B4 /* ZPExploderZombieNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8DC2CE5B404006077B4 /* ZPExploderZombieNode.swift */; };
+		FCC9B9E92CE961B3006077B4 /* ZPWizardNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B9E82CE961B3006077B4 /* ZPWizardNode.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +61,7 @@
 		FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPZombieNode.swift; sourceTree = "<group>"; };
 		FCC9B8DA2CE55505006077B4 /* ZPChargerZombieNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPChargerZombieNode.swift; sourceTree = "<group>"; };
 		FCC9B8DC2CE5B404006077B4 /* ZPExploderZombieNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPExploderZombieNode.swift; sourceTree = "<group>"; };
+		FCC9B9E82CE961B3006077B4 /* ZPWizardNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPWizardNode.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -172,6 +174,7 @@
 		FC070AA12CCAEB3800946357 /* Nodes */ = {
 			isa = PBXGroup;
 			children = (
+				FCC9B9E82CE961B3006077B4 /* ZPWizardNode.swift */,
 				FC070AAC2CCAF86200946357 /* ZPBoxNode.swift */,
 				FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */,
 				FCC9B8DA2CE55505006077B4 /* ZPChargerZombieNode.swift */,
@@ -353,6 +356,7 @@
 				FC070AAD2CCAF86200946357 /* ZPBoxNode.swift in Sources */,
 				FC070AA52CCAEB9A00946357 /* ZPLayoutInfo.swift in Sources */,
 				FCC9B8D92CD4767C006077B4 /* ZPZombieNode.swift in Sources */,
+				FCC9B9E92CE961B3006077B4 /* ZPWizardNode.swift in Sources */,
 				FCC9B8DD2CE5B404006077B4 /* ZPExploderZombieNode.swift in Sources */,
 				FCC9B8D72CD4592A006077B4 /* ZPJoystick.swift in Sources */,
 			);
