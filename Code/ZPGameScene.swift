@@ -67,6 +67,7 @@ class ZPGameScene: SKScene {
     // Track time since the last frame for smoother movement
     private var lastUpdateTime: TimeInterval = 0
     private let centerPosition: CGPoint
+    private var activeTouches: [UITouch: ZPJoystick] = [:]
     
     //Upgrades Settings
     private var enemiesDefeated: Int = 0
@@ -89,6 +90,7 @@ class ZPGameScene: SKScene {
     }
     
     override func didMove(to view: SKView) {
+        self.view?.isMultipleTouchEnabled = true
         setUpGame()
     }
     
@@ -279,51 +281,54 @@ class ZPGameScene: SKScene {
         }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
-        let location = touch.location(in: self)
-        let tappedNodes = nodes(at: location)
-        
-        if isGamePaused {
-            for node in tappedNodes {
-                if let nodeName = node.name, ["attack", "range", "speed", "health"].contains(nodeName) {
-                    applyUpgrade(nodeName)
-                    return
+        for touch in touches {
+            let location = touch.location(in: self)
+            let tappedNodes = nodes(at: location)
+            
+            if isGamePaused {
+                for node in tappedNodes {
+                    if let nodeName = node.name, ["attack", "range", "speed", "health"].contains(nodeName) {
+                        applyUpgrade(nodeName)
+                        return
+                    }
                 }
             }
-        }
-        
-        if joystick.contains(location) && !gameOver {
-            let location = touch.location(in: joystick)
-            joystick.startTouch(at: location)
-        }
-        else if shootJoystick.contains(location) && !gameOver {
-            shootJoystick.startTouch(at: touch.location(in: shootJoystick))
-            shootJoystick.activate()
-        }
-        if gameOver {
-            for node in tappedNodes where node.name == "retryButton" {
-                restartGame()
+            
+            if joystick.contains(location) && activeTouches[touch] == nil && !gameOver {
+                joystick.startTouch(at: touch.location(in: joystick))
+                activeTouches[touch] = joystick
+            }
+            else if shootJoystick.contains(location) && activeTouches[touch] == nil && !gameOver {
+                shootJoystick.startTouch(at: touch.location(in: shootJoystick))
+                shootJoystick.activate()
+                activeTouches[touch] = shootJoystick
+            }
+            if gameOver {
+                for node in tappedNodes where node.name == "retryButton" {
+                    restartGame()
+                }
             }
         }
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
-        let location = touch.location(in: self)
-        if joystick.contains(location) && !gameOver {
-            let joystickLocation = touch.location(in: joystick)
-            joystick.moveTouch(to: joystickLocation)
-        }
-        else if shootJoystick.contains(location) && !gameOver {
-            shootJoystick.moveTouch(to: touch.location(in: shootJoystick))
+        for touch in touches {
+            if let joystick = activeTouches[touch] {
+                let location = touch.location(in: joystick)
+                joystick.moveTouch(to: location)
+            }
         }
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if !gameOver {
-            joystick.endTouch()
-            shootJoystick.endTouch()
-            shootJoystick.deactivate()
+        for touch in touches {
+            if let joystick = activeTouches[touch] {
+                joystick.endTouch()
+                if joystick === shootJoystick {
+                    shootJoystick.deactivate()
+                }
+                activeTouches[touch] = nil
+            }
         }
     }
     
