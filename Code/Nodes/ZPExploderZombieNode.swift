@@ -91,7 +91,7 @@ class ZPExploderZombieNode: ZPZombie {
         //print("Exploding with damage: \(explosionDamage)")
         
         guard let gameScene = parent as? ZPGameScene else {
-            print("Parent node is not ZPGameScene; explosion failed to reach expected targets.")
+            //print("Parent node is not ZPGameScene; explosion failed to reach expected targets.")
             return
         }
         
@@ -114,16 +114,16 @@ class ZPExploderZombieNode: ZPZombie {
         // Apply damage to player if within explosion range
       
         let playerDistance = hypot(gameScene.player.position.x - explosionCenter.x, gameScene.player.position.y - explosionCenter.y)
-        print("Player found at distance: \(playerDistance) from explosion center (inside radius)")
+        //print("Player found at distance: \(playerDistance) from explosion center (inside radius)")
         if playerDistance <= explosionRange {
-            print("Applying \(explosionDamage) damage to player at position \(gameScene.player.position)")
+            //print("Applying \(explosionDamage) damage to player at position \(gameScene.player.position)")
             gameScene.playerLives -= explosionDamage
-            print("Player lives remaining: \(gameScene.playerLives)")
+            //print("Player lives remaining: \(gameScene.playerLives)")
         }
         
       
      
-        print("Explosion occurred at \(position), damaging nearby entities!")
+        //print("Explosion occurred at \(position), damaging nearby entities!")
     }
     
     private func moveToward(_ target: CGPoint) {
