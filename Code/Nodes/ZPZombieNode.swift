@@ -10,7 +10,7 @@ import SpriteKit
 class ZPZombie: SKSpriteNode {
     var health: Int {
         didSet{
-            healthLabel.text = "\(health)"
+            healthLabel.text = "Enemy | HP:\(health)"
         }
     }
     var isDead: Bool {
@@ -22,10 +22,10 @@ class ZPZombie: SKSpriteNode {
     
     init(health: Int) {
         self.health = health
-        self.healthLabel = SKLabelNode(text: "\(health)")
-        let size = CGSize(width: 30, height: 30)
+        self.healthLabel = SKLabelNode(text: "Enemy | HP: \(health)")
+        let size = CGSize(width: 25, height: 25)
         super.init(texture: nil, color: .red, size: size)
-        healthLabel.fontSize = 26
+        healthLabel.fontSize = 20
         healthLabel.fontColor = .black
         healthLabel.position = CGPoint(x: 0, y: size.height / 2 + 10)
         addChild(healthLabel)
