@@ -7,14 +7,24 @@ class ZPWizard: SKSpriteNode {
     private let beamInterval: TimeInterval = 8.0
     private let moveSpeed: CGFloat = 150.0
     private var currentDirection: CGVector = .zero
-    private(set) var health: Int
+    var health: Int {
+        didSet{
+            healthLabel.text = "Wizard | HP:\(health)"
+        }
+    }
+    private let healthLabel: SKLabelNode
     private var isChargingBeam: Bool = false // Prevents movement during beam charging
 
-    init(health: Int = 100) {
+    init(health: Int) {
         let texture = SKTexture(imageNamed: "wizard")
         self.health = health
+        self.healthLabel = SKLabelNode(text: "Wizard | HP:\(health)")
+        healthLabel.fontSize = 20
+        healthLabel.fontColor = .black
+        healthLabel.position = CGPoint(x: 0, y: 50 / 2 + 10)
         super.init(texture: texture, color: .clear, size: CGSize(width: 50, height: 50))
         self.name = "wizard"
+        self.addChild(healthLabel)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -106,7 +116,8 @@ class ZPWizard: SKSpriteNode {
 
         // Deal damage to the player if the meteor lands
         if let scene = scene as? ZPGameScene, meteor.frame.intersects(scene.player.frame) {
-            scene.playerLives -= 1
+            //scene.playerLives -= 1
+            scene.bossHitPlayer()
         }
 
         // Remove the meteor after a short delay
@@ -163,14 +174,15 @@ class ZPWizard: SKSpriteNode {
         // Continuously check for collision while the beam exists
         let dealDamage = SKAction.run { [weak self] in
             if let scene = self?.scene as? ZPGameScene, beam.frame.intersects(scene.player.frame) {
-                scene.playerLives -= 1
+                //scene.playerLives -= 1
+                scene.bossHitPlayer()
             }
         }
 
         // Remove the beam after a short delay
         let remove = SKAction.removeFromParent()
         let wait = SKAction.wait(forDuration: 1.0)
-        beam.run(SKAction.sequence([SKAction.repeat(dealDamage, count: 10), wait, remove]))
+        beam.run(SKAction.sequence([SKAction.repeat(dealDamage, count: 3), wait, remove]))
     }
 
     private func extendedBeamEnd(from start: CGPoint, to target: CGPoint) -> CGPoint {
