@@ -43,8 +43,12 @@ class ZPGameScene: SKScene {
     
     // Zombie Wave Settings
     private var currentWave: Int = 1
-    private var zombieHealth: Int = 1
-    private let maxWave: Int = 4
+    private var zombieHealth: Int = 3
+    private var wizardHealth: Int = 15 // change to 15 later
+    //private lazy var wizardBoss: ZPWizard = ZPWizard(health: wizardHealth)
+    private var wizardBoss: ZPWizard?
+    private var bossIsAlive: Bool = false
+    private let maxWave: Int = 6
     private let zombiesPerWave: Int = 3
     var waveCounter: Int = 1 {
         didSet {
@@ -54,6 +58,14 @@ class ZPGameScene: SKScene {
     var waveLabel: SKLabelNode!
     private let waveMessageLabel = SKLabelNode(fontNamed: "Arial")
     
+    //Enemy variation message settings
+    private let newEnemyMessages: [Int: String] = [
+        3: "New Enemy: Charger!",
+        4: "New Enemy: Exploder!",
+        6: "New Boss: Wizard!",
+    ]
+    private var displayedEnemyMessages: Set<Int> = []
+    
     // Auto-attack variables
     private var attackDamage: Int = 1
     private var projectileMoveDistance: CGFloat = 200 //attack range of bullet
@@ -61,7 +73,6 @@ class ZPGameScene: SKScene {
     private var attackInterval: TimeInterval = 1.0 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (speed)
     private var lastShootTime: TimeInterval = 0
     private var lastAttackTime: TimeInterval = 0
-    //private var attackRange: CGFloat = 150 // ADJUST THIS LATER ON WHEN MORE UPGRADES ARE IMPLEMENTED (range)
     
     //Score Settings
     var score: Int = 0 {
@@ -77,13 +88,9 @@ class ZPGameScene: SKScene {
     private var activeTouches: [UITouch: ZPJoystick] = [:]
     
     //Upgrades Settings
-    private var enemiesDefeated: Int = 0
-    //private var nextPowerUpThreshold: Int = 5
-    //private var powerUpAvailable: Bool = false
     private var isGamePaused: Bool = false
     var upgradePopup: SKShapeNode!
     var upgradeStatsLabel: SKLabelNode!
-    //var powerUpLabel: SKLabelNode!
 
     init(context: ZPGameContext, size: CGSize) {
         self.context = context
@@ -100,11 +107,9 @@ class ZPGameScene: SKScene {
         self.view?.isMultipleTouchEnabled = true
         setUpGame()
         //Wave message label (center of screen every round)
-        waveMessageLabel.fontSize = 48
+        waveMessageLabel.fontSize = 60
         waveMessageLabel.fontColor = .red
-        waveMessageLabel.position = CGPoint(x: size.width / 2, y: size.height - 240)
-        //LAST THING WE WERE DOING IS TRYING TO GET WAVE TO APPEAR ONTOP OF UPGRADE FEATURES. HAVE TO ALSO FIGURE OUT
-        //WHEN TO DO UPGRADES. (Kills or every round)
+        waveMessageLabel.position = CGPoint(x: size.width / 2, y: size.height - 180)
         waveMessageLabel.zPosition = 5
         waveMessageLabel.isHidden = true
         addChild(waveMessageLabel)
@@ -155,7 +160,7 @@ class ZPGameScene: SKScene {
             waveLabel = SKLabelNode(fontNamed: "Arial")
             waveLabel.fontSize = 22
             waveLabel.fontColor = .black
-            waveLabel.position = CGPoint(x: size.width / 2, y: size.height - 100)
+            waveLabel.position = CGPoint(x: size.width / 2, y: size.height - 80)
             addChild(waveLabel)
         }
         waveCounter = 1
@@ -169,18 +174,10 @@ class ZPGameScene: SKScene {
             player.addChild(upgradeStatsLabel)
         }
         updateUpgradeStatsLabel()
-        
-        //Displaying power up label
-//        if powerUpLabel == nil {
-//            powerUpLabel = SKLabelNode(fontNamed: "Arial")
-//            powerUpLabel.fontSize = 14
-//            powerUpLabel.fontColor = .black
-//            powerUpLabel.position = CGPoint(x: size.width / 2, y: size.height - 130)
-//            addChild(powerUpLabel)
-//        }
-        //updatePowerUpLabel()
-        
+                
         // Clear any existing enemies
+        bossIsAlive = false
+        childNode(withName: "wizard")?.removeFromParent()
         removeZombies()
         startWave(wave: currentWave)
         
@@ -198,7 +195,6 @@ class ZPGameScene: SKScene {
             addChild(shootJoystick)
         }
         updateUpgradeStatsLabel()
-        //updatePowerUpLabel()
     }
     
     func showUpgradePopup() {
@@ -272,16 +268,43 @@ class ZPGameScene: SKScene {
     }
     
     func startWave(wave: Int) {
-            let zombieCount = wave * zombiesPerWave
-            for _ in 0..<zombieCount {
-                spawnZombies(withHealth: zombieHealth)
-            }
+        let zombieCount = wave * zombiesPerWave
+        switch wave {
+            case 1:
+                for _ in 0..<zombieCount {
+                    spawnZombies(withHealth: zombieHealth)
+                }
+            case 2:
+                for _ in 0..<zombieCount {
+                    spawnZombies(withHealth: zombieHealth)
+                }
+            case 3:
+                for _ in 0..<zombieCount-3 {
+                    spawnZombies(withHealth: zombieHealth)
+                }
+                spawnChargerZombie()
+            case 4:
+                for _ in 0..<zombieCount-6 {
+                    spawnZombies(withHealth: zombieHealth)
+                }
+                spawnExploderZombie()
+            case 5:
+                for _ in 0..<zombieCount-6 {
+                    spawnZombies(withHealth: zombieHealth)
+                }
+                spawnChargerZombie()
+                spawnExploderZombie()
+            case 6:
+                for _ in 0..<zombieCount-15 {
+                    spawnZombies(withHealth: zombieHealth)
+                }
+                spawnWizardBoss()
+            default:
+                break
             
-            //TESTING. ADD ONE CHARGER ZOMBIE AND EXPLODER ZOMBIE PER WAVE
-            spawnChargerZombie()
-            spawnExploderZombie()
         }
-    
+    }
+
     func spawnZombies(withHealth health: Int) {
         let zombie = ZPZombie(health: health)
         var position: CGPoint
@@ -314,6 +337,17 @@ class ZPGameScene: SKScene {
         exploderZombie.position = position
         addChild(exploderZombie)
         zombies.append(exploderZombie)
+    }
+    
+    func spawnWizardBoss() {
+        if let existingWizard = wizardBoss {
+            existingWizard.removeFromParent()
+        }
+        bossIsAlive = true
+        wizardBoss = ZPWizard(health: wizardHealth)
+        wizardBoss?.position = CGPoint(x: size.width / 2, y: size.height - 150) //Change value so its not in the way of UI
+        addChild(wizardBoss!)
+        //zombies.append(wizardBoss)
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -372,9 +406,14 @@ class ZPGameScene: SKScene {
         super.update(currentTime)
         guard !gameOver, !isGamePaused else { return }
         
-//        if powerUpAvailable {
-//            showUpgradePopup()
-//        }
+        if playerLives <= 0 {
+            showGameOverScreen()
+            return
+        }
+        
+        if bossIsAlive {
+            wizardBoss?.update(currentTime: currentTime, playerPosition: player.position)
+        }
         
         // Calculate time delta for consistent movement
         let deltaTime = currentTime - lastUpdateTime
@@ -411,8 +450,6 @@ class ZPGameScene: SKScene {
                 handlePlayerHit(zombieIndex: index)
             }
         }
-        //comment out for now just incase we go back to autoattack
-        //autoAttackZombies(currentTime: currentTime)
         
         //Update method for each charger/exploder zombie in the scene
         for zombie in zombies {
@@ -460,60 +497,22 @@ class ZPGameScene: SKScene {
                     zombie.removeFromParent()
                     zombies.remove(at: index)
                     score += 1
-                    enemiesDefeated += 1
-                    //updatePowerUpLabel()
-                    //COMMENT BACK IN IF WE WANT X AMOUNT KILLS BEFORE POWERUP
-//                    if enemiesDefeated >= nextPowerUpThreshold {
-//                        enemiesDefeated = 0
-//                        powerUpAvailable = true
-//                        nextPowerUpThreshold += 5
-//                    }
                 }
                 projectile.removeFromParent()
                 break //Ensure projectile stops after hitting first zombie
             }
         }
+        //Check collision for wizard
+        if let wizard = scene?.childNode(withName: "wizard") as? ZPWizard {
+            if projectile.frame.intersects(wizard.frame) {
+                wizard.takeDamage(amount: attackDamage)
+                projectile.removeFromParent()
+                if wizard.health <= 0 {
+                    bossIsAlive = false
+                }
+            }
+        }
     }
-    //COMMENT OUT FOR NOW JUST IN CASE WE WANT TO GO BACK TO AUTO ATTACK.
-//    func autoAttackZombies(currentTime: TimeInterval){
-//        //This ensures enough time has passed since last attack
-//        if currentTime - lastAttackTime >= attackInterval {
-//            lastAttackTime = currentTime
-//            
-//            //Check for nearby zombies within range
-//            for (index, zombie) in zombies.enumerated().reversed() {
-//                if zombie.position.distance(to: player.position) <= attackRange {
-//                    //TEMPORARY VISUAL CUE OF SHOOTING UNTIL WE DO ANIMATIONS IN THE FUTURE
-//                    let line = SKShapeNode()
-//                    let path = CGMutablePath()
-//                    path.move(to: player.position)
-//                    path.addLine(to: zombie.position)
-//                    line.path = path
-//                    line.strokeColor = .green
-//                    line.lineWidth = 3
-//                    addChild(line)
-//                    let fadeOut = SKAction.fadeOut(withDuration: 0.1)
-//                    let remove = SKAction.removeFromParent()
-//                    line.run(SKAction.sequence([fadeOut, remove]))
-//                    //
-//                    zombie.takeDamage(amount: attackDamage)
-//                    if zombie.isDead {
-//                        zombie.removeFromParent()
-//                        zombies.remove(at: index)
-//                        score += 1
-//                        enemiesDefeated += 1
-//                        updatePowerUpLabel()
-//                        if enemiesDefeated >= nextPowerUpThreshold {
-//                            enemiesDefeated = 0
-//                            powerUpAvailable = true
-//                            nextPowerUpThreshold += 5
-//                        }
-//                    }
-//                    break // only attack one zombie per interval
-//                }
-//            }
-//        }
-//    }
     
     func preventZombieOverlap(zombie: ZPZombie, index: Int){
         for (otherIndex, otherZombie) in zombies.enumerated() where otherIndex != index {
@@ -545,18 +544,30 @@ class ZPGameScene: SKScene {
         }
     }
     
+    func bossHitPlayer() {
+        playerLives -= 1
+    }
+    ///
+    ///
+    ///
+    ///
+    ///
     func advanceToNextWave() {
+        if bossIsAlive {
+            return
+        }
         if currentWave < maxWave {
             currentWave += 1
         } else {
             currentWave = 1
-            zombieHealth += 2
+            zombieHealth = zombieCount * 2
+            wizardHealth += 15
         }
         
         startWave(wave: currentWave)
         waveCounter += 1
         //Determine message
-        let isBossWave = currentWave % 4 == 0
+        let isBossWave = currentWave % 6 == 0
         let waveMessage = isBossWave ? "BOSS WAVE" : "Wave \(waveCounter)"
         waveMessageLabel.text = waveMessage
         //Show message briefly
@@ -567,9 +578,31 @@ class ZPGameScene: SKScene {
             SKAction.run { self.waveMessageLabel.isHidden = true; self.waveMessageLabel.alpha = 1.0 }
         ])
         waveMessageLabel.run(fadeOut)
+        
+        //Check for new enemy message
+        if let enemyMessage = newEnemyMessages[waveCounter] {
+            showEnemyIntroductionMessage(enemyMessage)
+        }
+        
         if !gameOver {
             showUpgradePopup()
         }
+    }
+    
+    private func showEnemyIntroductionMessage(_ message: String) {
+        let enemyMessageLabel = SKLabelNode(text: message)
+        enemyMessageLabel.fontSize = 40
+        enemyMessageLabel.fontColor = .red
+        enemyMessageLabel.position = CGPoint(x: size.width / 2, y: size.height - 220)
+        enemyMessageLabel.zPosition = 5
+        addChild(enemyMessageLabel)
+        
+        let fadeOut = SKAction.sequence([
+            SKAction.wait(forDuration: 2.0),
+            SKAction.fadeOut(withDuration: 1.0),
+            SKAction.run { enemyMessageLabel.removeFromParent() }
+        ])
+        enemyMessageLabel.run(fadeOut)
     }
     
     //Note: Can change this at a later time to match HYEL gameoverscreen style
@@ -624,12 +657,15 @@ class ZPGameScene: SKScene {
         shootJoystick.endTouch()
         currentWave = 1
         waveCounter = 1
-        zombieHealth = 1
-        enemiesDefeated = 0
+        zombieHealth = 3
+        wizardHealth = 15
         attackDamage = 1
         shootInterval = 1.0
         projectileMoveDistance = 200
-        //nextPowerUpThreshold = 5
+        if let existingWizard = wizardBoss {
+            existingWizard.removeFromParent()
+            wizardBoss = nil
+        }
         setUpGame()
     }
     
@@ -646,13 +682,4 @@ class ZPGameScene: SKScene {
         upgradeStatsLabel.text = "Dmg: \(attackDamage) | Range: \(projectileMoveDistance) | AtkSpeed: \(shootInterval)"
     }
     
-//    func updatePowerUpLabel() {
-//        let enemiesLeft = nextPowerUpThreshold - enemiesDefeated
-//        if enemiesLeft > 0 {
-//            powerUpLabel.text = "Defeat \(enemiesLeft) more enemies!"
-//        } else {
-//            //STILL DECIDING IF WE WANT TO USE THIS OR NOT. SO FAR, IT IS NOT USED.
-//            powerUpLabel.text = "Power Up Ready!"
-//        }
-//    }
 }
