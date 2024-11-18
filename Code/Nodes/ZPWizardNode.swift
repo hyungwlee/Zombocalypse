@@ -8,23 +8,34 @@ class ZPWizard: SKSpriteNode {
     private let moveSpeed: CGFloat = 150.0
     private var currentDirection: CGVector = .zero
     var health: Int {
-        didSet{
+        didSet {
             healthLabel.text = "Wizard | HP:\(health)"
         }
     }
     private let healthLabel: SKLabelNode
+    private let bossLabel: SKLabelNode
     private var isChargingBeam: Bool = false // Prevents movement during beam charging
+    private var playerHitByBeam: Bool = false
 
     init(health: Int) {
-        let texture = SKTexture(imageNamed: "wizard")
         self.health = health
+
+        // Create the health label
         self.healthLabel = SKLabelNode(text: "Wizard | HP:\(health)")
         healthLabel.fontSize = 20
         healthLabel.fontColor = .black
-        healthLabel.position = CGPoint(x: 0, y: 50 / 2 + 10)
-        super.init(texture: texture, color: .clear, size: CGSize(width: 50, height: 50))
+        healthLabel.position = CGPoint(x: 0, y: 30)
+
+        // Create the boss label
+        self.bossLabel = SKLabelNode(text: "BOSS")
+        bossLabel.fontSize = 40
+        bossLabel.fontColor = .red
+        bossLabel.position = CGPoint.zero
+
+        super.init(texture: nil, color: .clear, size: CGSize(width: 50, height: 50))
         self.name = "wizard"
         self.addChild(healthLabel)
+        self.addChild(bossLabel)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -90,10 +101,18 @@ class ZPWizard: SKSpriteNode {
     }
 
     private func telegraphMeteor(at targetPosition: CGPoint) {
-        let warning = SKShapeNode(circleOfRadius: 40) // Larger warning size
+        let warning = SKShapeNode(circleOfRadius: 80) // Larger warning size
         warning.position = targetPosition
         warning.strokeColor = .red
         warning.lineWidth = 2
+        
+        //Add a label for the warning circle
+        let warningLabel = SKLabelNode(text: "MOVE AWAY!")
+        warningLabel.fontSize = 20
+        warningLabel.fontColor = .black
+        warningLabel.position = CGPoint(x: 0, y: -70)
+        warning.addChild(warningLabel)
+        
         scene?.addChild(warning)
 
         // Fade out the warning circle over 2 seconds and then drop the meteor
@@ -107,16 +126,23 @@ class ZPWizard: SKSpriteNode {
     }
 
     private func spawnMeteor(at position: CGPoint) {
-        let meteor = SKShapeNode(circleOfRadius: 50) // Larger meteor size
+        let meteor = SKShapeNode(circleOfRadius: 80) // Larger meteor size
         meteor.position = position
         meteor.fillColor = .orange
         meteor.strokeColor = .red
         meteor.lineWidth = 3
+        
+        //Add a label for 'BOOM'
+        let bombLabel = SKLabelNode(text: "FIREBALL BOOM!")
+        bombLabel.fontSize = 20
+        bombLabel.fontColor = .black
+        bombLabel.position = CGPoint(x: 0, y: -70)
+        meteor.addChild(bombLabel)
+        
         scene?.addChild(meteor)
 
         // Deal damage to the player if the meteor lands
         if let scene = scene as? ZPGameScene, meteor.frame.intersects(scene.player.frame) {
-            //scene.playerLives -= 1
             scene.bossHitPlayer()
         }
 
@@ -170,19 +196,36 @@ class ZPWizard: SKSpriteNode {
         beam.lineWidth = 5
         beam.alpha = 0.7
         scene?.addChild(beam)
-
-        // Continuously check for collision while the beam exists
+        
+        playerHitByBeam = false
+        
         let dealDamage = SKAction.run { [weak self] in
-            if let scene = self?.scene as? ZPGameScene, beam.frame.intersects(scene.player.frame) {
-                //scene.playerLives -= 1
+            guard let self = self else { return }
+            if let scene = self.scene as? ZPGameScene,
+               self.isPlayerOnBeamPath(beamStart: self.position, beamEnd: targetPosition, playerPosition: scene.player.position), !self.playerHitByBeam {
+                //print("PLAYER HIT BY BEAM")
                 scene.bossHitPlayer()
+                self.playerHitByBeam = true // prevent further damage during this beam attack
             }
         }
-
-        // Remove the beam after a short delay
         let remove = SKAction.removeFromParent()
         let wait = SKAction.wait(forDuration: 1.0)
         beam.run(SKAction.sequence([SKAction.repeat(dealDamage, count: 3), wait, remove]))
+        
+    }
+        
+    private func isPlayerOnBeamPath(beamStart: CGPoint, beamEnd: CGPoint, playerPosition: CGPoint) -> Bool {
+        let distanceTolerance: CGFloat = 100
+        let beamVector = CGVector(dx: beamEnd.x - beamStart.x, dy: beamEnd.y - beamStart.y)
+        let playerVector = CGVector(dx: playerPosition.x - beamStart.x, dy: playerPosition.y - beamStart.y)
+        
+        //Cross product determines how far 'off-path' the player is
+        let crossProduct = abs(beamVector.dx * playerVector.dy - beamVector.dy * playerVector.dx)
+        //Dot product ensures the player is between beamStart and beamEnd
+        let dotProduct = beamVector.dx * playerVector.dx + beamVector.dy * playerVector.dy
+        let beamLengthSquared = beamVector.dx * beamVector.dx + beamVector.dy * beamVector.dy
+        
+        return crossProduct <= distanceTolerance && dotProduct >= 0 && dotProduct <= beamLengthSquared
     }
 
     private func extendedBeamEnd(from start: CGPoint, to target: CGPoint) -> CGPoint {

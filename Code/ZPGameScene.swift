@@ -268,8 +268,9 @@ class ZPGameScene: SKScene {
     }
     
     func startWave(wave: Int) {
-        let zombieCount = wave * zombiesPerWave
-        switch wave {
+        if !gameOver {
+            let zombieCount = wave * zombiesPerWave
+            switch wave {
             case 1:
                 for _ in 0..<zombieCount {
                     spawnZombies(withHealth: zombieHealth)
@@ -301,17 +302,20 @@ class ZPGameScene: SKScene {
                 spawnWizardBoss()
             default:
                 break
-            
+                
+            }
         }
     }
 
     func spawnZombies(withHealth health: Int) {
         let zombie = ZPZombie(health: health)
+        let safeRadius: CGFloat = 100.0
+        let zombieSize = zombie.size.width
         var position: CGPoint
         //Ensure zombies do NOT overlap one another on spawn
         repeat{
-            position = CGPoint(x: CGFloat.random(in: 0...size.width), y: CGFloat.random(in: 0...size.height))
-        } while zombies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: zombie.size)) })
+            position = CGPoint(x: CGFloat.random(in: zombieSize...(size.width - zombieSize)), y: CGFloat.random(in: zombieSize...(size.height - zombieSize)))
+        } while zombies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: zombie.size)) }) || position.distance(to: player.position) < safeRadius
         zombie.position = position
         addChild(zombie)
         zombies.append(zombie)
@@ -319,10 +323,12 @@ class ZPGameScene: SKScene {
     
     func spawnChargerZombie() {
         let chargerZombie = ZPChargerZombieNode(health: zombieHealth, movementSpeed: zombieSpeed)
+        let safeRadius: CGFloat = 150.0
+        let chargerZombieSize = chargerZombie.size.width
         var position: CGPoint
         repeat {
-            position = CGPoint(x: CGFloat.random(in: 0...size.width), y: CGFloat.random(in: 0...size.height))
-        } while zombies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: chargerZombie.size)) })
+            position = CGPoint(x: CGFloat.random(in: chargerZombieSize...(size.width - chargerZombieSize)), y: CGFloat.random(in: chargerZombieSize...(size.height - chargerZombieSize)))
+        } while zombies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: chargerZombie.size)) }) || position.distance(to: player.position) < safeRadius
         chargerZombie.position = position
         addChild(chargerZombie)
         zombies.append(chargerZombie)
@@ -330,10 +336,12 @@ class ZPGameScene: SKScene {
         
     func spawnExploderZombie() {
         let exploderZombie = ZPExploderZombieNode(health: zombieHealth, movementSpeed: zombieSpeed)
+        let safeRadius: CGFloat = 150.0
+        let exploderZombieSize = exploderZombie.size.width
         var position: CGPoint
         repeat {
-            position = CGPoint(x: CGFloat.random(in: 0...size.width), y: CGFloat.random(in: 0...size.height))
-        } while zombies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: exploderZombie.size)) })
+            position = CGPoint(x: CGFloat.random(in: exploderZombieSize...(size.width - exploderZombieSize)), y: CGFloat.random(in: exploderZombieSize...(size.height - exploderZombieSize)))
+        } while zombies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: exploderZombie.size)) }) || position.distance(to: player.position) < safeRadius
         exploderZombie.position = position
         addChild(exploderZombie)
         zombies.append(exploderZombie)
@@ -566,18 +574,20 @@ class ZPGameScene: SKScene {
         
         startWave(wave: currentWave)
         waveCounter += 1
-        //Determine message
-        let isBossWave = currentWave % 6 == 0
-        let waveMessage = isBossWave ? "BOSS WAVE" : "Wave \(waveCounter)"
-        waveMessageLabel.text = waveMessage
-        //Show message briefly
-        waveMessageLabel.isHidden = false
-        let fadeOut = SKAction.sequence([
-            SKAction.wait(forDuration: 2.0),
-            SKAction.fadeOut(withDuration: 1.0),
-            SKAction.run { self.waveMessageLabel.isHidden = true; self.waveMessageLabel.alpha = 1.0 }
-        ])
-        waveMessageLabel.run(fadeOut)
+        if !gameOver {
+            //Determine message
+            let isBossWave = currentWave % 6 == 0
+            let waveMessage = isBossWave ? "BOSS WAVE" : "Wave \(waveCounter)"
+            waveMessageLabel.text = waveMessage
+            //Show message briefly
+            waveMessageLabel.isHidden = false
+            let fadeOut = SKAction.sequence([
+                SKAction.wait(forDuration: 2.0),
+                SKAction.fadeOut(withDuration: 1.0),
+                SKAction.run { self.waveMessageLabel.isHidden = true; self.waveMessageLabel.alpha = 1.0 }
+            ])
+            waveMessageLabel.run(fadeOut)
+        }
         
         //Check for new enemy message
         if let enemyMessage = newEnemyMessages[waveCounter] {
