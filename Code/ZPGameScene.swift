@@ -24,6 +24,14 @@ extension CGVector {
 }
 
 class ZPGameScene: SKScene {
+    //Inf background settings
+    var topBound: CGFloat = 0
+    var bottomBound: CGFloat = 0
+    var backgroundSections: [SKSpriteNode] = []
+    let sectionWidth: CGFloat = 3340 // Example width of each section (Adjust based on image) 1024
+    let sectionHeight: CGFloat = 3510 // Example height of each section (Adjust as needed) 768
+    let numSections: Int = 5         // Number of sections (Higher = longer before repeated gen., Lower = shorter before repeated gen.)
+    
     weak var context: ZPGameContext?
     var joystick: ZPJoystick!
     var shootJoystick: ZPJoystick!
@@ -45,9 +53,9 @@ class ZPGameScene: SKScene {
     private var currentWave: Int = 1
     private var zombieHealth: Int = 3
     private var wizardHealth: Int = 15 // change to 15 later
-    //private lazy var wizardBoss: ZPWizard = ZPWizard(health: wizardHealth)
     private var wizardBoss: ZPWizard?
     private var bossIsAlive: Bool = false
+    var arenaBounds: CGRect?
     private let maxWave: Int = 6
     private let zombiesPerWave: Int = 3
     var waveCounter: Int = 1 {
@@ -94,7 +102,7 @@ class ZPGameScene: SKScene {
 
     init(context: ZPGameContext, size: CGSize) {
         self.context = context
-        self.centerPosition = CGPoint(x: size.width / 2, y: size.height / 2)
+        self.centerPosition = CGPoint(x: size.width / 2, y: size.height / 2 - 400) //Added '- 400' to make player spawn down towards center of image
         super.init(size: size)
         self.scaleMode = .resizeFill
     }
@@ -104,7 +112,13 @@ class ZPGameScene: SKScene {
     }
     
     override func didMove(to view: SKView) {
+        self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         self.view?.isMultipleTouchEnabled = true
+        //Create and add the camera node
+        let cameraNode = SKCameraNode()
+        self.camera = cameraNode
+        addChild(cameraNode)
+        
         setUpGame()
         //Wave message label (center of screen every round)
         waveMessageLabel.fontSize = 60
@@ -112,7 +126,14 @@ class ZPGameScene: SKScene {
         waveMessageLabel.position = CGPoint(x: size.width / 2, y: size.height - 180)
         waveMessageLabel.zPosition = 5
         waveMessageLabel.isHidden = true
-        addChild(waveMessageLabel)
+        cameraNode.addChild(waveMessageLabel)
+        
+        //Add camera-related HUD elements
+        cameraNode.addChild(playerLivesLabel)
+        cameraNode.addChild(scoreLabel)
+        cameraNode.addChild(waveLabel)
+        cameraNode.addChild(joystick)
+        cameraNode.addChild(shootJoystick)
     }
     
     func setUpGame() {
@@ -140,8 +161,8 @@ class ZPGameScene: SKScene {
             playerLivesLabel = SKLabelNode(fontNamed: "Arial")
             playerLivesLabel.fontSize = 20
             playerLivesLabel.fontColor = .black
-            playerLivesLabel.position = CGPoint(x: size.width - 70, y: size.height - 80)
-            addChild(playerLivesLabel)
+            playerLivesLabel.position = CGPoint(x: -size.width / 2 + 80, y: size.height / 2 - 80)
+            playerLivesLabel.zPosition = 5
         }
         playerLives = 3 // Reset playerLives
         
@@ -150,8 +171,8 @@ class ZPGameScene: SKScene {
             scoreLabel = SKLabelNode(fontNamed: "Arial")
             scoreLabel.fontSize = 20
             scoreLabel.fontColor = .black
-            scoreLabel.position = CGPoint(x: 70, y: size.height - 80)
-            addChild(scoreLabel)
+            scoreLabel.position = CGPoint(x: size.width / 2 - 80, y: size.height / 2 - 80)
+            scoreLabel.zPosition = 5
         }
         score = 0
         
@@ -160,8 +181,8 @@ class ZPGameScene: SKScene {
             waveLabel = SKLabelNode(fontNamed: "Arial")
             waveLabel.fontSize = 22
             waveLabel.fontColor = .black
-            waveLabel.position = CGPoint(x: size.width / 2, y: size.height - 80)
-            addChild(waveLabel)
+            waveLabel.position = CGPoint(x: 0, y: size.height / 2 - 80)
+            waveLabel.zPosition = 5
         }
         waveCounter = 1
         
@@ -184,18 +205,50 @@ class ZPGameScene: SKScene {
         //Set up joystick
         if joystick == nil {
             joystick = ZPJoystick(baseRadius: 50, knobRadius: 25)
-            joystick.position = CGPoint(x: 100, y: 100)
-            addChild(joystick)
+            joystick.position = CGPoint(x: -size.width / 2 + 100, y: -size.height / 2 + 100)
+            joystick.zPosition = 5
+            //cameraNode?.addChild(joystick)
         }
         
         //Set up shooting joystick
         if shootJoystick == nil {
             shootJoystick = ZPJoystick(baseRadius: 50, knobRadius: 25)
-            shootJoystick.position = CGPoint(x: size.width - 100, y: 100)
-            addChild(shootJoystick)
+            shootJoystick.position = CGPoint(x: size.width / 2 - 100, y: -size.height / 2 + 100)
+            shootJoystick.zPosition = 5
+            //cameraNode?.addChild(shootJoystick)
         }
         updateUpgradeStatsLabel()
+        setupBackground()
     }
+    
+    func setupBackground() {
+        // Calculate the height needed for the image
+        let totalHeight = size.height // The full height of the screen or desired play area
+        let aspectRatio = sectionWidth / sectionHeight // Maintain the image's aspect ratio
+        
+        // Resize the image to fit within the new bounds
+        let newHeight = totalHeight * 2 // Can change the multiplier to make bigger or smaller
+        let newWidth = newHeight * aspectRatio // Maintain proportions
+        
+        // Set the top and bottom 'invisible' boundaries
+        topBound = newHeight / 2 - 350
+        bottomBound = -newHeight / 2 + 50
+
+        // Set up the background sections
+        for i in 0..<numSections {
+            let section = SKSpriteNode(texture: SKTexture(imageNamed: "infGenTestImgLg"))
+            section.size = CGSize(width: newWidth, height: newHeight)
+            
+            // Position sections starting from the left side
+            section.position = CGPoint(x: CGFloat(i) * newWidth - newWidth / 2 + 10, y: 0)
+            section.zPosition = -1
+            addChild(section)
+            backgroundSections.append(section)
+        }
+    }
+
+
+
     
     func showUpgradePopup() {
         isGamePaused = true
@@ -207,7 +260,8 @@ class ZPGameScene: SKScene {
         popup.fillColor = .darkGray
         popup.alpha = 0.9
         popup.name = "upgradePopup"
-        popup.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        popup.position = CGPoint(x: 0, y: 0)
+        popup.zPosition = 5
         
         //Attack damage button
         let atkDamageButton = SKLabelNode(text: "Increase Attack Damage")
@@ -234,7 +288,7 @@ class ZPGameScene: SKScene {
         addHealthButton.position = CGPoint(x: 0, y:-80)
         popup.addChild(addHealthButton)
         
-        addChild(popup)
+        camera?.addChild(popup)
         upgradePopup = popup
     }
     
@@ -347,47 +401,136 @@ class ZPGameScene: SKScene {
         zombies.append(exploderZombie)
     }
     
+    func checkAndRespawnZombies(respawnRadius: CGFloat) {
+        for zombie in zombies {
+            let distanceFromPlayer = zombie.position.distance(to: player.position)
+            
+            if distanceFromPlayer > respawnRadius {
+                let safeRadius: CGFloat = 100.0
+                let spawnDistance: CGFloat = 150.0
+                
+                var newPosition: CGPoint
+                repeat {
+                    let angle = CGFloat.random(in: 0...2 * .pi)
+                    newPosition = CGPoint(
+                        x: player.position.x + spawnDistance * cos(angle),
+                        y: player.position.y + spawnDistance * sin(angle)
+                    )
+                } while newPosition.distance(to: player.position) < safeRadius || zombies.contains(where: { $0 !== zombie && $0.frame.contains(newPosition) })
+                //Update the zombie's position
+                zombie.position = newPosition
+            }
+        }
+    }
+    
     func spawnWizardBoss() {
+        guard let cameraNode = self.camera else { return }
+        let cameraCenter = cameraNode.position
         if let existingWizard = wizardBoss {
             existingWizard.removeFromParent()
         }
         bossIsAlive = true
         wizardBoss = ZPWizard(health: wizardHealth)
-        wizardBoss?.position = CGPoint(x: size.width / 2, y: size.height - 150) //Change value so its not in the way of UI
+        wizardBoss?.position = CGPoint(x: cameraCenter.x, y: cameraCenter.y + size.height / 2 - 150) //Change value so its not in the way of UI
         addChild(wizardBoss!)
-        //zombies.append(wizardBoss)
+        
+        arenaBounds = CGRect(
+            x: cameraCenter.x - size.width / 2,
+            y: cameraCenter.y - size.height / 2,
+            width: size.width - 75,
+            height: size.height - 200
+        )
+            
+        if let arenaBounds = arenaBounds {
+            let outline = SKShapeNode(rectOf: CGSize(width: arenaBounds.width, height: arenaBounds.height))
+            outline.position = CGPoint(x: arenaBounds.midX, y: arenaBounds.midY)
+            outline.strokeColor = .purple
+            outline.fillColor = .clear
+            outline.lineWidth = 2.0
+            outline.name = "arenaOutline"
+            addChild(outline)
+        }
+        
+    }
+    
+    func updatePlayerMovement() {
+        if let bounds = arenaBounds {
+            player.position.x = max(bounds.minX, min(bounds.maxX, player.position.x))
+            player.position.y = max(bounds.minY, min(bounds.maxY, player.position.y))
+        }
+    }
+    
+    func updateCamera() {
+        guard let cameraNode = self.camera else { return }
+        if arenaBounds == nil {
+            //Normal camera-follow behavior
+            cameraNode.position = CGPoint(
+                x: player.position.x,
+                y: player.position.y
+            )
+        } else {
+            //Lock camera at arena's center for when boss spawn
+            cameraNode.position = CGPoint(
+                x: arenaBounds!.midX,
+                y: arenaBounds!.midY
+            )
+        }
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
-            let location = touch.location(in: self)
-            let tappedNodes = nodes(at: location)
+            guard let cameraNode = self.camera else { continue }
+            let touchLocationInCamera = touch.location(in: cameraNode) // Location relative to the camera
             
+            // Check if the game is paused and the popup menu is active
             if isGamePaused {
-                for node in tappedNodes {
-                    if let nodeName = node.name, ["attack", "range", "speed", "health"].contains(nodeName) {
-                        applyUpgrade(nodeName)
-                        return
+                // Calculate the touch location relative to the popup menu
+                if let popupMenu = cameraNode.childNode(withName: "upgradePopup") {
+                    let touchLocationInPopup = touch.location(in: popupMenu) // Convert location to popup menu's coordinate space
+                    
+                    // Check if the touch is on any of the upgrade options
+                    let tappedNodes = popupMenu.nodes(at: touchLocationInPopup)
+                    for node in tappedNodes {
+                        if let nodeName = node.name, ["attack", "range", "speed", "health"].contains(nodeName) {
+                            applyUpgrade(nodeName) // Apply the chosen upgrade
+                            return
+                        }
                     }
                 }
+                return // Don't allow other interactions when paused
             }
-            
-            if joystick.contains(location) && activeTouches[touch] == nil && !gameOver {
+
+            // Handle joystick interactions
+            if joystick.contains(touchLocationInCamera) && activeTouches[touch] == nil && !gameOver {
                 joystick.startTouch(at: touch.location(in: joystick))
                 activeTouches[touch] = joystick
-            }
-            else if shootJoystick.contains(location) && activeTouches[touch] == nil && !gameOver {
+            } else if shootJoystick.contains(touchLocationInCamera) && activeTouches[touch] == nil && !gameOver {
                 shootJoystick.startTouch(at: touch.location(in: shootJoystick))
                 shootJoystick.activate()
                 activeTouches[touch] = shootJoystick
             }
+
+            // Handle game-over interactions
             if gameOver {
-                for node in tappedNodes where node.name == "retryButton" {
-                    restartGame()
+                if let gameOverNode = cameraNode.childNode(withName: "gameOverScreen") {
+                    let touchLocationInGameOver = touch.location(in: gameOverNode)
+                    let tappedNodes = gameOverNode.nodes(at: touchLocationInGameOver)
+                    for node in tappedNodes {
+                        if node.name == "retryButton" {
+                            restartGame()
+                            return
+                        } else if node.name == "leaderboardButton" {
+                            //LEADERBOARDS LOGIC HERE
+                        } else if node.name == "mainMenuButton" {
+                            //MAIN MENU LOGIC HERE
+                        }
+                    }
                 }
+                return //Stops interaction while gameover screen is active
             }
         }
     }
+
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
@@ -413,13 +556,22 @@ class ZPGameScene: SKScene {
     override func update(_ currentTime: TimeInterval) {
         super.update(currentTime)
         guard !gameOver, !isGamePaused else { return }
+        manageBackgroundScrolling()
+        
+        let respawnRadius: CGFloat = 400 // Define the maximum allowed distance before zombie respawn
+        checkAndRespawnZombies(respawnRadius: respawnRadius)
+        updatePlayerMovement()
+        updateCamera()
         
         if playerLives <= 0 {
             showGameOverScreen()
             return
         }
         
-        if bossIsAlive {
+        if bossIsAlive, let arenaBounds = arenaBounds {
+            let clampedX = max(arenaBounds.minX, min(player.position.x, arenaBounds.maxX))
+            let clampedY = max(arenaBounds.minY, min(player.position.y, arenaBounds.maxY))
+            player.position = CGPoint(x: clampedX, y: clampedY)
             wizardBoss?.update(currentTime: currentTime, playerPosition: player.position)
         }
         
@@ -433,9 +585,18 @@ class ZPGameScene: SKScene {
         let dx = velocity.x * moveSpeed * CGFloat(deltaTime)
         let dy = velocity.y * moveSpeed * CGFloat(deltaTime)
         
+        //Center the camera on the player
+        self.position = CGPoint(
+            x: -player.position.x + size.width / 2,
+            y: -player.position.y + size.height / 2
+        )
+        
+        //Move the camera to follow the player
+        camera?.position = player.position
+        
         // Update player position and apply boundaries
         let newPlayerPosition = CGPoint(x: player.position.x + dx, y: player.position.y + dy)
-        player.position = boundPosition(newPlayerPosition)
+        player.position = boundPosition(for: newPlayerPosition, within: CGSize(width: 1024, height: 768))
         
         //Check shoot joystick to aim and shoot projectiles
         if shootJoystick.isActive {
@@ -475,6 +636,38 @@ class ZPGameScene: SKScene {
             advanceToNextWave()
         }
     }
+    
+    func manageBackgroundScrolling() {
+        // Define overlap offset to ensure smooth transition
+        let overlapOffset: CGFloat = 300.0
+
+        for section in backgroundSections {
+            let sectionLeftEdge = section.position.x - section.size.width / 2
+            let sectionRightEdge = section.position.x + section.size.width / 2
+            let sectionTopEdge = section.position.y + section.size.height / 2
+            let sectionBottomEdge = section.position.y - section.size.height / 2
+            
+            // **Horizontal Scrolling**
+            if player.position.x > sectionRightEdge + overlapOffset {
+                // Move section to the right before it leaves the visible area
+                section.position.x += CGFloat(numSections) * section.size.width
+            } else if player.position.x < sectionLeftEdge - overlapOffset {
+                // Move section to the left before it leaves the visible area
+                section.position.x -= CGFloat(numSections) * section.size.width
+            }
+
+            // **Vertical Scrolling**
+            if player.position.y > sectionTopEdge + overlapOffset {
+                // Move section downward before it leaves the visible area
+                section.position.y -= CGFloat(numSections) * section.size.height
+            } else if player.position.y < sectionBottomEdge - overlapOffset {
+                // Move section upward before it leaves the visible area
+                section.position.y += CGFloat(numSections) * section.size.height
+            }
+        }
+    }
+
+
     
     func shootProjectile(in direction: CGPoint) {
         //Create projectile node
@@ -517,6 +710,10 @@ class ZPGameScene: SKScene {
                 projectile.removeFromParent()
                 if wizard.health <= 0 {
                     bossIsAlive = false
+                    arenaBounds = nil
+                    if let outline = childNode(withName: "arenaOutline") as? SKShapeNode {
+                        outline.removeFromParent()
+                    }
                 }
             }
         }
@@ -579,8 +776,10 @@ class ZPGameScene: SKScene {
             let isBossWave = currentWave % 6 == 0
             let waveMessage = isBossWave ? "BOSS WAVE" : "Wave \(waveCounter)"
             waveMessageLabel.text = waveMessage
+            waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
             //Show message briefly
             waveMessageLabel.isHidden = false
+            waveMessageLabel.alpha = 1.0
             let fadeOut = SKAction.sequence([
                 SKAction.wait(forDuration: 2.0),
                 SKAction.fadeOut(withDuration: 1.0),
@@ -600,12 +799,13 @@ class ZPGameScene: SKScene {
     }
     
     private func showEnemyIntroductionMessage(_ message: String) {
+        guard let cameraNode = self.camera else { return }
         let enemyMessageLabel = SKLabelNode(text: message)
         enemyMessageLabel.fontSize = 40
         enemyMessageLabel.fontColor = .red
-        enemyMessageLabel.position = CGPoint(x: size.width / 2, y: size.height - 220)
+        enemyMessageLabel.position = CGPoint(x: 0, y: size.height * 0.25)
         enemyMessageLabel.zPosition = 5
-        addChild(enemyMessageLabel)
+        cameraNode.addChild(enemyMessageLabel)
         
         let fadeOut = SKAction.sequence([
             SKAction.wait(forDuration: 2.0),
@@ -618,34 +818,42 @@ class ZPGameScene: SKScene {
     //Note: Can change this at a later time to match HYEL gameoverscreen style
     func showGameOverScreen() {
         gameOver = true
-        let gameOverNode = SKShapeNode(rect: CGRect(x: size.width * 0.1, y: size.height * 0.3, width: size.width * 0.8, height: size.height * 0.4), cornerRadius: 20)
+        guard let cameraNode = self.camera else { return }
+        
+        let gameOverNode = SKShapeNode(rect: CGRect(x: -size.width * 0.4, y: -size.height * 0.2, width: size.width * 0.8, height: size.height * 0.4), cornerRadius: 20)
         gameOverNode.fillColor = .black.withAlphaComponent(0.8)
         gameOverNode.name = "gameOverScreen"
-        addChild(gameOverNode)
+        gameOverNode.zPosition = 5
+        cameraNode.addChild(gameOverNode)
         
         let gameOverLabel = SKLabelNode(text: "Game Over")
         gameOverLabel.fontSize = 40
         gameOverLabel.fontColor = .white
-        gameOverLabel.position = CGPoint(x: size.width / 2, y: size.height * 0.6)
+        gameOverLabel.position = CGPoint(x: 0, y: size.height * 0.1)
+        gameOverLabel.zPosition = 5
         gameOverNode.addChild(gameOverLabel)
         
         let scoreLabel = SKLabelNode(text: "Score: \(score)") //Placeholder for score to be implemented later
         scoreLabel.fontSize = 30
         scoreLabel.fontColor = .white
-        scoreLabel.position = CGPoint(x: size.width / 2, y: size.height * 0.55)
+        scoreLabel.position = CGPoint(x: 0, y: size.height * 0.05)
+        scoreLabel.zPosition = 5
         gameOverNode.addChild(scoreLabel)
         
         //Main menu and leaderboard buttons are placeholders for now.
-        let retryButton = createButton(withText: "Retry", atPosition: CGPoint(x: size.width / 2, y: size.height * 0.45))
+        let retryButton = createButton(withText: "Retry", atPosition: CGPoint(x: 0, y: 0))
         retryButton.name = "retryButton"
+        retryButton.zPosition = 5
         gameOverNode.addChild(retryButton)
         
-        let leaderboardButton = createButton(withText: "Leaderboards", atPosition: CGPoint(x: size.width / 2, y: size.height * 0.4))
+        let leaderboardButton = createButton(withText: "Leaderboards", atPosition: CGPoint(x: 0, y: -size.height * 0.05))
         leaderboardButton.name = "leaderboardButton"
+        leaderboardButton.zPosition = 5
         gameOverNode.addChild(leaderboardButton)
         
-        let mainMenuButton = createButton(withText: "Main Menu", atPosition: CGPoint(x: size.width / 2, y: size.height * 0.35))
+        let mainMenuButton = createButton(withText: "Main Menu", atPosition: CGPoint(x: 0, y: -size.height * 0.1))
         mainMenuButton.name = "mainMenuButton"
+        leaderboardButton.zPosition = 5
         gameOverNode.addChild(mainMenuButton)
         
     }
@@ -659,7 +867,7 @@ class ZPGameScene: SKScene {
     }
     
     func restartGame() {
-        if let gameOverScreen = childNode(withName: "gameOverScreen") {
+        if let cameraNode = self.camera, let gameOverScreen = cameraNode.childNode(withName: "gameOverScreen") {
             gameOverScreen.removeFromParent()
         }
         player.position = centerPosition
@@ -680,12 +888,20 @@ class ZPGameScene: SKScene {
     }
     
     // Keeps player within screen bounds
-    private func boundPosition(_ position: CGPoint) -> CGPoint {
-        let halfWidth = player.size.width / 2
-        let halfHeight = player.size.height / 2
-        let clampedX = min(size.width - halfWidth, max(halfWidth, position.x))
-        let clampedY = min(size.height - halfHeight, max(halfHeight, position.y))
-        return CGPoint(x: clampedX, y: clampedY)
+    private func boundPosition(for position: CGPoint, within imageSize: CGSize) -> CGPoint {
+        var newPosition = position
+
+        // Allow free movement horizontally (no bounds on x-axis)
+        newPosition.x = position.x
+
+        // Restrict vertical movement within the top and bottom of the resized background
+        if newPosition.y > topBound {
+            newPosition.y = topBound
+        } else if newPosition.y < bottomBound {
+            newPosition.y = bottomBound
+        }
+
+        return newPosition
     }
     
     func updateUpgradeStatsLabel() {
