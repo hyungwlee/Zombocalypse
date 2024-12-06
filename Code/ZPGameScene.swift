@@ -5,6 +5,40 @@
 //  
 //
 
+//for testing UI shop and spinner
+import SpriteKit
+
+class GameScene: SKScene {
+    private var currentState: AnyObject?
+
+    private let playingState = PlayingState()
+    private let shopState = ShopState()
+
+    override func didMove(to view: SKView) {
+        switchToPlayingState()
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+
+        if currentState is ShopState {
+            shopState.handleTouch(touch, scene: self)
+        }
+    }
+
+    private func switchToPlayingState() {
+        currentState?.exitState?(scene: self)
+        playingState.enterState(scene: self)
+        currentState = playingState
+    }
+
+    private func switchToShopState() {
+        currentState?.exitState?(scene: self)
+        shopState.enterState(scene: self)
+        currentState = shopState
+    }
+}
+/*
 import SpriteKit
 import GameplayKit
 import CoreGraphics
@@ -1262,3 +1296,4 @@ class ZPGameScene: SKScene {
     }
     
 }
+*/
