@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9EA377C02D028B230000D5DB /* RegularSkill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA377BF2D028B230000D5DB /* RegularSkill.swift */; };
+		9EA377C22D028B460000D5DB /* SpecialSkill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA377C12D028B460000D5DB /* SpecialSkill.swift */; };
+		9EA377C42D028B510000D5DB /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA377C32D028B510000D5DB /* PlayerState.swift */; };
+		9EA377C62D028B730000D5DB /* SkillManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA377C52D028B730000D5DB /* SkillManager.swift */; };
 		FC070A882CCAB90300946357 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FC070A842CCAB90300946357 /* Assets.xcassets */; };
 		FC070A972CCAD22700946357 /* GameType.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A962CCAD22700946357 /* GameType.swift */; };
 		FC070A982CCAD22700946357 /* GameContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A942CCAD22700946357 /* GameContext.swift */; };
@@ -44,6 +48,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9EA377BF2D028B230000D5DB /* RegularSkill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularSkill.swift; sourceTree = "<group>"; };
+		9EA377C12D028B460000D5DB /* SpecialSkill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpecialSkill.swift; sourceTree = "<group>"; };
+		9EA377C32D028B510000D5DB /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
+		9EA377C52D028B730000D5DB /* SkillManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillManager.swift; sourceTree = "<group>"; };
 		FC070A552CCAB85600946357 /* Zombocalypse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zombocalypse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC070A652CCAB85700946357 /* ZombocalypseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZombocalypseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC070A6F2CCAB85700946357 /* ZombocalypseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZombocalypseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -109,6 +117,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9EA377BE2D028B1C0000D5DB /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				9EA377C52D028B730000D5DB /* SkillManager.swift */,
+				9EA377C12D028B460000D5DB /* SpecialSkill.swift */,
+				9EA377BF2D028B230000D5DB /* RegularSkill.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		FC070A4C2CCAB85600946357 = {
 			isa = PBXGroup;
 			children = (
@@ -135,8 +153,8 @@
 		FC070A9D2CCAD35400946357 /* Code */ = {
 			isa = PBXGroup;
 			children = (
+				9EA377BE2D028B1C0000D5DB /* Models */,
 				FC070AA32CCAEB4600946357 /* Helpers */,
-				FC070AA22CCAEB3F00946357 /* Models */,
 				FC070AA12CCAEB3800946357 /* Nodes */,
 				FC070AA02CCAEB2F00946357 /* States */,
 				FC070AA82CCAF0FE00946357 /* ZPGameContext.swift */,
@@ -169,6 +187,7 @@
 		FC070AA02CCAEB2F00946357 /* States */ = {
 			isa = PBXGroup;
 			children = (
+				9EA377C32D028B510000D5DB /* PlayerState.swift */,
 				FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */,
 			);
 			path = States;
@@ -184,13 +203,6 @@
 				FCC9B8DC2CE5B404006077B4 /* ZPExploderZombieNode.swift */,
 			);
 			path = Nodes;
-			sourceTree = "<group>";
-		};
-		FC070AA22CCAEB3F00946357 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Models;
 			sourceTree = "<group>";
 		};
 		FC070AA32CCAEB4600946357 /* Helpers */ = {
@@ -348,6 +360,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9EA377C22D028B460000D5DB /* SpecialSkill.swift in Sources */,
 				FCC9B8DB2CE55505006077B4 /* ZPChargerZombieNode.swift in Sources */,
 				FC070A972CCAD22700946357 /* GameType.swift in Sources */,
 				FC070A982CCAD22700946357 /* GameContext.swift in Sources */,
@@ -357,9 +370,12 @@
 				FC070A992CCAD22700946357 /* Dependencies.swift in Sources */,
 				FC070A9A2CCAD22700946357 /* GameModeType.swift in Sources */,
 				FC070AA92CCAF0FE00946357 /* ZPGameContext.swift in Sources */,
+				9EA377C62D028B730000D5DB /* SkillManager.swift in Sources */,
+				9EA377C42D028B510000D5DB /* PlayerState.swift in Sources */,
 				FC070AAD2CCAF86200946357 /* ZPBoxNode.swift in Sources */,
 				FC070AA52CCAEB9A00946357 /* ZPLayoutInfo.swift in Sources */,
 				FCC9B8D92CD4767C006077B4 /* ZPZombieNode.swift in Sources */,
+				9EA377C02D028B230000D5DB /* RegularSkill.swift in Sources */,
 				FCC9B9E92CE961B3006077B4 /* ZPWizardNode.swift in Sources */,
 				FCC9B8DD2CE5B404006077B4 /* ZPExploderZombieNode.swift in Sources */,
 				FCC9B8D72CD4592A006077B4 /* ZPJoystick.swift in Sources */,
