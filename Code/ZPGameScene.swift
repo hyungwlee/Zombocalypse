@@ -61,7 +61,11 @@ struct Wave {
 }
 
 
-class ZPGameScene: SKScene {
+class ZPGameScene: SKScene, PlayerStateDelegate {
+    //Player Properties
+    var playerState = PlayerState()
+    var skillManager: SkillManager!
+    
     //Inf background settings
     var topBound: CGFloat = 0
     var bottomBound: CGFloat = 0
@@ -162,6 +166,8 @@ class ZPGameScene: SKScene {
     }
     
     override func didMove(to view: SKView) {
+        playerState.delegate = self
+        skillManager = SkillManager(player: playerState)
         self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         self.view?.isMultipleTouchEnabled = true
         //Create and add the camera node
@@ -535,6 +541,104 @@ class ZPGameScene: SKScene {
         updateUpgradeStatsLabel()
     }
     
+    //PlayerStateDelegate Methods
+    
+    //REGULAR SKILLS
+    func playerStateDidAddSpinningBlades(_ state: PlayerState) {
+        //Implement logic to add spinning blades to the player in the game scene
+        addSpinningBlades(count: state.spinningBladesCount, damage: state.spinningBladesDamage, speed: state.spinningBladesSpeed)
+    }
+    
+    func playerStateDidUpgradeBarrier(_ state: PlayerState) {
+            // Implement logic to upgrade the protective barrier in the game scene
+            upgradeProtectiveBarrier(size: state.barrierSize, damage: state.barrierDamage, pulseFrequency: state.barrierPulseFrequency, slowAmount: state.barrierSlowAmount)
+        }
+        
+    func playerStateDidUpgradeHealth(_ state: PlayerState, restorePercentage: Double) {
+        // Implement logic to upgrade health and restore a percentage
+        upgradePlayerHealth(by: state.currentMaxHealth, restorePercentage: restorePercentage)
+    }
+    
+    func playerStateDidUpgradeMagnet(_ state: PlayerState) {
+        // Implement logic to upgrade the magnet effect
+        upgradeMagnet(radius: state.currentCoinRadius)
+    }
+    
+    func playerStateDidUpgradeFreeze(_ state: PlayerState) {
+        // Implement logic to upgrade freeze grenade abilities
+        upgradeFreezeGrenade(cooldownReduction: state.freezeGrenadeCooldown, durationIncrement: state.freezeDuration, radiusIncrement: state.freezeRadius)
+    }
+    
+    // SPECIAL SKILLS
+    func playerStateDidActivateHelpingHand(_ state: PlayerState) {
+        // Implement logic to activate Helping Hand skill
+        activateHelpingHand()
+    }
+    
+    func playerStateDidActivateReinforcedArrow(_ state: PlayerState) {
+        // Implement logic to activate Reinforced Arrow skill
+        activateReinforcedArrow()
+    }
+    
+    func playerStateDidActivateSpectralShield(_ state: PlayerState) {
+        // Implement logic to activate Spectral Shield skill
+        activateSpectralShield()
+    }
+    
+    func playerStateDidActivateMightyKnockback(_ state: PlayerState) {
+        // Implement logic to activate Mighty Knockback skill
+        activateMightyKnockback()
+    }
+    
+    func playerStateDidActivateBonusHealth(_ state: PlayerState, restorePercentage: Double) {
+        // Implement logic to activate Bonus Health
+        activateBonusHealth(restorePercentage: restorePercentage)
+    }
+    
+    // Skill Effect Methods
+    
+    // Define methods like addSpinningBlades, upgradeProtectiveBarrier, etc., to update the game scene accordingly.
+    
+    func addSpinningBlades(count: Int, damage: Int, speed: Double) {
+        // Add spinning blades logic
+    }
+    
+    func upgradeProtectiveBarrier(size: Double, damage: Int, pulseFrequency: Double, slowAmount: Double) {
+        // Upgrade protective barrier logic
+    }
+    
+    func upgradePlayerHealth(by amount: Double, restorePercentage: Double) {
+        // Upgrade health and restore logic
+    }
+    
+    func upgradeMagnet(radius: Double) {
+        // Upgrade magnet logic
+    }
+    
+    func upgradeFreezeGrenade(cooldownReduction: Double, durationIncrement: Double, radiusIncrement: Double) {
+        // Upgrade freeze grenade logic
+    }
+    
+    func activateHelpingHand() {
+        // Activate Helping Hand logic
+    }
+    
+    func activateReinforcedArrow() {
+        // Activate Reinforced Arrow logic
+    }
+    
+    func activateSpectralShield() {
+        // Activate Spectral Shield logic
+    }
+    
+    func activateMightyKnockback() {
+        // Activate Mighty Knockback logic
+    }
+    
+    func activateBonusHealth(restorePercentage: Double) {
+        // Activate Bonus Health logic
+    }
+
     func removeZombies() {
         for zombie in zombies {
             zombie.removeFromParent()
