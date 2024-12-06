@@ -23,6 +23,44 @@ extension CGVector {
     }
 }
 
+struct Wave {
+    let waveNumber: Int
+    let totalEnemies: Int
+    let regularEnemies: Int
+    let chargerEnemies: Int
+    let exploderEnemies: Int
+    let isHorde: Bool
+    let isBoss: Bool
+    let spawnInterval: TimeInterval
+    let requiresFullClearance: Bool
+    
+    // Track spawned enemies
+    var spawnedRegular: Int = 0
+    var spawnedCharger: Int = 0
+    var spawnedExploder: Int = 0
+    
+    // Determine if all enemies have been spawned
+    var allEnemiesSpawned: Bool {
+        return (spawnedRegular >= regularEnemies) &&
+               (spawnedCharger >= chargerEnemies) &&
+               (spawnedExploder >= exploderEnemies)
+    }
+    
+    // Initialize without default values for spawned counts
+    init(waveNumber: Int, totalEnemies: Int, regularEnemies: Int, chargerEnemies: Int, exploderEnemies: Int, isHorde: Bool, isBoss: Bool, spawnInterval: TimeInterval, requiresFullClearance: Bool) {
+        self.waveNumber = waveNumber
+        self.totalEnemies = totalEnemies
+        self.regularEnemies = regularEnemies
+        self.chargerEnemies = chargerEnemies
+        self.exploderEnemies = exploderEnemies
+        self.isHorde = isHorde
+        self.isBoss = isBoss
+        self.spawnInterval = spawnInterval
+        self.requiresFullClearance = requiresFullClearance
+    }
+}
+
+
 class ZPGameScene: SKScene {
     //Inf background settings
     var topBound: CGFloat = 0
@@ -50,10 +88,8 @@ class ZPGameScene: SKScene {
     var gameOver: Bool = false
     
     //Revamp wave settings
-    var totalEnemiesDefeated = 0
     var enemiesToDefeat = 3
     var miniWaveInterval: TimeInterval = 3.0
-    var activeEnemies = 0
     var maxEnemiesOnScreen: Int = 3
     var progressLabel: SKLabelNode!
     var spawningInProgress: Bool = false
@@ -64,8 +100,16 @@ class ZPGameScene: SKScene {
     var maxExploderZombies: Int = 0
     var isBossStage: Bool = false
     
+    //New wave settings
+    var waveCycle: [Wave] = []
+    var currentWaveIndex: Int = 0
+    var gracePeriod: TimeInterval = 7.0 // Initial grace period
+    var pendingEnemies: Int = 0
+    var enemiesToSpawn: Int = 0
+    var waveProgressionWorkItem: DispatchWorkItem?
+    
     // Zombie Wave Settings
-    private var currentWave: Int = 1
+    private var waveCounter: Int = 0
     private var zombieHealth: Int = 3
     private var wizardHealth: Int = 15
     private var wizardBoss: ZPWizard?
@@ -76,9 +120,9 @@ class ZPGameScene: SKScene {
     
     //Enemy variation message settings
     private let newEnemyMessages: [Int: String] = [
-        3: "New Enemy: Charger!",
-        4: "New Enemy: Exploder!",
-        6: "New Boss: Wizard!",
+        4: "New Enemy: Charger!",
+        5: "New Enemy: Exploder!",
+        7: "New Boss: Wizard!",
     ]
     private var displayedEnemyMessages: Set<Int> = []
     
@@ -185,7 +229,7 @@ class ZPGameScene: SKScene {
         //Set up wave label at the top
         if waveLabel == nil {
             waveLabel = SKLabelNode(fontNamed: "Arial")
-            waveLabel.text = "Wave: \(currentWave)"
+            waveLabel.text = "Wave: \(waveCounter)"
             waveLabel.fontSize = 22
             waveLabel.fontColor = .black
             waveLabel.position = CGPoint(x: 0, y: size.height / 2 - 80)
@@ -194,7 +238,6 @@ class ZPGameScene: SKScene {
         //Set up progress label at the top
         if progressLabel == nil {
             progressLabel = SKLabelNode(fontNamed:"Arial")
-            progressLabel.text = "Enemies till next wave: \(totalEnemiesDefeated) / \(enemiesToDefeat)"
             progressLabel.fontSize = 20
             progressLabel.fontColor = .black
             progressLabel.position = CGPoint(x: 0, y: size.height / 2 - 130)
@@ -217,7 +260,9 @@ class ZPGameScene: SKScene {
         removeZombies()
 
         //Wave function
-        maintainEnemyCount()
+        //maintainEnemyCount()
+        initializeWaves()
+        startNextWave()
         
         //Set up joystick
         if joystick == nil {
@@ -238,24 +283,166 @@ class ZPGameScene: SKScene {
         setupBackground()
     }
     
-    func spawnEnemies(groupCount: Int) {
-        guard !gameOver else { return }
-        maxEnemiesOnScreen = groupCount
-        while activeEnemies < maxEnemiesOnScreen {
+    func initializeWaves() {
+        //Define waves 1 through 7
+        waveCycle = [
+            Wave(waveNumber: 1, totalEnemies: 10, regularEnemies: 10, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 3.0, requiresFullClearance: false),
+            Wave(waveNumber: 2, totalEnemies: 15, regularEnemies: 15, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.8, requiresFullClearance: false),
+            Wave(waveNumber: 3, totalEnemies: 30, regularEnemies: 30, chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: 1.0, requiresFullClearance: false),
+            Wave(waveNumber: 4, totalEnemies: 35, regularEnemies: 30, chargerEnemies: 5, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.3, requiresFullClearance: false),
+            Wave(waveNumber: 5, totalEnemies: 40, regularEnemies: 30, chargerEnemies: 5, exploderEnemies: 5, isHorde: false, isBoss: false, spawnInterval: 2.1, requiresFullClearance: false),
+            Wave(waveNumber: 6, totalEnemies: 46, regularEnemies: 30, chargerEnemies: 8, exploderEnemies: 8, isHorde: true, isBoss: false, spawnInterval: 1.0, requiresFullClearance: true),
+            Wave(waveNumber: 7, totalEnemies: 1, regularEnemies: 0, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: true, spawnInterval: 0.0, requiresFullClearance: false)
+        ]
+    }
+    
+    func startNextWave() {
+        guard currentWaveIndex < waveCycle.count else {
+            //All waves in the cycle completed, restart cycle with increased difficulty
+            restartCycleWithIncreasedDifficulty()
+            return
+        }
+        
+        waveCounter += 1
+        waveLabel.text = "Wave \(waveCounter)"
+        
+        let wave = waveCycle[currentWaveIndex]
+        pendingEnemies += wave.totalEnemies
+        enemiesToSpawn += wave.totalEnemies
+        updateProgressLabel()
+        
+        isTransitioningWave = true
+        
+        //Display wave start message
+        if wave.isBoss {
+            waveMessageLabel.text = "Boss Stage"
+            waveMessageLabel.fontSize = 40
+            waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+            waveMessageLabel.zPosition = 5
+        } else if wave.isHorde {
+            waveMessageLabel.text = "A horde is approaching.."
+            waveMessageLabel.fontSize = 30
+            waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+            waveMessageLabel.zPosition = 5
+        } else {
+            waveMessageLabel.text = "Wave \(waveCounter) starting.."
+            waveMessageLabel.fontSize = 30
+            waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+            waveMessageLabel.zPosition = 5
+        }
+        waveMessageLabel.isHidden = false
+        
+        if let enemyMessage = newEnemyMessages[wave.waveNumber], !displayedEnemyMessages.contains(wave.waveNumber) {
+            showEnemyIntroductionMessage(enemyMessage)
+            displayedEnemyMessages.insert(wave.waveNumber)
+        }
+        
+        if wave.isBoss {
+            clearAllEnemies() //Clear existing enemies only for boss waves
+            startBossStage()
+            
+        } else {
+            //Regular wave: do not clear existing enemies
+            removeAction(forKey: "spawnNextEnemy")
+            //FIGURE OUT THIS BELOW TO MAKE MESSAGES WORK
+            waveMessageLabel.isHidden = true
+            isTransitioningWave = false
+            spawnNextEnemy()
+        }
+        
+    }
+    
+    func spawnNextEnemy() {
+        guard currentWaveIndex < waveCycle.count else { return }
+        var wave = waveCycle[currentWaveIndex]
+        
+        // Check if all enemies have been spawned
+        if wave.allEnemiesSpawned {
+            handleWaveProgression()
+            waveCycle[currentWaveIndex] = wave // Update the wave with new spawn counts
+            return
+        }
+        
+        // Decide which enemy to spawn next
+        let spawnDecision = decideNextEnemyType(for: wave)
+        
+        switch spawnDecision {
+        case .regular:
             spawnZombies(withHealth: zombieHealth)
-            activeEnemies += 1
+            wave.spawnedRegular += 1
+        case .charger:
+            spawnChargerZombie()
+            wave.spawnedCharger += 1
+        case .exploder:
+            spawnExploderZombie()
+            wave.spawnedExploder += 1
+        }
+        
+        // Update the wave in the cycle
+        waveCycle[currentWaveIndex] = wave
+        
+        //Decrement enemiesToSpawn as an enemy has been spawned
+        enemiesToSpawn -= 1
+        
+        // Schedule the next enemy spawn
+        let currentWaveObject = waveCycle[currentWaveIndex]
+        if currentWaveObject.spawnInterval > 0 {
+            let spawnAction = SKAction.run { [weak self] in
+                self?.spawnNextEnemy()
+            }
+            let waitAction = SKAction.wait(forDuration: currentWaveObject.spawnInterval)
+            let sequence = SKAction.sequence([waitAction, spawnAction])
+            run(sequence, withKey: "spawnNextEnemy")
+        }
+        updateProgressLabel()
+    }
+    
+    enum EnemyType {
+        case regular
+        case charger
+        case exploder
+    }
+
+    func decideNextEnemyType(for wave: Wave) -> EnemyType {
+        var possibleTypes: [EnemyType] = []
+        
+        if wave.spawnedRegular < wave.regularEnemies {
+            possibleTypes.append(.regular)
+        }
+        if wave.spawnedCharger < wave.chargerEnemies {
+            possibleTypes.append(.charger)
+        }
+        if wave.spawnedExploder < wave.exploderEnemies {
+            possibleTypes.append(.exploder)
+        }
+        
+        // Randomly select one of the possible types
+        return possibleTypes.randomElement() ?? .regular
+    }
+
+    
+    func spawnEnemyTypes(regular: Int, charger: Int, exploder: Int) {
+        for _ in 0..<regular {
+            spawnZombies(withHealth: zombieHealth)
+        }
+        for _ in 0..<charger {
+            spawnChargerZombie()
+        }
+        for _ in 0..<exploder {
+            spawnExploderZombie()
         }
     }
     
-    func updateWaveLogic() {
-        if totalEnemiesDefeated >= enemiesToDefeat {
-            currentWave += 1
-            totalEnemiesDefeated = 0
-            enemiesToDefeat += 5
-            zombieHealth += 1
-            miniWaveInterval = max(1.0, miniWaveInterval - 0.1)
+    func updateProgressLabel() {
+        if isBossStage {
+            progressLabel.text = "Defeat the boss!"
         }
-        progressLabel.text = "Enemies till next wave: \(totalEnemiesDefeated) / \(enemiesToDefeat)"
+        else if pendingEnemies > 0 {
+            progressLabel.text = "Enemies left: \(pendingEnemies)"
+        }
+        else {
+            progressLabel.text = "Waiting for next wave..."
+        }
     }
     
     func setupBackground() {
@@ -444,7 +631,6 @@ class ZPGameScene: SKScene {
             outline.name = "arenaOutline"
             addChild(outline)
         }
-        activeEnemies += 1
         
     }
     
@@ -625,35 +811,15 @@ class ZPGameScene: SKScene {
             }
         }
         
-        maintainEnemyCount()
-        
-        if totalEnemiesDefeated >= enemiesToDefeat {
-            handleWaveProgression()
+        if currentWaveIndex < waveCycle.count {
+            let wave = waveCycle[currentWaveIndex]
+            if wave.allEnemiesSpawned && pendingEnemies <= 0 && !isBossStage {
+                handleWaveProgression()
+            }
         }
         
     }
     
-    func maintainEnemyCount() {
-        guard !isTransitioningWave, !isBossStage else { return }
-        
-        //Spawn regular zombies
-        while activeEnemies < maxRegularZombies {
-            spawnZombies(withHealth: zombieHealth)
-            activeEnemies += 1
-        }
-        
-        //Spawn charger zombies if available
-        while countActiveChargers() < maxChargerZombies {
-            spawnChargerZombie()
-            activeEnemies += 1
-        }
-        
-        //Spawn exploder zombies if available
-        while countActiveExploders() < maxExploderZombies {
-            spawnExploderZombie()
-            activeEnemies += 1
-        }
-    }
     
     func countActiveChargers() -> Int {
         return zombies.filter { $0 is ZPChargerZombieNode }.count
@@ -663,37 +829,59 @@ class ZPGameScene: SKScene {
     }
     
     func handleWaveProgression() {
+        guard !isTransitioningWave else { return }
         isTransitioningWave = true
         
-        //Increment wave stage and adjust thresholds
-        currentWave += 1
-        totalEnemiesDefeated = 0
-        waveLabel.text = "Wave \(currentWave)"
-        
-        //Show new enemy introduction message if applicable
-        if let enemyMessage = newEnemyMessages[currentWave] {
-            showEnemyIntroductionMessage(enemyMessage)
-        }
-        
-        if currentWave % 6 == 0 {
-            startBossStage()
-            return
-        }
-        
-        adjustWaveSettings()
-        progressLabel.text = "Enemies till next wave: \(totalEnemiesDefeated) / \(enemiesToDefeat)"
-        clearAllEnemies()
-        //wave transition message
-        waveMessageLabel.text = "Wave \(currentWave) Starting.."
+        //Start grace period timer
+        waveMessageLabel.text = "Wave Over. Defeat remaining enemies.."
+        waveMessageLabel.fontSize = 20
         waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
         waveMessageLabel.zPosition = 5
         waveMessageLabel.isHidden = false
         
-        //Delay before starting next wave
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-            self.waveMessageLabel.isHidden = true
-            self.isTransitioningWave = false
-            self.maintainEnemyCount()
+        waveProgressionWorkItem = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            if self.waveCycle[currentWaveIndex].requiresFullClearance {
+                if self.pendingEnemies > 0 {
+                    //Do not proceed. Wait until all enemies are defeated
+                    self.waveMessageLabel.text = "Defeat all enemies to proceed.."
+                    self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+                    self.waveMessageLabel.zPosition = 5
+                } else {
+                    self.transitionToNextWave()
+                }
+            } else {
+                //Regular wave progression
+                if self.pendingEnemies > 0 {
+                    self.waveMessageLabel.text = "Next wave starting.."
+                    self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+                    self.waveMessageLabel.zPosition = 5
+                } else {
+                    self.waveMessageLabel.text = "Wave Cleared. Next wave starting.."
+                    self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+                    self.waveMessageLabel.zPosition = 5
+                }
+                self.transitionToNextWave()
+            }
+            self.waveMessageLabel.isHidden = false
+        }
+        //Schedule the wave progression after graceperiod
+        if let workItem = waveProgressionWorkItem {
+            DispatchQueue.main.asyncAfter(deadline: .now() + gracePeriod, execute: workItem)
+        }
+    }
+    
+    func transitionToNextWave() {
+        self.currentWaveIndex += 1
+        if self.currentWaveIndex >= self.waveCycle.count {
+            self.restartCycleWithIncreasedDifficulty()
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                guard let self = self else { return }
+                self.waveMessageLabel.isHidden = true
+                self.isTransitioningWave = false
+                self.startNextWave()
+            }
         }
     }
     
@@ -702,25 +890,19 @@ class ZPGameScene: SKScene {
             zombie.removeFromParent()
         }
         zombies.removeAll()
-        activeEnemies = 0
     }
     
-    func adjustWaveSettings() {
-        if currentWave % 6 != 0 {
-            //Regular wave settings
-            maxRegularZombies = min(10 + currentWave, 30) // Cap at 30 regular enemies
-            maxChargerZombies = (currentWave >= 3) ? min(((currentWave - 2) + 2) / 3, 3) : 0 // Cap at 3 charger enemies
-            maxExploderZombies = (currentWave >= 4) ? min(((currentWave - 3) + 2) / 3, 3) : 0 // Cap at 3 exploder enemies
-            enemiesToDefeat += 3
-        }
-    }
     
     func startBossStage() {
+        guard currentWaveIndex < waveCycle.count else { return }
+        let wave = waveCycle[currentWaveIndex]
+        guard wave.isBoss else { return }
+        
         isBossStage = true
         isTransitioningWave = true //Prevents regular enemy spawning during boss stage
         clearAllEnemies()
         
-        progressLabel.text = "Defeat the boss"
+        progressLabel.text = "Defeat the boss!"
         waveMessageLabel.text = "Boss Stage Starting.."
         waveMessageLabel.isHidden = false
         
@@ -734,30 +916,74 @@ class ZPGameScene: SKScene {
     func handleBossDefeat() {
         isBossStage = false
         isTransitioningWave = true
-        currentWave += 1
-        waveLabel.text = "Wave \(currentWave)"
-        totalEnemiesDefeated = 0
-        if currentWave % 6 == 1 {
-            zombieSpeed += 0.1
-        }
-        enemiesToDefeat += 5
-        zombieHealth += 5
-        wizardHealth += 15
-        miniWaveInterval = max(1.0, miniWaveInterval - 0.1)
-        adjustWaveSettings()
-        progressLabel.text = "Enemies till next wave: \(totalEnemiesDefeated) / \(enemiesToDefeat)"
+        currentWaveIndex += 1 // Move to next wave in cycle
+        waveLabel.text = "Wave \(waveCounter)"
         
+        //No enemies to carry over from boss stage
+        //pendingEnemies reset
+        pendingEnemies = 0
+        enemiesToSpawn = 0
+        updateProgressLabel()
+        
+        //Increase difficulty variables
+        zombieSpeed += 0.1
+        zombieHealth += 3
+        wizardHealth += 15
+        gracePeriod = max(1.0, gracePeriod - 2.0) // Decrease grace period, minimum 5 seconds
+        miniWaveInterval = max(1.0, miniWaveInterval - 0.1)
+        
+        //Show post boss message
+        waveMessageLabel.text = "Enemies getting stronger.."
+        waveMessageLabel.fontSize = 30
+        waveMessageLabel.isHidden = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            self.waveMessageLabel.text = "Enemies getting stronger.."
-            self.waveMessageLabel.fontSize = 30
-            self.waveMessageLabel.isHidden = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                self.waveMessageLabel.isHidden = true
-                self.waveMessageLabel.fontSize = 40
-                self.isTransitioningWave = false // Allow regular spawning again
-                self.maintainEnemyCount() // Begin Spawning the first wave of the new cycle
+            self.waveMessageLabel.isHidden = true
+            self.waveMessageLabel.fontSize = 40
+            self.isTransitioningWave = false // Allow regular spawning again
+            self.startNextWave()
+        }
+    
+    }
+    
+    func restartCycleWithIncreasedDifficulty() {
+        //Remove existing waves
+        waveCycle.removeAll()
+        
+        //Define increased difficulty waves
+        //For simplicity, we'll increase the number of enemies and adjust spawn intervals
+        //Can further customize here based on game's balance needs later on
+        
+        let cycleMultiplier = 2
+        //*******************************************************************************************
+        //*******************************************************************************************
+        //*******************************************************************************************
+        // SEE NOTE ABOVE ^
+        
+        for waveNumber in 1...7 {
+            switch waveNumber {
+            case 1:
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 10 * Int(cycleMultiplier), regularEnemies: 10 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 3.0 - 1.0, requiresFullClearance: false))
+            case 2:
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 15 * Int(cycleMultiplier), regularEnemies: 15 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.8 - 1.0, requiresFullClearance: false))
+            case 3:
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 30 * Int(cycleMultiplier), regularEnemies: 30 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: 0.5, requiresFullClearance: false))
+            case 4:
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 35 * Int(cycleMultiplier), regularEnemies: 30 * Int(cycleMultiplier), chargerEnemies: 5 * Int(cycleMultiplier), exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.3 - 1.0, requiresFullClearance: false))
+            case 5:
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 40 * Int(cycleMultiplier), regularEnemies: 30 * Int(cycleMultiplier), chargerEnemies: 5 * Int(cycleMultiplier), exploderEnemies: 5 * Int(cycleMultiplier), isHorde: false, isBoss: false, spawnInterval: 2.1 - 1.0, requiresFullClearance: false))
+            case 6:
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 46 * Int(cycleMultiplier), regularEnemies: 30 * Int(cycleMultiplier), chargerEnemies: 8 * Int(cycleMultiplier), exploderEnemies: 8 * Int(cycleMultiplier), isHorde: true, isBoss: false, spawnInterval: 0.5, requiresFullClearance: true))
+            case 7:
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 1, regularEnemies: 0, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: true, spawnInterval: 0.0, requiresFullClearance: false))
+            default:
+                break
             }
         }
+        currentWaveIndex = 0
+        pendingEnemies = 0
+        enemiesToSpawn = 0
+        updateProgressLabel()
+        startNextWave()
     }
     
     func manageBackgroundScrolling() {
@@ -820,13 +1046,7 @@ class ZPGameScene: SKScene {
                 if zombie.isDead {
                     zombie.removeFromParent()
                     zombies.remove(at: index)
-                    score += 1
-                    activeEnemies -= 1
-                    totalEnemiesDefeated += 1
-                    progressLabel.text = "Enemies till next wave: \(totalEnemiesDefeated) / \(enemiesToDefeat)"
-                    if totalEnemiesDefeated < enemiesToDefeat {
-                        spawnZombies(withHealth: zombieHealth)
-                    }
+                    handleEnemyDefeat()
                 }
                 projectile.removeFromParent()
                 break //Ensure projectile stops after hitting first zombie
@@ -873,13 +1093,44 @@ class ZPGameScene: SKScene {
         playerLives -= 1
         zombies[zombieIndex].removeFromParent()
         zombies.remove(at: zombieIndex)
-        activeEnemies -= 1
-        if totalEnemiesDefeated < enemiesToDefeat {
-            spawnZombies(withHealth: zombieHealth)
+        pendingEnemies -= 1
+        updateProgressLabel()
+        
+        if pendingEnemies < 0 {
+            pendingEnemies = 0 // Safeguard against negative values
+        }
+        //Check if grace period should start
+        if currentWaveIndex < waveCycle.count {
+            let wave = waveCycle[currentWaveIndex]
+            if wave.allEnemiesSpawned && pendingEnemies <= 0 && !isBossStage {
+                handleWaveProgression()
+            }
         }
         
         if playerLives <= 0 {
             showGameOverScreen()
+        }
+    }
+    
+    func handleEnemyDefeat() {
+        score += 1
+        pendingEnemies -= 1
+        if pendingEnemies < 0 {
+            pendingEnemies = 0
+        }
+        updateProgressLabel()
+        
+        //If pendingEnemies is zero and wave progression is not already ongoing
+        if pendingEnemies == 0 {
+            if waveCycle[currentWaveIndex].requiresFullClearance {
+                //proceed to next wave immediately
+                //cancel any scheduled wave progression
+                waveProgressionWorkItem?.cancel()
+                waveProgressionWorkItem = nil
+                transitionToNextWave()
+            } else if waveCycle[currentWaveIndex].allEnemiesSpawned {
+                handleWaveProgression()
+            }
         }
     }
     
@@ -963,23 +1214,24 @@ class ZPGameScene: SKScene {
         player.position = centerPosition
         joystick.endTouch()
         shootJoystick.endTouch()
-        currentWave = 1
+        waveCounter = 0
+        currentWaveIndex = 0
         zombieHealth = 3
         zombieSpeed = 0.3
         wizardHealth = 15
         attackDamage = 10 // **CHANGE BACK IN FINAL VERSION.** (1)
         shootInterval = 0.3 // **CHANGE BACK IN FINAL VERSION.** (1.0)
         projectileMoveDistance = 400 // **CHANGE BACK IN FINAL VERSION.** (200)
-        totalEnemiesDefeated = 0
         enemiesToDefeat = 3
-        progressLabel.text = "Enemies till next wave: \(totalEnemiesDefeated) / \(enemiesToDefeat)"
         maxRegularZombies = 3
         maxChargerZombies = 0
         maxExploderZombies = 0
         miniWaveInterval = 3.0
         isBossStage = false
         arenaBounds = nil
-        activeEnemies = 0
+        gracePeriod = 10.0
+        pendingEnemies = 0
+        enemiesToSpawn = 0
         
         if let existingWizard = wizardBoss {
             existingWizard.removeFromParent()
