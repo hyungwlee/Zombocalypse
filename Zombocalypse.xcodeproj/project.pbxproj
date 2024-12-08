@@ -14,6 +14,8 @@
 		9EA3786D2D056D9A0000D5DB /* XPNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA3786C2D056D9A0000D5DB /* XPNode.swift */; };
 		9EA3786F2D0570400000D5DB /* UpgradeShopManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA3786E2D0570400000D5DB /* UpgradeShopManager.swift */; };
 		9EA378712D05704B0000D5DB /* UpgradeShopOverlayNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA378702D05704B0000D5DB /* UpgradeShopOverlayNode.swift */; };
+		9EA378732D0577920000D5DB /* OverlayManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA378722D0577920000D5DB /* OverlayManager.swift */; };
+		9EA378752D05781F0000D5DB /* BossSpinnerOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA378742D05781F0000D5DB /* BossSpinnerOverlay.swift */; };
 		FC070A882CCAB90300946357 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FC070A842CCAB90300946357 /* Assets.xcassets */; };
 		FC070A972CCAD22700946357 /* GameType.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A962CCAD22700946357 /* GameType.swift */; };
 		FC070A982CCAD22700946357 /* GameContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A942CCAD22700946357 /* GameContext.swift */; };
@@ -58,6 +60,8 @@
 		9EA3786C2D056D9A0000D5DB /* XPNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPNode.swift; sourceTree = "<group>"; };
 		9EA3786E2D0570400000D5DB /* UpgradeShopManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpgradeShopManager.swift; sourceTree = "<group>"; };
 		9EA378702D05704B0000D5DB /* UpgradeShopOverlayNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpgradeShopOverlayNode.swift; sourceTree = "<group>"; };
+		9EA378722D0577920000D5DB /* OverlayManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayManager.swift; sourceTree = "<group>"; };
+		9EA378742D05781F0000D5DB /* BossSpinnerOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BossSpinnerOverlay.swift; sourceTree = "<group>"; };
 		FC070A552CCAB85600946357 /* Zombocalypse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zombocalypse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC070A652CCAB85700946357 /* ZombocalypseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZombocalypseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC070A6F2CCAB85700946357 /* ZombocalypseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZombocalypseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -126,6 +130,8 @@
 		9EA377BE2D028B1C0000D5DB /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				9EA378742D05781F0000D5DB /* BossSpinnerOverlay.swift */,
+				9EA378722D0577920000D5DB /* OverlayManager.swift */,
 				9EA3786E2D0570400000D5DB /* UpgradeShopManager.swift */,
 				9EA377C52D028B730000D5DB /* SkillManager.swift */,
 				9EA377C12D028B460000D5DB /* SpecialSkill.swift */,
@@ -371,11 +377,13 @@
 			files = (
 				9EA377C22D028B460000D5DB /* SpecialSkill.swift in Sources */,
 				FCC9B8DB2CE55505006077B4 /* ZPChargerZombieNode.swift in Sources */,
+				9EA378752D05781F0000D5DB /* BossSpinnerOverlay.swift in Sources */,
 				FC070A972CCAD22700946357 /* GameType.swift in Sources */,
 				FC070A982CCAD22700946357 /* GameContext.swift in Sources */,
 				FC070AAF2CCAF9CA00946357 /* ZPGameIdleState.swift in Sources */,
 				FC070AA72CCAEBC500946357 /* ZPGameInfo.swift in Sources */,
 				FC070AAB2CCAF10E00946357 /* ZPGameScene.swift in Sources */,
+				9EA378732D0577920000D5DB /* OverlayManager.swift in Sources */,
 				9EA378712D05704B0000D5DB /* UpgradeShopOverlayNode.swift in Sources */,
 				FC070A992CCAD22700946357 /* Dependencies.swift in Sources */,
 				FC070A9A2CCAD22700946357 /* GameModeType.swift in Sources */,
