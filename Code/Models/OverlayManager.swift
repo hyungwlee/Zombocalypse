@@ -38,10 +38,11 @@ class OverlayManager {
     }
 }
 
+/// the following is for shop and spinner overlays
 
 // MARK: place with other values at the top of ZPGameScene
-// var upgradeShopManager: UpgradeShopManager!
-// private var upgradeOverlay: UpgradeShopOverlay?
+//var upgradeShopManager: UpgradeShopManager!
+//private var upgradeOverlay: UpgradeShopOverlay?
 
 // MARK: New function for ZPGameScene
 //func showUpgradeShopOverlay(with choices: [RegularSkill]) {
@@ -82,6 +83,78 @@ class OverlayManager {
 //overlayManager.enqueueOverlay(spinnerOverlay)
 
 // MARK: place in ZPGameScene.didMove() under "SkillManager" line
-// upgradeShopManager = UpgradeShopManager(scene: self, skillManager: skillManager)
-// overlayManager = OverlayManager(scene: self)
+//upgradeShopManager = UpgradeShopManager(scene: self, skillManager: skillManager)
+//overlayManager = OverlayManager(scene: self)
 
+
+
+
+
+/// the following is for XP
+
+// MARK: place with other values at the top of *PlayerState* class
+//var currentXP: Int = 0
+//var xpPickupRadius: CGFloat = 50.0
+
+// MARK: place with other values at the top of ZPGameScene
+//var xpNodes: [XPNode] = []
+
+// MARK: new functions in ZPGameScene
+//func spawnXPNode(at position: CGPoint) {
+//    let xpNode = XPNode(xpAmount: Int.random(in: 3...10))
+//    xpNode.position = position
+//    addChild(xpNode)
+//    xpNodes.append(xpNode)
+//}
+//
+//func spawnRandomXPNode() {
+//    // Spawn a node at a random position within the playable area
+//    // Adjust the bounds as necessary; here we use the camera or scene size.
+//    let randomX = CGFloat.random(in: -size.width/2...size.width/2) + player.position.x
+//    let randomY = CGFloat.random(in: -size.height/2...size.height/2) + player.position.y
+//    let randomPosition = CGPoint(x: randomX, y: randomY)
+//    spawnXPNode(at: randomPosition)
+//}
+//
+//func checkXPCollection() {
+//    for (index, xpNode) in xpNodes.enumerated().reversed() {
+//        let distance = player.position.distance(to: xpNode.position)
+//        if distance < player.xpPickupRadius {
+//            // Player picks up this XP
+//            playerState.currentXP += xpNode.xpAmount
+//            
+//            // Optionally add a sound or animation here
+//            
+//            xpNode.removeFromParent()
+//            xpNodes.remove(at: index)
+//        }
+//    }
+//}
+
+// MARK: take these two lines in check...
+//zombie.removeFromParent()
+//zombies.remove(at: index)
+//handleEnemyDefeat()
+//MARK: change them to this:
+//let lastHitZombiePosition = zombie.position
+//zombie.removeFromParent()
+//zombies.remove(at: index)
+//handleEnemyDefeat(at: lastHitZombiePosition)
+// MARK: Change ZPGameScene "handleEnemyDefeat()" to "handleEnemyDefeat(at lastHitZombiePosition: CGPoint)"
+// MARK: place in ZPGameScene.handleEnemyDefeat()
+//spawnXPNode(at: lastHitZombiePosition)
+
+// MARK: place in ZPGameScene.didMove()
+//let spawnXPAction = SKAction.run { [weak self] in
+//    self?.spawnRandomXPNode()
+//}
+//let waitAction = SKAction.wait(forDuration: 10.0)
+//let sequence = SKAction.sequence([spawnXPAction, waitAction])
+//let repeatAction = SKAction.repeatForever(sequence)
+//run(repeatAction, withKey: "spawnXPForever")
+
+// MARK: place in ZPGameScene.update()
+//checkXPCollection()
+
+/// I did not connect the XP with the shops yet
+/// Right now, the upgrade shop XP is just based on kills
