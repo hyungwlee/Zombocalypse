@@ -18,7 +18,7 @@ class ZPExploderZombieNode: ZPZombie {
     private var exploderMovementSpeed: CGFloat
     
     // Initialize with movement speed, pass health to the superclass
-    init(health: Int, movementSpeed exploderMovementSpeed: CGFloat) {
+    init(health: Double, movementSpeed exploderMovementSpeed: CGFloat) {
         self.exploderMovementSpeed = exploderMovementSpeed
         super.init(health: health)
         self.color = .purple // Unique color for the exploder
@@ -91,39 +91,28 @@ class ZPExploderZombieNode: ZPZombie {
         //print("Exploding with damage: \(explosionDamage)")
         
         guard let gameScene = parent as? ZPGameScene else {
-            //print("Parent node is not ZPGameScene; explosion failed to reach expected targets.")
             return
         }
         
         // Remove from parent after exploding
+        gameScene.removeZombieFromTracking(self)
         removeFromParent()
-        
-//        let zombieCount = gameScene.children.compactMap { $0 as? ZPZombie }.count
-//        print("Number of zombies in scene: \(zombieCount)")
         
         
         // Apply damage to zombies within the explosion radius
         gameScene.children.compactMap { $0 as? ZPZombie }.forEach { zombie in
-                    let distanceToZombie = hypot(zombie.position.x - explosionCenter.x, zombie.position.y - explosionCenter.y)
-                    //print("Zombie found at distance: \(distanceToZombie) from explosion center (inside radius)")
-                    if distanceToZombie <= explosionRange {
-                        //print("Applying \(explosionDamage) damage to zombie at position \(zombie.position)")
-                        zombie.takeDamage(amount: explosionDamage) // Adjust damage as needed
-                    }
-                }
+            let distanceToZombie = hypot(zombie.position.x - explosionCenter.x, zombie.position.y - explosionCenter.y)
+            if distanceToZombie <= explosionRange {
+                zombie.takeDamage(amount: explosionDamage) // Adjust damage as needed
+            }
+        }
         // Apply damage to player if within explosion range
-      
         let playerDistance = hypot(gameScene.player.position.x - explosionCenter.x, gameScene.player.position.y - explosionCenter.y)
-        //print("Player found at distance: \(playerDistance) from explosion center (inside radius)")
+
         if playerDistance <= explosionRange {
-            //print("Applying \(explosionDamage) damage to player at position \(gameScene.player.position)")
             gameScene.playerLives -= explosionDamage
-            //print("Player lives remaining: \(gameScene.playerLives)")
         }
         
-      
-     
-        //print("Explosion occurred at \(position), damaging nearby entities!")
     }
     
     private func moveToward(_ target: CGPoint) {

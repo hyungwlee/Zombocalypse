@@ -1,13 +1,17 @@
 import SpriteKit
 
 class ZPWizard: SKSpriteNode {
+    var lastSpinningBladeDamageTime: TimeInterval = 0
+    var lastBarrierDamageTime: TimeInterval = 0
+    var isFrozen: Bool = false
+    var freezeEndTime: TimeInterval = 0
     private var lastMeteorTime: TimeInterval = 0
     private var lastBeamTime: TimeInterval = 0
     private let meteorInterval: TimeInterval = 5.0
     private let beamInterval: TimeInterval = 8.0
     private let moveSpeed: CGFloat = 150.0
     private var currentDirection: CGVector = .zero
-    var health: Int {
+    var health: Double {
         didSet {
             healthLabel.text = "Wizard | HP:\(health)"
         }
@@ -17,7 +21,7 @@ class ZPWizard: SKSpriteNode {
     private var isChargingBeam: Bool = false // Prevents movement during beam charging
     private var playerHitByBeam: Bool = false
 
-    init(health: Int) {
+    init(health: Double) {
         self.health = health
 
         // Create the health label
@@ -43,6 +47,16 @@ class ZPWizard: SKSpriteNode {
     }
 
     func update(currentTime: TimeInterval, playerPosition: CGPoint) {
+        //Handle freezing logic
+        if isFrozen {
+            if currentTime >= freezeEndTime {
+                unfreeze()
+            } else {
+                //While frozen, do not perform any actions
+                return
+            }
+        }
+        
         if !isChargingBeam {
             moveAlongScreenEdge(currentTime: currentTime)
         }
@@ -60,7 +74,7 @@ class ZPWizard: SKSpriteNode {
         }
     }
 
-    func takeDamage(amount: Int) {
+    func takeDamage(amount: Double) {
         health -= amount
         if health <= 0 {
             die()
@@ -243,5 +257,15 @@ class ZPWizard: SKSpriteNode {
             self?.isChargingBeam = false // Resume movement
         }
         self.run(SKAction.sequence([delay, resume]))
+    }
+    
+    func freeze(currentTime: TimeInterval, freezeDuration: TimeInterval) {
+        isFrozen = true
+        freezeEndTime = currentTime + freezeDuration
+    }
+    
+    func unfreeze() {
+        isFrozen = false
+        colorBlendFactor = 0.0
     }
 }

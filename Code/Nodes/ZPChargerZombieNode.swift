@@ -28,7 +28,7 @@ class ZPChargerZombieNode: ZPZombie {
     private var arrowNode: SKSpriteNode?
     
     // Initialize with chargerMovementSpeed, pass it to the super class ZPZombie
-    init(health: Int, movementSpeed chargerMovementSpeed: CGFloat) {
+    init(health: Double, movementSpeed chargerMovementSpeed: CGFloat) {
         self.chargerMovementSpeed = chargerMovementSpeed
         super.init(health: health) // Call the designated initializer of ZPZombie
         self.color = .orange // Set the color to indicate it's a charger zombie

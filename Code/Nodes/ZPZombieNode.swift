@@ -8,7 +8,12 @@
 import SpriteKit
 
 class ZPZombie: SKSpriteNode {
-    var health: Int {
+    var lastSpinningBladeDamageTime: TimeInterval = 0
+    var lastBarrierDamageTime: TimeInterval = 0
+    var isFrozen: Bool = false
+    var freezeEndTime: TimeInterval = 0
+    
+    var health: Double {
         didSet{
             healthLabel.text = "Enemy | HP:\(health)"
         }
@@ -20,7 +25,7 @@ class ZPZombie: SKSpriteNode {
     private let healthLabel: SKLabelNode
     
     
-    init(health: Int) {
+    init(health: Double) {
         self.health = health
         self.healthLabel = SKLabelNode(text: "Enemy | HP: \(health)")
         let size = CGSize(width: 25, height: 25)
@@ -36,6 +41,10 @@ class ZPZombie: SKSpriteNode {
     }
     
     func moveTowards(player: SKSpriteNode, speed: CGFloat) {
+        if isFrozen {
+            //Do not move if frozen
+            return
+        }
         let direction = CGVector(dx: player.position.x - self.position.x, dy: player.position.y - self.position.y)
         let length = hypot(direction.dx, direction.dy)
         
@@ -45,7 +54,7 @@ class ZPZombie: SKSpriteNode {
         }
     }
     
-    func takeDamage(amount: Int) {
+    func takeDamage(amount: Double) {
         health -= amount
         if isDead {
             removeFromParent()
