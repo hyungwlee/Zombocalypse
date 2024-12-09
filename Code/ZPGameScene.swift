@@ -166,6 +166,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     private var isGamePaused: Bool = false
     var upgradePopup: SKShapeNode!
     var upgradeStatsLabel: SKLabelNode!
+    var currentUpgradeChoices: [RegularSkill] = []
 
     init(context: ZPGameContext, size: CGSize) {
         self.context = context
@@ -530,10 +531,67 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
     
+    // MARK: OLD showUpgradePopup
+//    func showUpgradePopup() {
+//        isGamePaused = true
+//        self.isPaused = true // Pauses all SKAction updates
+//        //create popup background
+//        let popupWidth = size.width * 0.6
+//        let popupHeight = size.height * 0.4
+//        let popup = SKShapeNode(rectOf: CGSize(width: popupWidth, height: popupHeight), cornerRadius: 10)
+//        popup.fillColor = .darkGray
+//        popup.alpha = 0.9
+//        popup.name = "upgradePopup"
+//        popup.position = CGPoint(x: 0, y: 0)
+//        popup.zPosition = 5
+//        
+//        //Attack damage button
+//        let atkDamageButton = SKLabelNode(text: "Increase Attack Damage")
+//        atkDamageButton.name = "attack"
+//        atkDamageButton.fontSize = 20
+//        atkDamageButton.position = CGPoint(x: 0, y:40)
+//        popup.addChild(atkDamageButton)
+//        //Attack range button
+//        let atkRangeButton = SKLabelNode(text: "Increase Attack Range")
+//        atkRangeButton.name = "range"
+//        atkRangeButton.fontSize = 20
+//        atkRangeButton.position = CGPoint(x: 0, y:0)
+//        popup.addChild(atkRangeButton)
+//        //Attack speed button
+//        let atkSpeedButton = SKLabelNode(text: "Increase Attack Speed")
+//        atkSpeedButton.name = "speed"
+//        atkSpeedButton.fontSize = 20
+//        atkSpeedButton.position = CGPoint(x: 0, y:-40)
+//        popup.addChild(atkSpeedButton)
+//        //1+ Health option button
+//        let addHealthButton = SKLabelNode(text: "Health Upgrade")
+//        addHealthButton.name = "health"
+//        addHealthButton.fontSize = 20
+//        addHealthButton.position = CGPoint(x: 0, y:-80)
+//        popup.addChild(addHealthButton)
+//        
+//        camera?.addChild(popup)
+//        upgradePopup = popup
+//    }
+    
+    // MARK: NEW showUpgradePopup
     func showUpgradePopup() {
         isGamePaused = true
         self.isPaused = true // Pauses all SKAction updates
-        //create popup background
+
+        // Get up to 3 random regular skill choices
+        let randomChoices = skillManager.getRandomRegularChoices()
+        guard !randomChoices.isEmpty else {
+            // No upgrades available
+            isGamePaused = false
+            self.isPaused = false
+            return
+        }
+
+        // Store these choices so we can reference them later
+        currentUpgradeChoices = randomChoices
+
+        // Create popup background
         let popupWidth = size.width * 0.6
         let popupHeight = size.height * 0.4
         let popup = SKShapeNode(rectOf: CGSize(width: popupWidth, height: popupHeight), cornerRadius: 10)
@@ -542,164 +600,171 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         popup.name = "upgradePopup"
         popup.position = CGPoint(x: 0, y: 0)
         popup.zPosition = 5
-        
-        //Attack damage button
-        let atkDamageButton = SKLabelNode(text: "Increase Attack Damage")
-        atkDamageButton.name = "attack"
-        atkDamageButton.fontSize = 20
-        atkDamageButton.position = CGPoint(x: 0, y:40)
-        popup.addChild(atkDamageButton)
-        //Attack range button
-        let atkRangeButton = SKLabelNode(text: "Increase Attack Range")
-        atkRangeButton.name = "range"
-        atkRangeButton.fontSize = 20
-        atkRangeButton.position = CGPoint(x: 0, y:0)
-        popup.addChild(atkRangeButton)
-        //Attack speed button
-        let atkSpeedButton = SKLabelNode(text: "Increase Attack Speed")
-        atkSpeedButton.name = "speed"
-        atkSpeedButton.fontSize = 20
-        atkSpeedButton.position = CGPoint(x: 0, y:-40)
-        popup.addChild(atkSpeedButton)
-        //1+ Health option button
-        let addHealthButton = SKLabelNode(text: "Health Upgrade")
-        addHealthButton.name = "health"
-        addHealthButton.fontSize = 20
-        addHealthButton.position = CGPoint(x: 0, y:-80)
-        popup.addChild(addHealthButton)
-        
+
+        let startY: CGFloat = 40
+        let spacing: CGFloat = -40
+        // Each skill will get its own button
+        for (index, skill) in currentUpgradeChoices.enumerated() {
+            let buttonLabel = SKLabelNode(text: skill.definition.type.displayName)
+            buttonLabel.name = "skillButton"
+            buttonLabel.fontSize = 20
+            buttonLabel.position = CGPoint(x: 0, y: startY + CGFloat(index) * spacing)
+            buttonLabel.zPosition = 6
+
+            // Store the skill's index so we can retrieve it easily in touchesBegan
+            buttonLabel.userData = NSMutableDictionary()
+            buttonLabel.userData?["skillIndex"] = index
+
+            popup.addChild(buttonLabel)
+        }
+
         camera?.addChild(popup)
         upgradePopup = popup
     }
     
-    func attackDamageUpgrade() {
-        if let attackDamageUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .attackDamage }) {
-            let attackDamageUpgradeSkill = RegularSkill(definition: attackDamageUpgradeSkillDef)
-            skillManager.acquireOrUpgradeRegularSkill(attackDamageUpgradeSkill)
-        }
-    }
+    // MARK: don't need these
+//    func attackDamageUpgrade() {
+//        if let attackDamageUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .attackDamage }) {
+//            let attackDamageUpgradeSkill = RegularSkill(definition: attackDamageUpgradeSkillDef)
+//            skillManager.acquireOrUpgradeRegularSkill(attackDamageUpgradeSkill)
+//        }
+//    }
+//    
+//    func attackSpeedUpgrade() {
+//        if let attackSpeedUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .attackSpeed }) {
+//            let attackSpeedUpgradeSkill = RegularSkill(definition: attackSpeedUpgradeSkillDef)
+//            skillManager.acquireOrUpgradeRegularSkill(attackSpeedUpgradeSkill)
+//        }
+//    }
+//    
+//    func attackRangeUpgrade() {
+//        if let attackRangeUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .attackRange }) {
+//            let attackRangeUpgradeSkill = RegularSkill(definition: attackRangeUpgradeSkillDef)
+//            skillManager.acquireOrUpgradeRegularSkill(attackRangeUpgradeSkill)
+//        }
+//    }
+//    
+//    func movementSpeedUpgrade() {
+//        if let movementSpeedUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .movementSpeed }) {
+//            let movementSpeedUpgradeSkill = RegularSkill(definition: movementSpeedUpgradeSkillDef)
+//            skillManager.acquireOrUpgradeRegularSkill(movementSpeedUpgradeSkill)
+//        }
+//    }
+//        
+//    func bladesUpgrade() {
+//        if let bladesUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .spinningBlades }) {
+//            let bladesUpgradeSkill = RegularSkill(definition: bladesUpgradeSkillDef)
+//            skillManager.acquireOrUpgradeRegularSkill(bladesUpgradeSkill)
+//        }
+//    }
+//    
+//    func barrierUpgrade() {
+//        if let barrierUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .protectiveBarrier }) {
+//            let barrierUpgradeSkill = RegularSkill(definition: barrierUpgradeSkillDef)
+//            skillManager.acquireOrUpgradeRegularSkill(barrierUpgradeSkill)
+//        }
+//    }
+//    
+//    func healthUpgrade() {
+//        if let healthUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .healthUpgrade }) {
+//            let healthUpgradeSkill = RegularSkill(definition: healthUpgradeSkillDef)
+//            skillManager.acquireOrUpgradeRegularSkill(healthUpgradeSkill)
+//        }
+//    }
+//    
+//    func magnetUpgrade() {
+//        if let magnetUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .magnet }) {
+//            let magnetUpgradeSkill = RegularSkill(definition: magnetUpgradeSkillDef)
+//            skillManager.acquireOrUpgradeRegularSkill(magnetUpgradeSkill)
+//        }
+//    }
+//    
+//    func freezeGrenadeUpgrade() {
+//        if let freezeGrenadeUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .freeze }) {
+//            let freezeGrenadeUpgradeSkill = RegularSkill(definition: freezeGrenadeUpgradeSkillDef)
+//            skillManager.acquireOrUpgradeRegularSkill(freezeGrenadeUpgradeSkill)
+//        }
+//    }
+//    
+//    func handsSpecialUpgrade() {
+//        if let helpingHandDef = skillManager.allSpecialTypes.first(where: { $0 == .helpingHand }) {
+//            skillManager.acquireSpecialSkill(helpingHandDef)
+//        }
+//    }
+//    
+//    func shieldSpecialUpgrade() {
+//        if let spectralShieldDef = skillManager.allSpecialTypes.first(where: { $0 == .spectralShield }) {
+//            skillManager.acquireSpecialSkill(spectralShieldDef)
+//        }
+//    }
+//    
+//    func reinforcedArrowsSpecialUpgrade() {
+//        if let reinforcedArrowDef = skillManager.allSpecialTypes.first(where: { $0 == .reinforcedArrow }) {
+//            skillManager.acquireSpecialSkill(reinforcedArrowDef)
+//        }
+//    }
+//    
+//    func knockbackSpecialUpgrade() {
+//        if let mightyKnockbackDef = skillManager.allSpecialTypes.first(where: { $0 == .mightyKnockback }) {
+//            skillManager.acquireSpecialSkill(mightyKnockbackDef)
+//        }
+//    }
+//    
+//    func bonusHealthSpecialUpgrade() {
+//        //LOGIC NEEDS TO BE FIXED.
+//        if let bonusHealthDef = skillManager.allSpecialTypes.first(where: { $0 == .bonusHealth }) {
+//            skillManager.acquireSpecialSkill(bonusHealthDef)
+//        }
+//    }
     
-    func attackSpeedUpgrade() {
-        if let attackSpeedUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .attackSpeed }) {
-            let attackSpeedUpgradeSkill = RegularSkill(definition: attackSpeedUpgradeSkillDef)
-            skillManager.acquireOrUpgradeRegularSkill(attackSpeedUpgradeSkill)
-        }
-    }
+    // MARK: OLD applyUpgrade
+//    func applyUpgrade(_ choice: String) {
+//        switch choice {
+//        case "attack":
+//            //attackDamageUpgrade()
+//            attackDamage += playerState.currentDamage
+//            //attackDamage += 1.0
+//            //bladesUpgrade()                               // WORKING AT TIME OF TEST.
+//            //barrierUpgrade()                              // WORKING AT TIME OF TEST.
+//            //healthUpgrade()                               // WORKING AT TIME OF TEST.
+//            //freezeGrenadeUpgrade()                        // WORKING AT TIME OF TEST.
+//            //magnetUpgrade()                               //    *NEED TO IMPLEMENT*
+//            //handsSpecialUpgrade()                         // WORKING AT TIME OF TEST.
+//            //shieldSpecialUpgrade()                        // WORKING AT TIME OF TEST.
+//            //reinforcedArrowsSpecialUpgrade()              // WORKING AT TIME OF TEST.
+//            //knockbackSpecialUpgrade()                     // WORKING AT TIME OF TEST.
+//            //bonusHealthSpecialUpgrade()                   //    *NEED TO IMPLEMENT*
+//        case "range":
+//            projectileMoveDistance += 100
+//        case "speed":
+//            shootInterval = max(0.3, shootInterval - 0.1) //THIS TEMPORARILY ENSURES IT DOES NOT GO BELOW 0.1
+//            shootInterval = round(shootInterval * 10) / 10 //Deals with float value not showing up as .000001
+//        case "health":
+//            healthUpgrade()
+//        default:
+//            break
+//        }
+//        //powerUpAvailable = false
+//        isGamePaused = false
+//        self.isPaused = false // Resumes game updates
+//        upgradePopup?.removeFromParent()
+//        upgradePopup = nil
+//        updateUpgradeStatsLabel()
+//    }
     
-    func attackRangeUpgrade() {
-        if let attackRangeUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .attackRange }) {
-            let attackRangeUpgradeSkill = RegularSkill(definition: attackRangeUpgradeSkillDef)
-            skillManager.acquireOrUpgradeRegularSkill(attackRangeUpgradeSkill)
-        }
-    }
-    
-    func movementSpeedUpgrade() {
-        if let movementSpeedUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .movementSpeed }) {
-            let movementSpeedUpgradeSkill = RegularSkill(definition: movementSpeedUpgradeSkillDef)
-            skillManager.acquireOrUpgradeRegularSkill(movementSpeedUpgradeSkill)
-        }
-    }
-        
-    func bladesUpgrade() {
-        if let bladesUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .spinningBlades }) {
-            let bladesUpgradeSkill = RegularSkill(definition: bladesUpgradeSkillDef)
-            skillManager.acquireOrUpgradeRegularSkill(bladesUpgradeSkill)
-        }
-    }
-    
-    func barrierUpgrade() {
-        if let barrierUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .protectiveBarrier }) {
-            let barrierUpgradeSkill = RegularSkill(definition: barrierUpgradeSkillDef)
-            skillManager.acquireOrUpgradeRegularSkill(barrierUpgradeSkill)
-        }
-    }
-    
-    func healthUpgrade() {
-        if let healthUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .healthUpgrade }) {
-            let healthUpgradeSkill = RegularSkill(definition: healthUpgradeSkillDef)
-            skillManager.acquireOrUpgradeRegularSkill(healthUpgradeSkill)
-        }
-    }
-    
-    func magnetUpgrade() {
-        if let magnetUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .magnet }) {
-            let magnetUpgradeSkill = RegularSkill(definition: magnetUpgradeSkillDef)
-            skillManager.acquireOrUpgradeRegularSkill(magnetUpgradeSkill)
-        }
-    }
-    
-    func freezeGrenadeUpgrade() {
-        if let freezeGrenadeUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .freeze }) {
-            let freezeGrenadeUpgradeSkill = RegularSkill(definition: freezeGrenadeUpgradeSkillDef)
-            skillManager.acquireOrUpgradeRegularSkill(freezeGrenadeUpgradeSkill)
-        }
-    }
-    
-    func handsSpecialUpgrade() {
-        if let helpingHandDef = skillManager.allSpecialTypes.first(where: { $0 == .helpingHand }) {
-            skillManager.acquireSpecialSkill(helpingHandDef)
-        }
-    }
-    
-    func shieldSpecialUpgrade() {
-        if let spectralShieldDef = skillManager.allSpecialTypes.first(where: { $0 == .spectralShield }) {
-            skillManager.acquireSpecialSkill(spectralShieldDef)
-        }
-    }
-    
-    func reinforcedArrowsSpecialUpgrade() {
-        if let reinforcedArrowDef = skillManager.allSpecialTypes.first(where: { $0 == .reinforcedArrow }) {
-            skillManager.acquireSpecialSkill(reinforcedArrowDef)
-        }
-    }
-    
-    func knockbackSpecialUpgrade() {
-        if let mightyKnockbackDef = skillManager.allSpecialTypes.first(where: { $0 == .mightyKnockback }) {
-            skillManager.acquireSpecialSkill(mightyKnockbackDef)
-        }
-    }
-    
-    func bonusHealthSpecialUpgrade() {
-        //LOGIC NEEDS TO BE FIXED.
-        if let bonusHealthDef = skillManager.allSpecialTypes.first(where: { $0 == .bonusHealth }) {
-            skillManager.acquireSpecialSkill(bonusHealthDef)
-        }
-    }
-    
-    func applyUpgrade(_ choice: String) {
-        switch choice {
-        case "attack":
-            //attackDamageUpgrade()
-            attackDamage += playerState.currentDamage
-            //attackDamage += 1.0
-            //bladesUpgrade()                               // WORKING AT TIME OF TEST.
-            //barrierUpgrade()                              // WORKING AT TIME OF TEST.
-            //healthUpgrade()                               // WORKING AT TIME OF TEST.
-            //freezeGrenadeUpgrade()                        // WORKING AT TIME OF TEST.
-            //magnetUpgrade()                               //    *NEED TO IMPLEMENT*
-            //handsSpecialUpgrade()                         // WORKING AT TIME OF TEST.
-            //shieldSpecialUpgrade()                        // WORKING AT TIME OF TEST.
-            //reinforcedArrowsSpecialUpgrade()              // WORKING AT TIME OF TEST.
-            //knockbackSpecialUpgrade()                     // WORKING AT TIME OF TEST.
-            //bonusHealthSpecialUpgrade()                   //    *NEED TO IMPLEMENT*
-        case "range":
-            projectileMoveDistance += 100
-        case "speed":
-            shootInterval = max(0.3, shootInterval - 0.1) //THIS TEMPORARILY ENSURES IT DOES NOT GO BELOW 0.1
-            shootInterval = round(shootInterval * 10) / 10 //Deals with float value not showing up as .000001
-        case "health":
-            healthUpgrade()
-        default:
-            break
-        }
-        //powerUpAvailable = false
+    // MARK: NEW applyUpgrade
+    func applyUpgrade(skill: RegularSkill) {
+        // Directly use the skill instance to upgrade
+        skillManager.acquireOrUpgradeRegularSkill(skill)
+
+        // Close the popup and resume the game
         isGamePaused = false
-        self.isPaused = false // Resumes game updates
+        self.isPaused = false
         upgradePopup?.removeFromParent()
         upgradePopup = nil
+
         updateUpgradeStatsLabel()
     }
-    
     //MARK: - PlayerStateDelegate Methods
     
     //REGULAR SKILLS
@@ -785,13 +850,15 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
         
     func playerStateDidUpgradeHealth(_ state: PlayerState, restorePercentage: Double) {
-        //WORKS BUT COULD CHANGE.
-        state.baseMaxHealth += (state.currentMaxHealth - state.baseMaxHealth)
-        playerLives = state.baseMaxHealth
+        // Just need to restore health based on the restorePercentage passed in
+        // currentMaxHealth is already updated in PlayerState
+        let restorationAmount = state.currentMaxHealth * restorePercentage
+        playerLives = max(playerLives + restorationAmount, state.currentMaxHealth)
     }
     
     func playerStateDidUpgradeMagnet(_ state: PlayerState) {
-        // Implement logic to upgrade the magnet effect
+        // Only need this if we add UI effects after activation
+        print("Magnet Radius increased!")
     }
     
     func playerStateDidUpgradeFreeze(_ state: PlayerState) {
@@ -799,7 +866,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     // SPECIAL SKILLS
-    func playerStateDidActivateHelpingHand(_ state: PlayerState) {
+    func playerStateDidActivateHelpingHand(_ state: PlayerState) { /// ACTIVATE
         if state.hasHelpingHand {
             //Start firing additional projectiles every 4 seconds
             let fireAction = SKAction.run { [weak self] in
@@ -814,26 +881,31 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
     
+    func playerStateDidDeactivateHelpingHand() { /// DEACTIVATE
+        removeAction(forKey: "helpingHandFire")
+    }
+    
     func playerStateDidActivateReinforcedArrow(_ state: PlayerState) {
+        // Only need this if we add UI effects after activation
         print("Reinforced Arrow activated!")
     }
     
-    func playerStateDidActivateSpectralShield(_ state: PlayerState) {
-        if state.spectralShieldActive {
-            addSpectralShield()
-        } else {
-            removeSpectralShield()
-        }
+    func playerStateDidActivateSpectralShield(_ state: PlayerState) { /// ACTIVATE
+        addSpectralShield()
+    }
+    
+    func playerStateDidDeactivateSpectralShield() { /// DEACTIVATE
+        removeSpectralShield()
     }
     
     func playerStateDidActivateMightyKnockback(_ state: PlayerState) {
-        // Implement logic to activate Mighty Knockback skill
+        // Only need this if we add UI effects after activation
         print("Mightyknockback activated!")
     }
     
     func playerStateDidActivateBonusHealth(_ state: PlayerState, restorePercentage: Double) {
         // Restores player HP back to full health
-        playerLives = state.baseMaxHealth
+        playerLives = state.currentMaxHealth
     }
     
     func activateHelpingHand() {
@@ -968,23 +1040,42 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             guard let cameraNode = self.camera else { continue }
             let touchLocationInCamera = touch.location(in: cameraNode) // Location relative to the camera
             
-            // Check if the game is paused and the popup menu is active
-            if isGamePaused {
-                // Calculate the touch location relative to the popup menu
-                if let popupMenu = cameraNode.childNode(withName: "upgradePopup") {
-                    let touchLocationInPopup = touch.location(in: popupMenu) // Convert location to popup menu's coordinate space
-                    
-                    // Check if the touch is on any of the upgrade options
-                    let tappedNodes = popupMenu.nodes(at: touchLocationInPopup)
-                    for node in tappedNodes {
-                        if let nodeName = node.name, ["attack", "range", "speed", "health"].contains(nodeName) {
-                            applyUpgrade(nodeName) // Apply the chosen upgrade
+            // MARK: OLD upgrade popup logic
+//            // Check if the game is paused and the popup menu is active
+//            if isGamePaused {
+//                // Calculate the touch location relative to the popup menu
+//                if let popupMenu = cameraNode.childNode(withName: "upgradePopup") {
+//                    let touchLocationInPopup = touch.location(in: popupMenu) // Convert location to popup menu's coordinate space
+//                    
+//                    // Check if the touch is on any of the upgrade options
+//                    let tappedNodes = popupMenu.nodes(at: touchLocationInPopup)
+//                    for node in tappedNodes {
+//                        if let nodeName = node.name, ["attack", "range", "speed", "health"].contains(nodeName) {
+//                            applyUpgrade(nodeName) // Apply the chosen upgrade
+//                            return
+//                        }
+//                    }
+//                }
+//                return // Don't allow other interactions when paused
+//            }
+            
+            // MARK: NEW upgrade popup logic
+            if isGamePaused, let popupMenu = cameraNode.childNode(withName: "upgradePopup") {
+                let touchLocationInPopup = touch.location(in: popupMenu)
+                let tappedNodes = popupMenu.nodes(at: touchLocationInPopup)
+                for node in tappedNodes {
+                    if node.name == "skillButton" {
+                        if let index = node.userData?["skillIndex"] as? Int,
+                           index >= 0 && index < currentUpgradeChoices.count {
+                            let chosenSkill = currentUpgradeChoices[index]
+                            applyUpgrade(skill: chosenSkill)
                             return
                         }
                     }
                 }
-                return // Don't allow other interactions when paused
+                return
             }
+
 
             // Handle joystick interactions
             if joystick.contains(touchLocationInCamera) && activeTouches[touch] == nil && !gameOver {

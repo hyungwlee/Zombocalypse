@@ -27,6 +27,31 @@ enum SkillType {
 
     // Post-Special "Bonus" Option (treated like a special skill)
     case bonusHealth
+    
+    var displayName: String {
+        switch self {
+        case .attackDamage:
+            return "Increase Attack Damage"
+        case .attackSpeed:
+            return "Increase Attack Speed"
+        case .movementSpeed:
+            return "Increase Movement Speed"
+        case .attackRange:
+            return "Increase Attack Range"
+        case .spinningBlades:
+            return "Spinning Blades Upgrade"
+        case .protectiveBarrier:
+            return "Barrier Upgrade"
+        case .healthUpgrade:
+            return "Health Upgrade"
+        case .magnet:
+            return "Magnet Upgrade"
+        case .freeze:
+            return "Freeze Grenade Upgrade"
+        default:
+            return "Special Upgrade"
+        }
+    }
 }
 
 /// This should be all fields adjusted by upgrading regular skills

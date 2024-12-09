@@ -18,8 +18,10 @@ protocol PlayerStateDelegate: AnyObject {
     
     // Special Skills
     func playerStateDidActivateHelpingHand(_ state: PlayerState)
+    func playerStateDidDeactivateHelpingHand() /// to disable UI effects
     func playerStateDidActivateReinforcedArrow(_ state: PlayerState)
     func playerStateDidActivateSpectralShield(_ state: PlayerState)
+    func playerStateDidDeactivateSpectralShield() /// to disable UI effects
     func playerStateDidActivateMightyKnockback(_ state: PlayerState)
     func playerStateDidActivateBonusHealth(_ state: PlayerState, restorePercentage: Double)
 }
@@ -96,8 +98,10 @@ class PlayerState {
         
         // Reset Special Skill Flags
         hasHelpingHand = false
+        delegate?.deactivateHelpingHand()
         projectilesPierce = false
         spectralShieldActive = false
+        delegate?.deactivateSpectralShield()
         mightyKnockbackActive = false
     }
     
