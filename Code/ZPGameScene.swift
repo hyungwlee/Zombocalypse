@@ -66,6 +66,17 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var playerState = PlayerState()
     var skillManager: SkillManager!
     
+    //Skills related settings
+    var bladesContainer: SKNode?
+    var barrierContainer: SKNode?
+    var shieldContainer: SKNode?
+    var spectralShield: SKShapeNode?
+    var shieldHitsRemaining: Int = 3
+    let shieldMaxHits: Int = 3
+    let shieldCooldown: TimeInterval = 10.0
+    var lastGrenadeTime: TimeInterval = 0
+    var grenadeShootInterval: TimeInterval = 5.0
+    
     //Inf background settings
     var topBound: CGFloat = 0
     var bottomBound: CGFloat = 0
@@ -74,6 +85,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     let sectionHeight: CGFloat = 3510 // Example height of each section (Adjust as needed) 768
     let numSections: Int = 5         // Number of sections (Higher = longer before repeated gen., Lower = shorter before repeated gen.)
     
+    var currentGameTime: TimeInterval = 0
     weak var context: ZPGameContext?
     var joystick: ZPJoystick!
     var shootJoystick: ZPJoystick!
@@ -81,10 +93,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var zombies: [ZPZombie] = [] // Array to hold the zombies
     
     let zombieCount = 3
-    var zombieSpeed: CGFloat = 0.3
+    var zombieSpeed: CGFloat = 0.4
     let zombieBufferDistance: CGFloat = 10 // Adjust this value to experiment with zombie spacing w one another
     var playerLivesLabel: SKLabelNode!
-    var playerLives: Int = 25 {     // **CHANGE BACK IN FINAL VERSION.** (3)
+    var playerLives: Double = 3.0 {
         didSet {
             playerLivesLabel.text = "Lives: \(playerLives)"
         }
@@ -114,8 +126,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     
     // Zombie Wave Settings
     private var waveCounter: Int = 0
-    private var zombieHealth: Int = 3
-    private var wizardHealth: Int = 15
+    private var zombieHealth: Double = 3.0
+    private var wizardHealth: Double = 15.0
     private var wizardBoss: ZPWizard?
     private var bossIsAlive: Bool = false
     var arenaBounds: CGRect?
@@ -131,10 +143,11 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     private var displayedEnemyMessages: Set<Int> = []
     
     // Auto-attack variables
-    private var attackDamage: Int = 10 // **CHANGE BACK IN FINAL VERSION.** (1)
-    private var projectileMoveDistance: CGFloat = 400 //attack range of bullet    // **CHANGE BACK IN FINAL VERSION.** (200)
-    private var shootInterval: TimeInterval = 0.3 //attack speed of bullet   // **CHANGE BACK IN FINAL VERSION.** (1.0)
+    private var attackDamage: Double!
+    private var projectileMoveDistance: CGFloat!
+    private var shootInterval: TimeInterval!
     private var lastShootTime: TimeInterval = 0
+    private var playerMoveSpeed: CGFloat!
     
     //Score Settings
     var score: Int = 0 {
@@ -168,6 +181,13 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     override func didMove(to view: SKView) {
         playerState.delegate = self
         skillManager = SkillManager(player: playerState)
+        
+        //Initializing based on playerState
+        attackDamage = playerState.baseDamage
+        projectileMoveDistance = playerState.baseRange
+        shootInterval = playerState.baseAttackSpeed
+        playerMoveSpeed = playerState.baseMovementSpeed
+        
         self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         self.view?.isMultipleTouchEnabled = true
         //Create and add the camera node
@@ -196,10 +216,28 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     func setUpGame() {
         backgroundColor = .white
         gameOver = false
+        playerState.resetToBaseStats()
         // Sets up player at fixed start position
         if player == nil {
             player = SKSpriteNode(color: .blue, size: CGSize(width: 25, height: 25))
             addChild(player)
+            
+            //Initialize blades container
+            bladesContainer = SKNode()
+            bladesContainer?.position = CGPoint.zero
+            bladesContainer?.zPosition = 1
+            player.addChild(bladesContainer!)
+            
+            //Initialize barrier container
+            barrierContainer = SKNode()
+            barrierContainer?.position = CGPoint.zero
+            barrierContainer?.zPosition = 2 // Above blades for now but can change
+            player.addChild(barrierContainer!)
+            
+            shieldContainer = SKNode()
+            shieldContainer?.position = CGPoint.zero
+            shieldContainer?.zPosition = 3
+            player.addChild(shieldContainer!)
             
             //Player label above head
             let playerLabel = SKLabelNode(fontNamed: "Arial")
@@ -212,6 +250,20 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
         player.position = centerPosition
         
+        //TEST 'HARDSET' VALUES FOR BLADE
+//        playerState.spinningBladesCount = 2
+//        playerState.spinningBladesDamage = 3
+//        playerState.spinningBladesSpeed = 1.0
+//        skillManager.acquireOrUpgradeRegularSkill(
+//            RegularSkill(definition: skillManager.allRegularDefinitions.first { $0.type == .spinningBlades }!)
+//        )
+//        playerState.barrierSize = 1000
+//        playerState.barrierDamage = 1
+//        playerState.barrierPulseFrequency = 2.0
+//        skillManager.acquireOrUpgradeRegularSkill(
+//            RegularSkill(definition: skillManager.allRegularDefinitions.first { $0.type == .protectiveBarrier }!))
+        
+        
         // Sets up lives label displaying playerLives
         if playerLivesLabel == nil {
             playerLivesLabel = SKLabelNode(fontNamed: "Arial")
@@ -220,7 +272,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             playerLivesLabel.position = CGPoint(x: -size.width / 2 + 80, y: size.height / 2 - 80)
             playerLivesLabel.zPosition = 5
         }
-        playerLives = 150 // Reset playerLives  // **CHANGE BACK IN FINAL VERSION.** (3)
+        playerLives = playerState.baseMaxHealth // Reset playerLives  
         
         // Set up score label at the top
         if scoreLabel == nil {
@@ -287,6 +339,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
         updateUpgradeStatsLabel()
         setupBackground()
+        showUpgradePopup()   // TEST TO SHOW UPGRADE WHEN GAME STARTS IN CASE WE WANT TO TEST SKILLS.
     }
     
     func initializeWaves() {
@@ -509,7 +562,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         atkSpeedButton.position = CGPoint(x: 0, y:-40)
         popup.addChild(atkSpeedButton)
         //1+ Health option button
-        let addHealthButton = SKLabelNode(text: "+1 Health")
+        let addHealthButton = SKLabelNode(text: "Health Upgrade")
         addHealthButton.name = "health"
         addHealthButton.fontSize = 20
         addHealthButton.position = CGPoint(x: 0, y:-80)
@@ -519,17 +572,123 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         upgradePopup = popup
     }
     
+    func attackDamageUpgrade() {
+        if let attackDamageUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .attackDamage }) {
+            let attackDamageUpgradeSkill = RegularSkill(definition: attackDamageUpgradeSkillDef)
+            skillManager.acquireOrUpgradeRegularSkill(attackDamageUpgradeSkill)
+        }
+    }
+    
+    func attackSpeedUpgrade() {
+        if let attackSpeedUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .attackSpeed }) {
+            let attackSpeedUpgradeSkill = RegularSkill(definition: attackSpeedUpgradeSkillDef)
+            skillManager.acquireOrUpgradeRegularSkill(attackSpeedUpgradeSkill)
+        }
+    }
+    
+    func attackRangeUpgrade() {
+        if let attackRangeUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .attackRange }) {
+            let attackRangeUpgradeSkill = RegularSkill(definition: attackRangeUpgradeSkillDef)
+            skillManager.acquireOrUpgradeRegularSkill(attackRangeUpgradeSkill)
+        }
+    }
+    
+    func movementSpeedUpgrade() {
+        if let movementSpeedUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .movementSpeed }) {
+            let movementSpeedUpgradeSkill = RegularSkill(definition: movementSpeedUpgradeSkillDef)
+            skillManager.acquireOrUpgradeRegularSkill(movementSpeedUpgradeSkill)
+        }
+    }
+        
+    func bladesUpgrade() {
+        if let bladesUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .spinningBlades }) {
+            let bladesUpgradeSkill = RegularSkill(definition: bladesUpgradeSkillDef)
+            skillManager.acquireOrUpgradeRegularSkill(bladesUpgradeSkill)
+        }
+    }
+    
+    func barrierUpgrade() {
+        if let barrierUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .protectiveBarrier }) {
+            let barrierUpgradeSkill = RegularSkill(definition: barrierUpgradeSkillDef)
+            skillManager.acquireOrUpgradeRegularSkill(barrierUpgradeSkill)
+        }
+    }
+    
+    func healthUpgrade() {
+        if let healthUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .healthUpgrade }) {
+            let healthUpgradeSkill = RegularSkill(definition: healthUpgradeSkillDef)
+            skillManager.acquireOrUpgradeRegularSkill(healthUpgradeSkill)
+        }
+    }
+    
+    func magnetUpgrade() {
+        if let magnetUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .magnet }) {
+            let magnetUpgradeSkill = RegularSkill(definition: magnetUpgradeSkillDef)
+            skillManager.acquireOrUpgradeRegularSkill(magnetUpgradeSkill)
+        }
+    }
+    
+    func freezeGrenadeUpgrade() {
+        if let freezeGrenadeUpgradeSkillDef = skillManager.allRegularDefinitions.first(where: { $0.type == .freeze }) {
+            let freezeGrenadeUpgradeSkill = RegularSkill(definition: freezeGrenadeUpgradeSkillDef)
+            skillManager.acquireOrUpgradeRegularSkill(freezeGrenadeUpgradeSkill)
+        }
+    }
+    
+    func handsSpecialUpgrade() {
+        if let helpingHandDef = skillManager.allSpecialTypes.first(where: { $0 == .helpingHand }) {
+            skillManager.acquireSpecialSkill(helpingHandDef)
+        }
+    }
+    
+    func shieldSpecialUpgrade() {
+        if let spectralShieldDef = skillManager.allSpecialTypes.first(where: { $0 == .spectralShield }) {
+            skillManager.acquireSpecialSkill(spectralShieldDef)
+        }
+    }
+    
+    func reinforcedArrowsSpecialUpgrade() {
+        if let reinforcedArrowDef = skillManager.allSpecialTypes.first(where: { $0 == .reinforcedArrow }) {
+            skillManager.acquireSpecialSkill(reinforcedArrowDef)
+        }
+    }
+    
+    func knockbackSpecialUpgrade() {
+        if let mightyKnockbackDef = skillManager.allSpecialTypes.first(where: { $0 == .mightyKnockback }) {
+            skillManager.acquireSpecialSkill(mightyKnockbackDef)
+        }
+    }
+    
+    func bonusHealthSpecialUpgrade() {
+        //LOGIC NEEDS TO BE FIXED.
+        if let bonusHealthDef = skillManager.allSpecialTypes.first(where: { $0 == .bonusHealth }) {
+            skillManager.acquireSpecialSkill(bonusHealthDef)
+        }
+    }
+    
     func applyUpgrade(_ choice: String) {
         switch choice {
         case "attack":
-            attackDamage += 1
+            //attackDamageUpgrade()
+            attackDamage += playerState.currentDamage
+            //attackDamage += 1.0
+            //bladesUpgrade()                               // WORKING AT TIME OF TEST.
+            //barrierUpgrade()                              // WORKING AT TIME OF TEST.
+            //healthUpgrade()                               // WORKING AT TIME OF TEST.
+            //freezeGrenadeUpgrade()                        // WORKING AT TIME OF TEST.
+            //magnetUpgrade()                               //    *NEED TO IMPLEMENT*
+            //handsSpecialUpgrade()                         // WORKING AT TIME OF TEST.
+            //shieldSpecialUpgrade()                        // WORKING AT TIME OF TEST.
+            //reinforcedArrowsSpecialUpgrade()              // WORKING AT TIME OF TEST.
+            //knockbackSpecialUpgrade()                     // WORKING AT TIME OF TEST.
+            //bonusHealthSpecialUpgrade()                   //    *NEED TO IMPLEMENT*
         case "range":
             projectileMoveDistance += 100
         case "speed":
             shootInterval = max(0.3, shootInterval - 0.1) //THIS TEMPORARILY ENSURES IT DOES NOT GO BELOW 0.1
             shootInterval = round(shootInterval * 10) / 10 //Deals with float value not showing up as .000001
         case "health":
-            playerLives += 1
+            healthUpgrade()
         default:
             break
         }
@@ -541,104 +700,146 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         updateUpgradeStatsLabel()
     }
     
-    //PlayerStateDelegate Methods
+    //MARK: - PlayerStateDelegate Methods
     
     //REGULAR SKILLS
     func playerStateDidAddSpinningBlades(_ state: PlayerState) {
-        //Implement logic to add spinning blades to the player in the game scene
-        addSpinningBlades(count: state.spinningBladesCount, damage: state.spinningBladesDamage, speed: state.spinningBladesSpeed)
-    }
-    
-    func playerStateDidUpgradeBarrier(_ state: PlayerState) {
-            // Implement logic to upgrade the protective barrier in the game scene
-            upgradeProtectiveBarrier(size: state.barrierSize, damage: state.barrierDamage, pulseFrequency: state.barrierPulseFrequency, slowAmount: state.barrierSlowAmount)
+        guard let bladesContainer = bladesContainer else { return }
+        
+        // Remove existing blades
+        bladesContainer.removeAllChildren()
+        
+        // Define blade properties
+        let bladeSize = CGSize(width: 20, height: 5)
+        let bladeColor = SKColor.green
+        
+        // Calculate the angle between each blade
+        let bladeCount = state.spinningBladesCount
+        guard bladeCount > 0 else { return }
+        let angleIncrement = (2 * CGFloat.pi) / CGFloat(bladeCount)
+        
+        // Define the radius at which blades orbit
+        let orbitRadius: CGFloat = 75.0 // Adjust as needed
+        
+        // Create and position each blade
+        for i in 0..<bladeCount {
+            let blade = SKSpriteNode(color: bladeColor, size: bladeSize)
+            blade.name = "spinningBlade"
+            
+            // Calculate the position of the blade around the container
+            let angle = CGFloat(i) * angleIncrement
+            let xPosition = orbitRadius * cos(angle)
+            let yPosition = orbitRadius * sin(angle)
+            blade.position = CGPoint(x: xPosition, y: yPosition)
+            
+            bladesContainer.addChild(blade)
         }
         
+        // Remove any existing rotation action
+        bladesContainer.removeAction(forKey: "rotate")
+        
+        // Define rotation speed
+        let baseDuration: TimeInterval = 0.5
+        let rotationDuration = baseDuration / state.spinningBladesSpeed
+        
+        // Create a rotation action
+        let rotateAction = SKAction.rotate(byAngle: CGFloat.pi * 2, duration: rotationDuration)
+        let repeatRotate = SKAction.repeatForever(rotateAction)
+        
+        // Run the rotation action on the container
+        bladesContainer.run(repeatRotate, withKey: "rotate")
+        
+    }
+
+    
+    func playerStateDidUpgradeBarrier(_ state: PlayerState) {
+        guard let barrierContainer = barrierContainer else { return }
+        
+        //Remove existing barrier
+        barrierContainer.removeAllChildren()
+        
+        //Define barrier properties
+        let barrierRadius: CGFloat = 20.0 + state.barrierSize   // CAN CHANGE
+        let barrierColor = SKColor.blue.withAlphaComponent(0.3) // Semi-transparent blue
+        
+        //Create barrier shape
+        let barrier = SKShapeNode(circleOfRadius: barrierRadius)
+        barrier.name = "protectiveBarrier"
+        barrier.strokeColor = barrierColor
+        barrier.lineWidth = 3.0
+        barrier.zPosition = 2 // CURRENTLY ABOVE BLADES. Can change.
+        
+        //Position barrier at the center of the container
+        barrier.position = CGPoint.zero
+        
+        //Create pulsing action
+        let pulseUp = SKAction.scale(to: 1.2, duration: 1.0 - state.barrierPulseFrequency) // CAN CHANGE
+        let pulseDown = SKAction.scale(to: 1.0, duration: 1.0 - state.barrierPulseFrequency) // CAN CHANGE
+        let pulseSequence = SKAction.sequence([pulseUp, pulseDown])
+        let repeatPulse = SKAction.repeatForever(pulseSequence)
+        barrier.run(repeatPulse)
+        
+        //Add barrier to the barrierContainer
+        barrierContainer.addChild(barrier)
+        
+    }
+        
     func playerStateDidUpgradeHealth(_ state: PlayerState, restorePercentage: Double) {
-        // Implement logic to upgrade health and restore a percentage
-        upgradePlayerHealth(by: state.currentMaxHealth, restorePercentage: restorePercentage)
+        //WORKS BUT COULD CHANGE.
+        state.baseMaxHealth += (state.currentMaxHealth - state.baseMaxHealth)
+        playerLives = state.baseMaxHealth
     }
     
     func playerStateDidUpgradeMagnet(_ state: PlayerState) {
         // Implement logic to upgrade the magnet effect
-        upgradeMagnet(radius: state.currentCoinRadius)
     }
     
     func playerStateDidUpgradeFreeze(_ state: PlayerState) {
-        // Implement logic to upgrade freeze grenade abilities
-        upgradeFreezeGrenade(cooldownReduction: state.freezeGrenadeCooldown, durationIncrement: state.freezeDuration, radiusIncrement: state.freezeRadius)
+        grenadeShootInterval = max(1.0, 5.0 - state.freezeGrenadeCooldown)
     }
     
     // SPECIAL SKILLS
     func playerStateDidActivateHelpingHand(_ state: PlayerState) {
-        // Implement logic to activate Helping Hand skill
-        activateHelpingHand()
+        if state.hasHelpingHand {
+            //Start firing additional projectiles every 4 seconds
+            let fireAction = SKAction.run { [weak self] in
+                self?.fireHelpingHandProjectile()
+            }
+            let waitAction = SKAction.wait(forDuration: 2.0)
+            let sequence = SKAction.sequence([fireAction, waitAction])
+            let repeatForever = SKAction.repeatForever(sequence)
+            run(repeatForever, withKey: "helpingHandFire")
+        } else {
+            removeAction(forKey: "helpingHandFire")
+        }
     }
     
     func playerStateDidActivateReinforcedArrow(_ state: PlayerState) {
-        // Implement logic to activate Reinforced Arrow skill
-        activateReinforcedArrow()
+        print("Reinforced Arrow activated!")
     }
     
     func playerStateDidActivateSpectralShield(_ state: PlayerState) {
-        // Implement logic to activate Spectral Shield skill
-        activateSpectralShield()
+        if state.spectralShieldActive {
+            addSpectralShield()
+        } else {
+            removeSpectralShield()
+        }
     }
     
     func playerStateDidActivateMightyKnockback(_ state: PlayerState) {
         // Implement logic to activate Mighty Knockback skill
-        activateMightyKnockback()
+        print("Mightyknockback activated!")
     }
     
     func playerStateDidActivateBonusHealth(_ state: PlayerState, restorePercentage: Double) {
-        // Implement logic to activate Bonus Health
-        activateBonusHealth(restorePercentage: restorePercentage)
-    }
-    
-    // Skill Effect Methods
-    
-    // Define methods like addSpinningBlades, upgradeProtectiveBarrier, etc., to update the game scene accordingly.
-    
-    func addSpinningBlades(count: Int, damage: Int, speed: Double) {
-        // Add spinning blades logic
-    }
-    
-    func upgradeProtectiveBarrier(size: Double, damage: Int, pulseFrequency: Double, slowAmount: Double) {
-        // Upgrade protective barrier logic
-    }
-    
-    func upgradePlayerHealth(by amount: Double, restorePercentage: Double) {
-        // Upgrade health and restore logic
-    }
-    
-    func upgradeMagnet(radius: Double) {
-        // Upgrade magnet logic
-    }
-    
-    func upgradeFreezeGrenade(cooldownReduction: Double, durationIncrement: Double, radiusIncrement: Double) {
-        // Upgrade freeze grenade logic
+        // Restores player HP back to full health
+        playerLives = state.baseMaxHealth
     }
     
     func activateHelpingHand() {
-        // Activate Helping Hand logic
+        playerState.hasHelpingHand = true
     }
     
-    func activateReinforcedArrow() {
-        // Activate Reinforced Arrow logic
-    }
-    
-    func activateSpectralShield() {
-        // Activate Spectral Shield logic
-    }
-    
-    func activateMightyKnockback() {
-        // Activate Mighty Knockback logic
-    }
-    
-    func activateBonusHealth(restorePercentage: Double) {
-        // Activate Bonus Health logic
-    }
-
     func removeZombies() {
         for zombie in zombies {
             zombie.removeFromParent()
@@ -646,7 +847,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         zombies.removeAll()
     }
 
-    func spawnZombies(withHealth health: Int) {
+    func spawnZombies(withHealth health: Double) {
         let zombie = ZPZombie(health: health)
         let safeRadius: CGFloat = 200.0
         let zombieSize = zombie.size.width
@@ -840,6 +1041,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     
     override func update(_ currentTime: TimeInterval) {
         super.update(currentTime)
+        currentGameTime = currentTime
+        checkSpinningBladesCollision()
+        checkBarrierCollision()
+        checkSpectralShieldCollision()
         guard !gameOver, !isGamePaused else { return }
         manageBackgroundScrolling()
         
@@ -865,7 +1070,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         lastUpdateTime = currentTime
         
         // Set the movement speed and calculate player velocity
-        let moveSpeed: CGFloat = 100 // Adjust speed as needed
+        let moveSpeed: CGFloat = playerMoveSpeed // Adjust speed as needed
         let velocity = joystick.positionDelta
         let dx = velocity.x * moveSpeed * CGFloat(deltaTime)
         let dy = velocity.y * moveSpeed * CGFloat(deltaTime)
@@ -886,16 +1091,92 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         //Check shoot joystick to aim and shoot projectiles
         if shootJoystick.isActive {
             let aimDirection = shootJoystick.positionDelta
-            //IF ANY ERROR OCCURS WITH SHOOTING, POTENTIAL REASON IS BC WE ARE REUSING CURRENTTIME
+
             if aimDirection != .zero && currentTime - lastShootTime >= shootInterval{
                 lastShootTime = currentTime
                 shootProjectile(in: aimDirection)
+                
+                //Perhaps can add check here to disable grenades on boss stage.
+                if playerState.freezeGrenadeCooldown > 0.0 && currentTime - lastGrenadeTime >= grenadeShootInterval {
+                    lastGrenadeTime = currentTime
+                    shootGrenade(in: aimDirection)
+                }
             }
         }
         
-        //Update zombies positions to move towards the player
+        //Collision detection for freeze grenades
+        for grenade in self.children.filter({ $0.name == "freezeGrenade" }) {
+            guard let grenadeNode = grenade as? SKSpriteNode else { continue }
+            guard let hasCollided = grenadeNode.userData?["hasCollided"] as? Bool, !hasCollided else { continue }
+            
+            //Check collision for enemies
+            for zombie in zombies {
+                if grenadeNode.frame.intersects(zombie.frame) {
+                    grenadeNode.userData?["hasCollided"] = true
+                    grenadeNode.removeAllActions() //Stops grenade movement by removing all actions
+                    
+                    //Schedule explosion after 1 second
+                    let waitAction = SKAction.wait(forDuration: 1.0)
+                    let explodeAction = SKAction.run {
+                        self.explodeGrenade(grenadeNode)
+                    }
+                    let removeAction = SKAction.removeFromParent()
+                    let sequence = SKAction.sequence([waitAction, explodeAction, removeAction])
+                    grenadeNode.run(sequence)
+                    //Exit loop after collision
+                    break
+                }
+            }
+            
+            //Check collision for wizard
+            if let wizard = wizardBoss, bossIsAlive, grenadeNode.frame.intersects(wizard.frame) {
+                grenadeNode.userData?["hasCollided"] = true
+                grenadeNode.removeAllActions()
+                //Schedule explosion after 1 second
+                let waitAction = SKAction.wait(forDuration: 1.0)
+                let explodeAction = SKAction.run {
+                    self.explodeGrenade(grenadeNode)
+                }
+                let removeAction = SKAction.removeFromParent()
+                let sequence = SKAction.sequence([waitAction, explodeAction, removeAction])
+                grenadeNode.run(sequence)
+                //Exit loop after collision
+                break
+            }
+            
+            //Only wizard logic here, enemies logic is elsewhere
+            if let wizard = wizardBoss, wizard.isFrozen {
+                if currentGameTime >= wizard.freezeEndTime {
+                    wizard.unfreeze()
+                }
+            }
+        }
+        
+        //Update zombies positions to move towards the player and adjust speed based on barrier proximity
         for (index, zombie) in zombies.enumerated().reversed() {
-            zombie.moveTowards(player: player, speed: zombieSpeed)
+            var speed = zombieSpeed
+            
+            //Determine if the zombie is within any barrier's radius
+            if let barrierContainer = barrierContainer {
+                for barrier in barrierContainer.children where barrier.name == "protectiveBarrier" {
+                    guard let barrierShape = barrier as? SKShapeNode else { continue }
+                    
+                    let barrierScenePosition = barrierShape.convert(CGPoint.zero, to: self)
+                    let barrierRadius = barrierShape.frame.size.width / 2
+                    let distance = hypot(barrierScenePosition.x - zombie.position.x, barrierScenePosition.y - zombie.position.y)
+                    let collisionDistance = barrierRadius + (zombie.size.width / 2)
+                    
+                    if distance < collisionDistance {
+                        speed = zombieSpeed - playerState.barrierSlowAmount
+                        //Change color of slowed enemies.
+                        zombie.color = SKColor.gray
+                        zombie.colorBlendFactor = 0.5
+                        speed = max(speed, 0.05)
+                        break //Assuming one barrier; remove if multiple barriers can affect the same zombie
+                    }
+                }
+            }
+            zombie.moveTowards(player: player, speed: speed)
             
             //PREVENT ZOMBIES FROM OVERLAPPING ONE ANOTHER
             preventZombieOverlap(zombie: zombie, index: index)
@@ -905,13 +1186,26 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             }
         }
         
-        //Update method for each charger/exploder zombie in the scene
+        //Update method for each zombie in the scene
         for zombie in zombies {
             if let chargerZombie = zombie as? ZPChargerZombieNode {
                 chargerZombie.update(deltaTime: currentTime, playerPosition: player.position)
             }
             if let exploderZombie = zombie as? ZPExploderZombieNode {
                 exploderZombie.update(deltaTime: currentTime, playerPosition: player.position)
+            }
+            //Handle frozen enemies
+            if zombie.isFrozen {
+                if currentGameTime < zombie.freezeEndTime {
+                    //Freeze
+                    zombie.color = .cyan
+                    zombie.colorBlendFactor = 1.0 //Reset to original color
+                } else {
+                    //Unfreeze
+                    zombie.isFrozen = false
+                    zombie.color = .red
+                    zombie.colorBlendFactor = 0.0
+                }
             }
         }
         
@@ -966,6 +1260,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                     self.waveMessageLabel.zPosition = 5
                 }
                 self.transitionToNextWave()
+                self.showUpgradePopup()
             }
             self.waveMessageLabel.isHidden = false
         }
@@ -1127,6 +1422,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         let projectile = SKSpriteNode(color: .green, size: CGSize(width: 10, height: 10))
         projectile.position = player.position
         projectile.name = "projectile"
+        projectile.userData = NSMutableDictionary()
+        projectile.userData?.setValue(playerState.projectilesPierce, forKey: "pierce")
+        projectile.userData?.setValue([], forKey: "hitEnemies")
         addChild(projectile)
         //Set up movement action in the specified direction
         let normalizedDirection = CGVector(dx: direction.x, dy: direction.y).normalized
@@ -1144,23 +1442,41 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func checkProjectileCollision(_ projectile: SKSpriteNode) {
+        guard let hitEnemies = projectile.userData?.value(forKey: "hitEnemies") as? [SKSpriteNode] else { return }
+        let shouldPierce = playerState.projectilesPierce   // This gets triggered to true when the skill is selected as upgrade
+        var updatedHitEnemies = hitEnemies
+        //var didHitEnemy = false
         for (index, zombie) in zombies.enumerated().reversed() {
             if projectile.frame.intersects(zombie.frame) {
-                zombie.takeDamage(amount: attackDamage)
-                if zombie.isDead {
-                    zombie.removeFromParent()
-                    zombies.remove(at: index)
-                    handleEnemyDefeat()
+                if !updatedHitEnemies.contains(where: { $0 === zombie }) {
+                    zombie.takeDamage(amount: attackDamage)
+                    if zombie.isDead {
+                        zombie.removeFromParent()
+                        zombies.remove(at: index)
+                        handleEnemyDefeat()
+                    }
+                    updatedHitEnemies.append(zombie)
+                    
+                    //Apply knockback if mightyknockback is active
+                    if playerState.mightyKnockbackActive {
+                        applyKnockback(to: zombie, strength: 50, duration: 0.2)
+                    }
                 }
-                projectile.removeFromParent()
-                break //Ensure projectile stops after hitting first zombie
+                
+                //If projectiles do NOT pierce, remove the projectile after hitting
+                if !shouldPierce {
+                    projectile.removeFromParent()
+                    break
+                }
+                //If projectiles DO pierce, continue checking other enemies
             }
         }
         //Check collision for wizard
-        if let wizard = scene?.childNode(withName: "wizard") as? ZPWizard {
-            if projectile.frame.intersects(wizard.frame) {
+        if let wizard = scene?.childNode(withName: "wizard") as? ZPWizard, projectile.frame.intersects(wizard.frame) {
+            //Check if the wizard has already been hit by this projectile
+            if !updatedHitEnemies.contains(where: { $0 === wizard }) {
                 wizard.takeDamage(amount: attackDamage)
-                projectile.removeFromParent()
+                updatedHitEnemies.append(wizard)
                 if wizard.health <= 0 {
                     bossIsAlive = false
                     arenaBounds = nil
@@ -1169,9 +1485,417 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                         outline.removeFromParent()
                     }
                 }
+                
+                if !shouldPierce {
+                    projectile.removeFromParent()
+                }
+            }
+        }
+             
+        //Update hitEnemies list
+        projectile.userData?.setValue(updatedHitEnemies, forKey: "hitEnemies")
+    }
+    
+    func shootGrenade(in direction: CGPoint) {
+        // Create grenade node (placeholder as a small cyan block)
+        let grenade = SKSpriteNode(color: .cyan, size: CGSize(width: 15, height: 15))
+        grenade.position = player.position
+        grenade.name = "freezeGrenade"
+        grenade.userData = NSMutableDictionary()
+        grenade.userData?["hasCollided"] = false
+        addChild(grenade)
+        
+        // Set up movement action in the specified direction
+        let normalizedDirection = CGVector(dx: direction.x, dy: direction.y).normalized
+        let grenadeMoveDistance: CGFloat = 150.0  // Example distance
+        let moveAction = SKAction.move(by: CGVector(dx: normalizedDirection.dx * grenadeMoveDistance, dy: normalizedDirection.dy * grenadeMoveDistance), duration: 1.0)
+        
+        let waitAction = SKAction.wait(forDuration: 1.0)
+        let explodeAction = SKAction.run {
+            self.explodeGrenade(grenade)
+        }
+        let removeAction = SKAction.removeFromParent()
+        let sequence = SKAction.sequence([moveAction, waitAction, explodeAction, removeAction])
+        grenade.run(sequence)
+            
+    }
+        
+    func explodeGrenade(_ grenade: SKSpriteNode) {
+        // Visual explosion placeholder (e.g., scaling up and fading out)
+        let explosionRadius = playerState.freezeRadius + 25.0
+        let explode = SKShapeNode(circleOfRadius: playerState.freezeRadius + 25.0)
+        explode.position = grenade.position
+        explode.strokeColor = .cyan
+        explode.lineWidth = 1.0
+        explode.glowWidth = 2.0
+        explode.zPosition = 4
+        addChild(explode)
+        
+        let scaleUp = SKAction.scale(to: 1.0, duration: 0.3)
+        let fadeOut = SKAction.fadeOut(withDuration: 0.3)
+        let group = SKAction.group([scaleUp, fadeOut])
+        let remove = SKAction.removeFromParent()
+        let explodeSequence = SKAction.sequence([group, remove])
+        explode.run(explodeSequence)
+        
+        //Handle freeze effect on zombies within radius
+        for zombie in zombies {
+            let distance = hypot(grenade.position.x - zombie.position.x, grenade.position.y - zombie.position.y)
+            if distance <= explosionRadius {
+                //Apply freeze effect
+                zombie.isFrozen = true
+                zombie.freezeEndTime =  currentGameTime + 2.0 + playerState.freezeDuration //playerState.freezeDuration
+                zombie.color = .cyan
+                zombie.colorBlendFactor = 1.0
+            }
+        }
+        
+        //Handle freeze effect on boss if within radius
+        if let wizard = wizardBoss, bossIsAlive {
+            let distanceToWizard = hypot(grenade.position.x - wizard.position.x, grenade.position.y - wizard.position.y)
+            if distanceToWizard <= explosionRadius {
+                wizard.freeze(currentTime: currentGameTime, freezeDuration: 2.0 + playerState.freezeDuration)
             }
         }
     }
+    
+    func checkSpinningBladesCollision() {
+        let currentTime = CACurrentMediaTime()
+        let damageCooldown: TimeInterval = 1.0 // 1 second cooldown
+
+        guard let bladesContainer = bladesContainer else { return }
+
+        for blade in bladesContainer.children where blade.name == "spinningBlade" {
+            // Safely cast blade to SKSpriteNode
+            guard let bladeSprite = blade as? SKSpriteNode else {
+                continue
+            }
+
+            let bladePosition = bladeSprite.convert(CGPoint.zero, to: self)
+
+            // Check collision with zombies
+            for (index, zombie) in zombies.enumerated().reversed() {
+                let zombiePosition = zombie.position
+                let distance = hypot(bladePosition.x - zombiePosition.x, bladePosition.y - zombiePosition.y)
+
+                // Calculate collision distance based on blade and zombie sizes
+                let collisionDistance = (bladeSprite.size.width / 2) + (zombie.size.width / 2)
+
+                if distance < collisionDistance {
+                    if currentTime - zombie.lastSpinningBladeDamageTime > damageCooldown {
+                        zombie.takeDamage(amount: Double(playerState.spinningBladesDamage))
+                        zombie.lastSpinningBladeDamageTime = currentTime
+
+                        if zombie.isDead {
+                            zombie.removeFromParent()
+                            zombies.remove(at: index)
+                            handleEnemyDefeat()
+                        }
+
+                        // Optional: Add visual or audio feedback here
+                    }
+                }
+            }
+
+            // Check collision with wizard
+            if let wizard = scene?.childNode(withName: "wizard") as? ZPWizard {
+                let wizardPosition = wizard.position
+                let distance = hypot(bladePosition.x - wizardPosition.x, bladePosition.y - wizardPosition.y)
+
+                // Calculate collision distance based on blade and wizard sizes
+                let collisionDistance = (bladeSprite.size.width / 2) + (wizard.size.width / 2)
+
+                if distance < collisionDistance {
+                    if currentTime - wizard.lastSpinningBladeDamageTime > damageCooldown {
+                        wizard.takeDamage(amount: Double(playerState.spinningBladesDamage))
+                        wizard.lastSpinningBladeDamageTime = currentTime
+
+                        if wizard.health <= 0 {
+                            bossIsAlive = false
+                            arenaBounds = nil
+                            handleBossDefeat()
+
+                            if let outline = childNode(withName: "arenaOutline") as? SKShapeNode {
+                                outline.removeFromParent()
+                            }
+
+                        }
+
+                        // Optional: Add visual or audio feedback here
+                    }
+                }
+            }
+        }
+    }
+
+    func checkBarrierCollision() {
+        let currentTime = CACurrentMediaTime()
+        let damageCooldown: TimeInterval = max(0.3,1.0 - playerState.barrierPulseFrequency)
+        
+        guard let barrierContainer = barrierContainer else { return }
+        
+        for barrier in barrierContainer.children where barrier.name == "protectiveBarrier" {
+            // Safely cast barrier to SKShapeNode
+            guard let barrierShape = barrier as? SKShapeNode else {
+                continue
+            }
+            
+            // Convert barrier's position to scene coordinates
+            let barrierScenePosition = barrierShape.convert(CGPoint.zero, to: self)
+            
+            // Get barrier size (radius)
+            let barrierRadius = barrierShape.frame.size.width / 2
+            
+            // Check collision with zombies
+            for (index, zombie) in zombies.enumerated().reversed() {
+                let zombiePosition = zombie.position
+                let distance = hypot(barrierScenePosition.x - zombiePosition.x, barrierScenePosition.y - zombiePosition.y)
+                
+                // Calculate collision distance based on barrier and zombie sizes
+                let collisionDistance = barrierRadius + (zombie.size.width / 2)
+                
+                if distance < collisionDistance {
+                    if currentTime - zombie.lastBarrierDamageTime > damageCooldown {
+                        zombie.takeDamage(amount: Double(playerState.barrierDamage))
+                        zombie.lastBarrierDamageTime = currentTime
+                        
+                        if zombie.isDead {
+                            zombie.removeFromParent()
+                            zombies.remove(at: index)
+                            handleEnemyDefeat()
+                        }
+                        
+                        // Optional: Add visual or audio feedback here
+                    }
+                }
+            }
+            
+            // Check collision with wizard
+            if let wizard = scene?.childNode(withName: "wizard") as? ZPWizard {
+                let wizardPosition = wizard.position
+                let distance = hypot(barrierScenePosition.x - wizardPosition.x, barrierScenePosition.y - wizardPosition.y)
+                
+                // Calculate collision distance based on barrier and wizard sizes
+                let collisionDistance = barrierRadius + (wizard.size.width / 2)
+                
+                if distance < collisionDistance {
+                    if currentTime - wizard.lastBarrierDamageTime > damageCooldown {
+                        wizard.takeDamage(amount: Double(playerState.barrierDamage))
+                        wizard.lastBarrierDamageTime = currentTime
+                        
+                        if wizard.health <= 0 {
+                            bossIsAlive = false
+                            arenaBounds = nil
+                            handleBossDefeat()
+                            
+                            if let outline = childNode(withName: "arenaOutline") as? SKShapeNode {
+                                outline.removeFromParent()
+                            }
+                            
+                        }
+                        
+                        // Optional: Add visual or audio feedback here
+                    }
+                }
+            }
+        }
+    }
+    
+    func checkSpectralShieldCollision() {
+        guard let shieldContainer = shieldContainer else { return }
+        
+        for shield in shieldContainer.children where shield.name == "spectralShield" {
+            guard let shieldShape = shield as? SKShapeNode else { continue }
+            //Convert shield position to scene coordinates
+            let shieldScenePosition = shieldShape.convert(CGPoint.zero, to: self)
+            //Get shieldSize
+            let shieldSize = shieldShape.frame.size.width / 2
+            
+            //Check collision with zombies
+            for (index, zombie) in zombies.enumerated().reversed(){
+                let zombiePosition = zombie.position
+                let distance = hypot(shieldScenePosition.x - zombiePosition.x, shieldScenePosition.y - zombiePosition.y)
+                //Calculate collision distance based on shield and zombie size
+                let collisionDistance = shieldSize + (zombie.size.width / 2)
+                
+                if distance < collisionDistance {
+                    absorbShieldHit()
+                    zombie.removeFromParent()
+                    zombies.remove(at: index)
+                    pendingEnemies -= 1
+                    updateProgressLabel()
+                    
+                    if pendingEnemies < 0 {
+                        pendingEnemies = 0
+                    }
+                    if currentWaveIndex < waveCycle.count {
+                        let wave = waveCycle[currentWaveIndex]
+                        if wave.allEnemiesSpawned && pendingEnemies <= 0 && !isBossStage {
+                            handleWaveProgression()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    func absorbShieldHit() {
+        shieldHitsRemaining -= 1
+        updateShieldAppearance()
+        
+        if shieldHitsRemaining <= 0 {
+            removeSpectralShield()
+            playerState.spectralShieldActive = false
+        }
+    }
+    
+    func updateShieldAppearance() {
+        guard let shield = spectralShield else { return }
+        switch shieldHitsRemaining {
+        case shieldMaxHits:
+            shield.strokeColor = UIColor.green.withAlphaComponent(0.7)
+        case shieldMaxHits - 1:
+            shield.strokeColor = UIColor.orange.withAlphaComponent(0.7)
+        case 1:
+            shield.strokeColor = UIColor.red.withAlphaComponent(0.7)
+        default:
+            shield.strokeColor = UIColor.gray //Default or error color
+        }
+    }
+
+    
+    func fireHelpingHandProjectile() {
+        guard let target = findNearestEnemy(within: 200.0) else {
+            return
+        }
+        
+        // Create projectile
+        let projectile = SKSpriteNode(color: .gray, size: CGSize(width: 10, height: 10))
+        projectile.position = player.position
+        projectile.name = "helpingHandProjectile"
+        addChild(projectile)
+        
+        // Calculate direction vector towards the target
+        let direction = CGVector(dx: target.position.x - player.position.x, dy: target.position.y - player.position.y).normalized
+        
+        // Set up movement action (adjust `projectileMoveDistance` as needed)
+        let moveDistance: CGFloat = 400
+        let moveAction = SKAction.move(by: CGVector(dx: direction.dx * moveDistance, dy: direction.dy * moveDistance), duration: 2.0)
+        
+        // Placeholder for collision check (to be implemented later)
+        let collisionAction = SKAction.run {
+            self.checkProjectileCollision(projectile) // Uncomment when collision is implemented
+        }
+        let collisionCheckSequence = SKAction.sequence([collisionAction, SKAction.wait(forDuration: 0.05)])
+        let repeatCollisionCheck = SKAction.repeat(collisionCheckSequence, count: Int(2.0 / 0.05)) // Runs for duration of moveAction
+        
+        let combinedAction = SKAction.group([moveAction, repeatCollisionCheck])
+        projectile.run(SKAction.sequence([combinedAction, SKAction.removeFromParent()]))
+        
+    }
+
+    /// Finds the nearest enemy (zombie or wizard) within a specified radius.
+    func findNearestEnemy(within radius: CGFloat) -> SKSpriteNode? {
+        var nearestEnemy: SKSpriteNode?
+        var shortestDistance = radius
+        
+        // Iterate through zombies to find the nearest one within the radius
+        for zombie in zombies {
+            let distance = hypot(zombie.position.x - player.position.x, zombie.position.y - player.position.y)
+            if distance < shortestDistance {
+                shortestDistance = distance
+                nearestEnemy = zombie
+            }
+        }
+        
+        // Check if the wizard is within the radius and closer than any zombie
+        if let wizard = scene?.childNode(withName: "wizard") as? ZPWizard {
+            let distanceToWizard = hypot(wizard.position.x - player.position.x, wizard.position.y - player.position.y)
+            if distanceToWizard < shortestDistance {
+                shortestDistance = distanceToWizard
+                nearestEnemy = wizard
+            }
+        }
+        
+        return nearestEnemy
+    }
+    
+    func addSpectralShield() {
+        // Avoid adding multiple shields
+        if spectralShield != nil { return }
+        guard let shieldContainer = shieldContainer else { return }
+        
+        //Remove existing shield
+        shieldContainer.removeAllChildren()
+        
+        //Create the shield node
+        let shield = SKShapeNode(circleOfRadius: 35)
+        shield.alpha = 0.7
+        shield.lineWidth = 2
+        shield.position = CGPoint.zero
+        shield.zPosition = 2 //  Ontop of player
+        shield.name = "spectralShield"
+        
+        shieldContainer.addChild(shield)
+        spectralShield = shield
+        
+        //Reset shield durability
+        shieldHitsRemaining = shieldMaxHits
+        updateShieldAppearance()
+    }
+    
+    func removeSpectralShield() {
+        if let shield = spectralShield {
+            shield.removeAllActions()
+            shield.removeFromParent()
+            spectralShield = nil
+        }
+        
+        //Start cooldown timer to reactivate the shield after 'shieldCooldown'
+        DispatchQueue.main.asyncAfter(deadline: .now() + shieldCooldown) { [weak self] in
+            guard let self = self else { return }
+            self.playerState.activateSpectralShield()
+        }
+    }
+    
+    func applyKnockback(to enemy: SKSpriteNode, strength: CGFloat, duration: TimeInterval) {
+        // Calculate the direction vector from player to enemy
+        let dx = enemy.position.x - player.position.x
+        let dy = enemy.position.y - player.position.y
+        let magnitude = sqrt(dx * dx + dy * dy)
+        
+        // Avoid division by zero
+        guard magnitude != 0 else { return }
+        
+        // Normalize the direction vector
+        let normalizedDx = dx / magnitude
+        let normalizedDy = dy / magnitude
+        
+        // Determine the knockback vector based on strength
+        let knockbackVector = CGVector(dx: normalizedDx * strength, dy: normalizedDy * strength)
+        
+        // Calculate the new position by adding the knockback vector
+        var newPosition = CGPoint(x: enemy.position.x + knockbackVector.dx,
+                                  y: enemy.position.y + knockbackVector.dy)
+        
+        // Clamp the new position within scene bounds to prevent enemies from moving off-screen
+        newPosition.x = max(enemy.size.width / 2, min(newPosition.x, size.width - enemy.size.width / 2))
+        newPosition.y = max(enemy.size.height / 2, min(newPosition.y, size.height - enemy.size.height / 2))
+        
+        // Create the move action
+        let moveAction = SKAction.move(to: newPosition, duration: duration)
+        moveAction.timingMode = .easeOut
+        
+        // Optionally, add a visual feedback (e.g., flash)
+        let flashAction = SKAction.sequence([
+            SKAction.fadeAlpha(to: 0.5, duration: 0.05),
+            SKAction.fadeAlpha(to: 1.0, duration: 0.05)
+        ])
+        
+        // Run the actions on the enemy
+        enemy.run(SKAction.sequence([flashAction, moveAction]), withKey: "knockback")
+    }
+
     
     func preventZombieOverlap(zombie: ZPZombie, index: Int){
         for (otherIndex, otherZombie) in zombies.enumerated() where otherIndex != index {
@@ -1323,9 +2047,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         zombieHealth = 3
         zombieSpeed = 0.3
         wizardHealth = 15
-        attackDamage = 10 // **CHANGE BACK IN FINAL VERSION.** (1)
-        shootInterval = 0.3 // **CHANGE BACK IN FINAL VERSION.** (1.0)
-        projectileMoveDistance = 400 // **CHANGE BACK IN FINAL VERSION.** (200)
+        attackDamage = playerState.baseDamage
+        shootInterval = playerState.baseAttackSpeed
+        projectileMoveDistance = playerState.baseRange
         enemiesToDefeat = 3
         maxRegularZombies = 3
         maxChargerZombies = 0
@@ -1362,7 +2086,14 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func updateUpgradeStatsLabel() {
-        upgradeStatsLabel.text = "Dmg: \(attackDamage) | Range: \(projectileMoveDistance) | AtkSpeed: \(shootInterval)"
+        upgradeStatsLabel.text = "Dmg: \(attackDamage ?? 0) | Range: \(projectileMoveDistance ?? 0) | AtkSpeed: \(shootInterval ?? 0)"
+    }
+    
+    //Function used to handle removing zombies from tracking structure (in exploder class)
+    func removeZombieFromTracking(_ zombie: ZPExploderZombieNode) {
+        if let index = zombies.firstIndex(where: { $0 === zombie }) {
+            zombies.remove(at: index)
+        }
     }
     
 }
