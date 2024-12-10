@@ -491,7 +491,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
         
         // Randomly select one of the possible types
-        return possibleTypes.randomElement() ?? .regular
+//        return possibleTypes.randomElement() ?? .regular
+        return .charger
     }
 
     
@@ -1303,7 +1304,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                     }
                 }
             }
-            zombie.moveTowards(player: player, speed: speed)
+            zombie.moveTowards(playerPosition: player.position, speed: speed)
             
             //PREVENT ZOMBIES FROM OVERLAPPING ONE ANOTHER
             preventZombieOverlap(zombie: zombie, index: index)
@@ -2081,8 +2082,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         spawnXPNode(at: lastHitZombiePosition)
         
         // MARK: Delete later, just for testing purposes
-        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager)
-        overlayManager.enqueueOverlay(spinnerOverlay)
+//        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager)
+//        overlayManager.enqueueOverlay(spinnerOverlay)
         
         score += 1
         pendingEnemies -= 1

@@ -31,19 +31,23 @@ class ZPChargerZombieNode: ZPZombie {
     init(health: Double, movementSpeed chargerMovementSpeed: CGFloat) {
         self.chargerMovementSpeed = chargerMovementSpeed
         super.init(health: health) // Call the designated initializer of ZPZombie
-        self.color = .orange // Set the color to indicate it's a charger zombie
+        self.baseColor = .orange // Set the color to indicate it's a charger zombie
+        self.color = baseColor 
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // Function to subtract two CGPoints and return a CGVector
-    private func vector(from pointA: CGPoint, to pointB: CGPoint) -> CGVector {
-        return CGVector(dx: pointB.x - pointA.x, dy: pointB.y - pointA.y)
-    }
-    
     func update(deltaTime: TimeInterval, playerPosition: CGPoint) {
+        // Freeze grenade interupts and resets
+        if isFrozen {
+            self.removeAllActions()
+            self.isCharging = false
+            let cooldown = SKAction.wait(forDuration: self.chargeCooldown)
+            self.run(cooldown)
+        }
+
         // Check if the zombie is close enough to prepare for a charge
         let distanceToPlayer = hypot(playerPosition.x - position.x, playerPosition.y - position.y)
         let chargeRange: CGFloat = 200.0 // Adjust this value as needed
@@ -89,7 +93,7 @@ class ZPChargerZombieNode: ZPZombie {
             run(SKAction.sequence([prepareToCharge, chargeAction]))
         } else if !isCharging {
             // Regular zombie movement if not in charging mode
-            moveToward(playerPosition)
+            moveTowards(playerPosition: playerPosition, speed: chargerMovementSpeed)
         }
     }
         
@@ -101,12 +105,9 @@ class ZPChargerZombieNode: ZPZombie {
             self.run(cooldown)
         }
     }
-        
-    private func moveToward(_ target: CGPoint) {
-        // Charger zombie movement toward the target
-        let offset = CGPoint(x: target.x - position.x, y: target.y - position.y)
-        let direction = CGVector(dx: offset.x, dy: offset.y).normalizedCZ
-        let movementVector = CGVector(dx: direction.dx * chargerMovementSpeed, dy: direction.dy * chargerMovementSpeed)
-        position = CGPoint(x: position.x + movementVector.dx, y: position.y + movementVector.dy)
+    
+    // Helper Function to subtract two CGPoints and return a CGVector
+    private func vector(from pointA: CGPoint, to pointB: CGPoint) -> CGVector {
+        return CGVector(dx: pointB.x - pointA.x, dy: pointB.y - pointA.y)
     }
 }

@@ -21,7 +21,8 @@ class ZPExploderZombieNode: ZPZombie {
     init(health: Double, movementSpeed exploderMovementSpeed: CGFloat) {
         self.exploderMovementSpeed = exploderMovementSpeed
         super.init(health: health)
-        self.color = .purple // Unique color for the exploder
+        self.baseColor = .purple // Unique color for the exploder
+        self.color = baseColor
         configureBlastIndicator()
     }
     
