@@ -7,10 +7,13 @@
 
 class RegularSkill {
     let definition: SkillDefinition
+    let displayName: String
     private(set) var currentLevel: Int = 0
+    
 
     init(definition: SkillDefinition) {
         self.definition = definition
+        self.displayName = definition.type.displayName
     }
 
     var isMaxed: Bool {
@@ -25,7 +28,7 @@ class RegularSkill {
     func apply(to player: PlayerState) {
         guard currentLevel > 0 else { return }
         let effect = definition.levelEffects[currentLevel - 1]
-
+        
         // Apply increments for base regular skills:
         player.currentDamage += effect.damageIncrement
         player.currentAttackSpeed += effect.attackSpeedIncrement

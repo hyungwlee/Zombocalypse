@@ -18,8 +18,10 @@ protocol PlayerStateDelegate: AnyObject {
     
     // Special Skills
     func playerStateDidActivateHelpingHand(_ state: PlayerState)
+    func playerStateDidDeactivateHelpingHand() /// to disable UI effects
     func playerStateDidActivateReinforcedArrow(_ state: PlayerState)
     func playerStateDidActivateSpectralShield(_ state: PlayerState)
+    func playerStateDidDeactivateSpectralShield() /// to disable UI effects
     func playerStateDidActivateMightyKnockback(_ state: PlayerState)
     func playerStateDidActivateBonusHealth(_ state: PlayerState, restorePercentage: Double)
 }
@@ -32,11 +34,12 @@ protocol PlayerStateDelegate: AnyObject {
 class PlayerState {
     weak var delegate: PlayerStateDelegate?
     
+    // Default values
     var baseDamage: Double = 1
     var baseAttackSpeed: Double = 1.0
     var baseMovementSpeed: Double = 100.0
     var baseRange: Double = 200.0
-    var baseMaxHealth: Double = 3.0
+    var baseMaxHealth: Double = 300.0
     var baseCoinRadius: Double = 50.0
 
     // Derived stats after skill application:
@@ -46,6 +49,10 @@ class PlayerState {
     var currentRange: Double = 0
     var currentMaxHealth: Double = 0
     var currentCoinRadius: Double = 0
+    
+    // XP
+    var currentXP: Int = 0
+    var xpPickupRadius: Double = 30.0
     
     // Spinning blades properties
     var spinningBladesCount: Int = 0
@@ -72,6 +79,8 @@ class PlayerState {
     // This is called every time a new skill is added.
     // It is a refresh to make sure the increments don't stack
     func resetToBaseStats() {
+        print("RESETTING PLAYER STATE")
+        
         // Reset Base Stats
         currentDamage = baseDamage
         currentAttackSpeed = baseAttackSpeed
@@ -96,8 +105,10 @@ class PlayerState {
         
         // Reset Special Skill Flags
         hasHelpingHand = false
+        delegate?.playerStateDidDeactivateHelpingHand()
         projectilesPierce = false
         spectralShieldActive = false
+        delegate?.playerStateDidDeactivateSpectralShield()
         mightyKnockbackActive = false
     }
     
