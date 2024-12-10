@@ -24,15 +24,14 @@ class ZPChargerZombieNode: ZPZombie {
     private var chargeCooldown: TimeInterval = 1.0 // 1-second cooldown after charge
     private var chargePreparationTime: TimeInterval = 2.0 // 2-second delay before charge
     private var lastChargeTime: TimeInterval = 0
-    private var chargerMovementSpeed: CGFloat
     private var arrowNode: SKSpriteNode?
     
     // Initialize with chargerMovementSpeed, pass it to the super class ZPZombie
     init(health: Double, movementSpeed chargerMovementSpeed: CGFloat) {
-        self.chargerMovementSpeed = chargerMovementSpeed
-        super.init(health: health) // Call the designated initializer of ZPZombie
+        super.init(health: health)
+        self.movementSpeed = chargerMovementSpeed
         self.baseColor = .orange // Set the color to indicate it's a charger zombie
-        self.color = baseColor 
+        self.color = baseColor
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -93,7 +92,7 @@ class ZPChargerZombieNode: ZPZombie {
             run(SKAction.sequence([prepareToCharge, chargeAction]))
         } else if !isCharging {
             // Regular zombie movement if not in charging mode
-            moveTowards(playerPosition: playerPosition, speed: chargerMovementSpeed)
+            moveTowards(playerPosition: playerPosition, speed: movementSpeed)
         }
     }
         

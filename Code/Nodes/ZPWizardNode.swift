@@ -1,4 +1,13 @@
+//
+//  ZPWizardNode.swift
+//  Zombocalypse
+//
+//
+//
+
+
 import SpriteKit
+import Foundation
 
 class ZPWizard: SKSpriteNode {
     var lastSpinningBladeDamageTime: TimeInterval = 0
@@ -20,6 +29,7 @@ class ZPWizard: SKSpriteNode {
     private let bossLabel: SKLabelNode
     private var isChargingBeam: Bool = false // Prevents movement during beam charging
     private var playerHitByBeam: Bool = false
+    public var isAlive: Bool = true
 
     init(health: Double) {
         self.health = health
@@ -46,7 +56,7 @@ class ZPWizard: SKSpriteNode {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func update(currentTime: TimeInterval, playerPosition: CGPoint) {
+    func update(currentTime: TimeInterval, deltaTime: TimeInterval, playerPosition: CGPoint) {
         //Handle freezing logic
         if isFrozen {
             if currentTime >= freezeEndTime {
@@ -58,7 +68,7 @@ class ZPWizard: SKSpriteNode {
         }
         
         if !isChargingBeam {
-            moveAlongScreenEdge(currentTime: currentTime)
+            moveAlongScreenEdge(deltaTime: deltaTime)
         }
 
         // Handle meteor attack
@@ -82,19 +92,23 @@ class ZPWizard: SKSpriteNode {
     }
 
     private func die() {
+        isAlive = false
         let explosion = SKEmitterNode(fileNamed: "Explosion") // Optional: Add a visual effect
         explosion?.position = self.position
         scene?.addChild(explosion ?? SKNode())
         self.removeFromParent()
     }
 
-    private func moveAlongScreenEdge(currentTime: TimeInterval) {
+    private func moveAlongScreenEdge(deltaTime: TimeInterval) {
         if currentDirection == .zero {
             currentDirection = CGVector(dx: moveSpeed, dy: 0)
         }
 
-        position.x += currentDirection.dx * CGFloat(1 / 60.0) // Assuming a frame rate of 60 FPS
-        position.y += currentDirection.dy * CGFloat(1 / 60.0)
+        
+        let movement = CGVector(dx: currentDirection.dx * CGFloat(deltaTime),
+                                dy: currentDirection.dy * CGFloat(deltaTime))
+        position.x += movement.dx
+        position.y += movement.dy
 
         // Check bounds and reverse direction if hitting the screen edge
         if position.x <= 0 || position.x >= scene!.size.width {
@@ -140,6 +154,8 @@ class ZPWizard: SKSpriteNode {
     }
 
     private func spawnMeteor(at position: CGPoint) {
+        guard let scene = scene as? ZPGameScene else { return }
+        
         let meteor = SKShapeNode(circleOfRadius: 80) // Larger meteor size
         meteor.position = position
         meteor.fillColor = .orange
@@ -153,10 +169,10 @@ class ZPWizard: SKSpriteNode {
         bombLabel.position = CGPoint(x: 0, y: -70)
         meteor.addChild(bombLabel)
         
-        scene?.addChild(meteor)
+        scene.addChild(meteor)
 
         // Deal damage to the player if the meteor lands
-        if let scene = scene as? ZPGameScene, meteor.frame.intersects(scene.player.frame) {
+        if meteor.frame.intersects(scene.player.frame) {
             scene.bossHitPlayer()
         }
 
@@ -201,6 +217,8 @@ class ZPWizard: SKSpriteNode {
     }
 
     private func spawnBeam(towards targetPosition: CGPoint) {
+        guard let scene = scene as? ZPGameScene else { return }
+        
         let beam = SKShapeNode()
         let path = CGMutablePath()
         path.move(to: position)
@@ -209,14 +227,13 @@ class ZPWizard: SKSpriteNode {
         beam.strokeColor = .yellow
         beam.lineWidth = 5
         beam.alpha = 0.7
-        scene?.addChild(beam)
+        scene.addChild(beam)
         
         playerHitByBeam = false
         
         let dealDamage = SKAction.run { [weak self] in
             guard let self = self else { return }
-            if let scene = self.scene as? ZPGameScene,
-               self.isPlayerOnBeamPath(beamStart: self.position, beamEnd: targetPosition, playerPosition: scene.player.position), !self.playerHitByBeam {
+            if self.isPlayerOnBeamPath(beamStart: self.position, beamEnd: targetPosition, playerPosition: scene.player.position), !self.playerHitByBeam {
                 //print("PLAYER HIT BY BEAM")
                 scene.bossHitPlayer()
                 self.playerHitByBeam = true // prevent further damage during this beam attack
@@ -225,7 +242,6 @@ class ZPWizard: SKSpriteNode {
         let remove = SKAction.removeFromParent()
         let wait = SKAction.wait(forDuration: 1.0)
         beam.run(SKAction.sequence([SKAction.repeat(dealDamage, count: 3), wait, remove]))
-        
     }
         
     private func isPlayerOnBeamPath(beamStart: CGPoint, beamEnd: CGPoint, playerPosition: CGPoint) -> Bool {
@@ -266,6 +282,5 @@ class ZPWizard: SKSpriteNode {
     
     func unfreeze() {
         isFrozen = false
-        colorBlendFactor = 0.0
     }
 }

@@ -13,6 +13,7 @@ class ZPZombie: SKSpriteNode {
     var isFrozen: Bool = false
     var freezeEndTime: TimeInterval = 0
     var baseColor: SKColor = .red
+    var movementSpeed: CGFloat = 0.4
     
     var health: Double {
         didSet{
@@ -41,17 +42,20 @@ class ZPZombie: SKSpriteNode {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func moveTowards(playerPosition: CGPoint, speed: CGFloat) {
+    func moveTowards(playerPosition: CGPoint, speed: CGFloat? = nil) {
         if isFrozen {
             //Do not move if frozen
             return
         }
+        let updatedSpeed = speed ?? movementSpeed
+
         let direction = CGVector(dx: playerPosition.x - self.position.x, dy: playerPosition.y - self.position.y)
         let length = hypot(direction.dx, direction.dy)
         
         if length > 0 { // Check if the enemy is not at the player's position
             let normalizedDirection = CGVector(dx: direction.dx / length, dy: direction.dy / length)
-            self.position = CGPoint(x: self.position.x + normalizedDirection.dx * speed, y: self.position.y + normalizedDirection.dy * speed)
+            self.position = CGPoint(x: self.position.x + normalizedDirection.dx * updatedSpeed,
+                                    y: self.position.y + normalizedDirection.dy * updatedSpeed)
         }
     }
     
@@ -70,9 +74,7 @@ class ZPZombie: SKSpriteNode {
     }
     
     func updateFreezeState(currentTime: TimeInterval) {
-        print("update")
         if isFrozen && currentTime >= freezeEndTime {
-            print("unfreezz")
             unfreeze()
         }
     }

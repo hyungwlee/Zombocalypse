@@ -15,12 +15,11 @@ class ZPExploderZombieNode: ZPZombie {
     private var explosionRange: CGFloat = 100.0 // Radius for area-of-effect damage
     private var explosionCooldown: TimeInterval = 1.0 // 1-second cooldown after exploding
     private var blastIndicator: SKShapeNode?
-    private var exploderMovementSpeed: CGFloat
     
     // Initialize with movement speed, pass health to the superclass
     init(health: Double, movementSpeed exploderMovementSpeed: CGFloat) {
-        self.exploderMovementSpeed = exploderMovementSpeed
         super.init(health: health)
+        self.movementSpeed = exploderMovementSpeed
         self.baseColor = .purple // Unique color for the exploder
         self.color = baseColor
         configureBlastIndicator()
@@ -58,7 +57,7 @@ class ZPExploderZombieNode: ZPZombie {
             prepareToExplode()
             lastExplosionAttemptTime = deltaTime
         } else if !isPreparingToExplode {
-            moveTowards(playerPosition: playerPosition, speed: exploderMovementSpeed)
+            moveTowards(playerPosition: playerPosition, speed: movementSpeed)
         }
     }
     
