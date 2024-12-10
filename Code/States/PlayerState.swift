@@ -51,7 +51,7 @@ class PlayerState {
     
     // XP
     var currentXP: Int = 0
-    var xpPickupRadius: Double = 50.0
+    var xpPickupRadius: Double = 30.0
     
     // Spinning blades properties
     var spinningBladesCount: Int = 0

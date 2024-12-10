@@ -175,6 +175,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     
     var xpBarNode: XPBarNode!
     var xpNodes: [XPNode] = []
+    var xpSpawnTimer: Timer?
+    let xpSpawnInterval: TimeInterval = 1.0
 
     init(context: ZPGameContext, size: CGSize) {
         self.context = context
@@ -222,6 +224,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         backgroundColor = .white
         gameOver = false
         playerState.resetToBaseStats()
+        
         // Sets up player at fixed start position
         if player == nil {
             player = SKSpriteNode(color: .blue, size: CGSize(width: 25, height: 25))
@@ -351,6 +354,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         xpBar.zPosition = 5
         camera?.addChild(xpBar)
         self.xpBarNode = xpBar
+        startXPSpawnTimer()
     }
     
     func initializeWaves() {
@@ -2080,12 +2084,15 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func updateXPBar() {
-        xpBarNode.setXP(currentXP: upgradeShopManager.XPCount, xpToNextLevel: upgradeShopManager.XPToNextLevel, xpThreshold: upgradeShopManager.nextShopXPThreshold)
+        xpBarNode.setXP(currentXP: upgradeShopManager.XPCount,
+                        xpToNextLevel: upgradeShopManager.XPToNextLevel,
+                        xpThreshold: upgradeShopManager.nextShopXPThreshold)
     }
     
     func handleEnemyDefeat(at lastHitZombiePosition: CGPoint) {
         spawnXPNode(at: lastHitZombiePosition)
         
+        // MARK: Delete later, just for testing purposes
         let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager)
         overlayManager.enqueueOverlay(spinnerOverlay)
         
@@ -2110,22 +2117,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
     
-    func spawnXPNode(at position: CGPoint) {
-        let xpNode = XPNode(xpAmount: Int.random(in: 3...10))
-        xpNode.position = position
-        addChild(xpNode)
-        xpNodes.append(xpNode)
-    }
-    
-    func spawnRandomXPNode() {
-        // Spawn a node at a random position within the playable area
-        // Adjust the bounds as necessary; here we use the camera or scene size.
-        let randomX = CGFloat.random(in: -size.width/2...size.width/2) + player.position.x
-        let randomY = CGFloat.random(in: -size.height/2...size.height/2) + player.position.y
-        let randomPosition = CGPoint(x: randomX, y: randomY)
-        spawnXPNode(at: randomPosition)
-    }
-    
     func checkXPCollection() {
         for (index, xpNode) in xpNodes.enumerated().reversed() {
             let distance = player.position.distance(to: xpNode.position)
@@ -2141,6 +2132,45 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                 xpNodes.remove(at: index)
             }
         }
+    }
+    
+    func spawnXPNode(at position: CGPoint) {
+        let xpNode = XPNode(xpAmount: Int.random(in: 3...10))
+        xpNode.position = position
+        addChild(xpNode)
+        xpNodes.append(xpNode)
+    }
+    
+    func spawnRandomXPNode() {
+        let spawnBuffer: CGFloat = 30.0 // Buffer to prevent spawning too close to the edges
+
+        // Define the minimum and maximum Y based on vertical bounds and buffer
+        let minY = bottomBound + spawnBuffer
+        let maxY = topBound - spawnBuffer
+
+        // Define the minimum and maximum X based on scene size and buffer
+        let minX = -size.width / 2 - spawnBuffer
+        let maxX = size.width / 2 + spawnBuffer
+
+        let randomX = CGFloat.random(in: minX...maxX)
+        let randomY = CGFloat.random(in: minY...maxY)
+        let randomPosition = CGPoint(x: randomX, y: randomY)
+
+        spawnXPNode(at: randomPosition)
+    }
+    
+    func startXPSpawnTimer() {
+        // Ensure only one timer is active
+        guard xpSpawnTimer == nil else { return }
+        
+        xpSpawnTimer = Timer.scheduledTimer(withTimeInterval: xpSpawnInterval, repeats: true) { [weak self] _ in
+            self?.spawnRandomXPNode()
+        }
+    }
+    
+    func stopXPSpawnTimer() {
+        xpSpawnTimer?.invalidate()
+        xpSpawnTimer = nil
     }
     
     func bossHitPlayer() {

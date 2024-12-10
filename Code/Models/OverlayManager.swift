@@ -27,7 +27,8 @@ class OverlayManager {
         isShowingOverlay = true
         let nextOverlay = overlayQueue.removeFirst()
         cameraNode.addChild(nextOverlay)
-//        scene.isPaused = true
+        scene.isPaused = true
+        scene.stopXPSpawnTimer()
     }
     
     func closeCurrentOverlay(_ overlay: SKNode) {
@@ -37,5 +38,6 @@ class OverlayManager {
         showNextOverlayIfPossible()
         scene?.updateXPBar()
         scene?.updateUpgradeStatsLabel()
+        scene?.startXPSpawnTimer()
     }
 }
