@@ -39,17 +39,50 @@ enum SkillType {
         case .attackRange:
             return "Increase Attack Range"
         case .spinningBlades:
-            return "Spinning Blades Upgrade"
+            return "Spinning Blades"
         case .protectiveBarrier:
-            return "Barrier Upgrade"
+            return "Protective Barrier"
         case .healthUpgrade:
             return "Health Upgrade"
         case .magnet:
-            return "Magnet Upgrade"
+            return "XP Magnet"
         case .freeze:
-            return "Freeze Grenade Upgrade"
+            return "Freeze Grenade"
+        case .helpingHand:
+            return "Helping Hand"
+        case .reinforcedArrow:
+            return "Reinforced Arrow"
+        case .spectralShield:
+            return "Spectral Shield"
+        case .mightyKnockback:
+            return "Mighty Knockback"
         default:
-            return "Special Upgrade"
+            return "Skill"
+        }
+    }
+    
+    var iconName: String {
+        switch self {
+        case .attackDamage:
+            return ""
+        case .attackSpeed:
+            return ""
+        case .movementSpeed:
+            return ""
+        case .attackRange:
+            return ""
+        case .spinningBlades:
+            return ""
+        case .protectiveBarrier:
+            return ""
+        case .healthUpgrade:
+            return ""
+        case .magnet:
+            return ""
+        case .freeze:
+            return ""
+        default:
+            return ""
         }
     }
 }

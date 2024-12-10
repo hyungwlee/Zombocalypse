@@ -143,11 +143,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     private var displayedEnemyMessages: Set<Int> = []
     
     // Auto-attack variables
-    private var attackDamage: Double!
-    private var projectileMoveDistance: CGFloat!
-    private var shootInterval: TimeInterval!
+    /// these are stored and tracked in PlayerState
+//    private var attackDamage: Double!
+//    private var projectileMoveDistance: CGFloat!
+//    private var shootInterval: TimeInterval!
     private var lastShootTime: TimeInterval = 0
-    private var playerMoveSpeed: CGFloat!
+//    private var playerMoveSpeed: CGFloat!
     
     //Score Settings
     var score: Int = 0 {
@@ -164,9 +165,16 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     
     //Upgrades Settings
     private var isGamePaused: Bool = false
-    var upgradePopup: SKShapeNode!
+//    var upgradePopup: SKShapeNode!
     var upgradeStatsLabel: SKLabelNode!
-    var currentUpgradeChoices: [RegularSkill] = []
+//    var currentUpgradeChoices: [RegularSkill] = []
+    
+    var upgradeShopManager: UpgradeShopManager!
+    var overlayManager: OverlayManager!
+    private var upgradeOverlay: UpgradeShopOverlayNode?
+    
+    var xpBarNode: XPBarNode!
+    var xpNodes: [XPNode] = []
 
     init(context: ZPGameContext, size: CGSize) {
         self.context = context
@@ -182,13 +190,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     override func didMove(to view: SKView) {
         playerState.delegate = self
         skillManager = SkillManager(player: playerState)
-        
-        //Initializing based on playerState
-        attackDamage = playerState.baseDamage
-        projectileMoveDistance = playerState.baseRange
-        shootInterval = playerState.baseAttackSpeed
-        playerMoveSpeed = playerState.baseMovementSpeed
-        
+        upgradeShopManager = UpgradeShopManager(scene: self, skillManager: skillManager)
+        overlayManager = OverlayManager(scene: self)
+                
         self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         self.view?.isMultipleTouchEnabled = true
         //Create and add the camera node
@@ -341,6 +345,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         updateUpgradeStatsLabel()
         setupBackground()
         showUpgradePopup()   // TEST TO SHOW UPGRADE WHEN GAME STARTS IN CASE WE WANT TO TEST SKILLS.
+        
+        let xpBar = XPBarNode(width: 150, height: 20)
+        xpBar.position = CGPoint(x: 0, y: size.height/2 - 230)
+        xpBar.zPosition = 5
+        camera?.addChild(xpBar)
+        self.xpBarNode = xpBar
     }
     
     func initializeWaves() {
@@ -531,6 +541,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
     
+    func showUpgradeShopOverlay(with choices: [RegularSkill]) {
+        let upgradeOverlay = UpgradeShopOverlayNode(choices: choices, manager: upgradeShopManager, overlayManager: overlayManager, skillManager: skillManager)
+        overlayManager.enqueueOverlay(upgradeOverlay)
+    }
+    
+    
     // MARK: OLD showUpgradePopup
 //    func showUpgradePopup() {
 //        isGamePaused = true
@@ -576,50 +592,50 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     
     // MARK: NEW showUpgradePopup
     func showUpgradePopup() {
-        isGamePaused = true
-        self.isPaused = true // Pauses all SKAction updates
-
-        // Get up to 3 random regular skill choices
-        let randomChoices = skillManager.getRandomRegularChoices()
-        guard !randomChoices.isEmpty else {
-            // No upgrades available
-            isGamePaused = false
-            self.isPaused = false
-            return
-        }
-
-        // Store these choices so we can reference them later
-        currentUpgradeChoices = randomChoices
-
-        // Create popup background
-        let popupWidth = size.width * 0.6
-        let popupHeight = size.height * 0.4
-        let popup = SKShapeNode(rectOf: CGSize(width: popupWidth, height: popupHeight), cornerRadius: 10)
-        popup.fillColor = .darkGray
-        popup.alpha = 0.9
-        popup.name = "upgradePopup"
-        popup.position = CGPoint(x: 0, y: 0)
-        popup.zPosition = 5
-
-        let startY: CGFloat = 40
-        let spacing: CGFloat = -40
-        // Each skill will get its own button
-        for (index, skill) in currentUpgradeChoices.enumerated() {
-            let buttonLabel = SKLabelNode(text: skill.definition.type.displayName)
-            buttonLabel.name = "skillButton"
-            buttonLabel.fontSize = 20
-            buttonLabel.position = CGPoint(x: 0, y: startY + CGFloat(index) * spacing)
-            buttonLabel.zPosition = 6
-
-            // Store the skill's index so we can retrieve it easily in touchesBegan
-            buttonLabel.userData = NSMutableDictionary()
-            buttonLabel.userData?["skillIndex"] = index
-
-            popup.addChild(buttonLabel)
-        }
-
-        camera?.addChild(popup)
-        upgradePopup = popup
+//        isGamePaused = true
+//        self.isPaused = true // Pauses all SKAction updates
+//
+//        // Get up to 3 random regular skill choices
+//        let randomChoices = skillManager.getRandomRegularChoices()
+//        guard !randomChoices.isEmpty else {
+//            // No upgrades available
+//            isGamePaused = false
+//            self.isPaused = false
+//            return
+//        }
+//
+//        // Store these choices so we can reference them later
+//        currentUpgradeChoices = randomChoices
+//
+//        // Create popup background
+//        let popupWidth = size.width * 0.6
+//        let popupHeight = size.height * 0.4
+//        let popup = SKShapeNode(rectOf: CGSize(width: popupWidth, height: popupHeight), cornerRadius: 10)
+//        popup.fillColor = .darkGray
+//        popup.alpha = 0.9
+//        popup.name = "upgradePopup"
+//        popup.position = CGPoint(x: 0, y: 0)
+//        popup.zPosition = 5
+//
+//        let startY: CGFloat = 40
+//        let spacing: CGFloat = -40
+//        // Each skill will get its own button
+//        for (index, skill) in currentUpgradeChoices.enumerated() {
+//            let buttonLabel = SKLabelNode(text: skill.definition.type.displayName)
+//            buttonLabel.name = "skillButton"
+//            buttonLabel.fontSize = 20
+//            buttonLabel.position = CGPoint(x: 0, y: startY + CGFloat(index) * spacing)
+//            buttonLabel.zPosition = 6
+//
+//            // Store the skill's index so we can retrieve it easily in touchesBegan
+//            buttonLabel.userData = NSMutableDictionary()
+//            buttonLabel.userData?["skillIndex"] = index
+//
+//            popup.addChild(buttonLabel)
+//        }
+//
+//        camera?.addChild(popup)
+//        upgradePopup = popup
     }
     
     // MARK: don't need these
@@ -760,8 +776,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         // Close the popup and resume the game
         isGamePaused = false
         self.isPaused = false
-        upgradePopup?.removeFromParent()
-        upgradePopup = nil
+//        upgradePopup?.removeFromParent()
+//        upgradePopup = nil
 
         updateUpgradeStatsLabel()
     }
@@ -1036,8 +1052,27 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let cameraNode = self.camera else { return }
+        
+        // MARK: NEW OVERLAY
+         // If there's currently an overlay shown, we handle touches there
+        if let overlay = cameraNode.children.first(where: { $0 is UpgradeShopOverlayNode || $0 is BossSpinnerOverlayNode }) {
+            if let spinnerOverlay = overlay as? BossSpinnerOverlayNode {
+                for touch in touches {
+                    let location = touch.location(in: cameraNode)
+                    spinnerOverlay.touchBegan(at: location)
+                }
+                return
+            } else if let upgradeOverlay = overlay as? UpgradeShopOverlayNode {
+                for touch in touches {
+                    let location = touch.location(in: cameraNode)
+                    upgradeOverlay.touchBegan(at: location)
+                }
+                return
+            }
+        }
+        
         for touch in touches {
-            guard let cameraNode = self.camera else { continue }
             let touchLocationInCamera = touch.location(in: cameraNode) // Location relative to the camera
             
             // MARK: OLD upgrade popup logic
@@ -1060,21 +1095,21 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //            }
             
             // MARK: NEW upgrade popup logic
-            if isGamePaused, let popupMenu = cameraNode.childNode(withName: "upgradePopup") {
-                let touchLocationInPopup = touch.location(in: popupMenu)
-                let tappedNodes = popupMenu.nodes(at: touchLocationInPopup)
-                for node in tappedNodes {
-                    if node.name == "skillButton" {
-                        if let index = node.userData?["skillIndex"] as? Int,
-                           index >= 0 && index < currentUpgradeChoices.count {
-                            let chosenSkill = currentUpgradeChoices[index]
-                            applyUpgrade(skill: chosenSkill)
-                            return
-                        }
-                    }
-                }
-                return
-            }
+//            if isGamePaused, let popupMenu = cameraNode.childNode(withName: "upgradePopup") {
+//                let touchLocationInPopup = touch.location(in: popupMenu)
+//                let tappedNodes = popupMenu.nodes(at: touchLocationInPopup)
+//                for node in tappedNodes {
+//                    if node.name == "skillButton" {
+//                        if let index = node.userData?["skillIndex"] as? Int,
+//                           index >= 0 && index < currentUpgradeChoices.count {
+//                            let chosenSkill = currentUpgradeChoices[index]
+//                            applyUpgrade(skill: chosenSkill)
+//                            return
+//                        }
+//                    }
+//                }
+//                return
+//            }
 
 
             // Handle joystick interactions
@@ -1136,6 +1171,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         checkSpinningBladesCollision()
         checkBarrierCollision()
         checkSpectralShieldCollision()
+        checkXPCollection()
         guard !gameOver, !isGamePaused else { return }
         manageBackgroundScrolling()
         
@@ -1161,7 +1197,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         lastUpdateTime = currentTime
         
         // Set the movement speed and calculate player velocity
-        let moveSpeed: CGFloat = playerMoveSpeed // Adjust speed as needed
+        let moveSpeed: CGFloat = playerState.currentMovementSpeed // Adjust speed as needed
         let velocity = joystick.positionDelta
         let dx = velocity.x * moveSpeed * CGFloat(deltaTime)
         let dy = velocity.y * moveSpeed * CGFloat(deltaTime)
@@ -1183,7 +1219,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         if shootJoystick.isActive {
             let aimDirection = shootJoystick.positionDelta
 
-            if aimDirection != .zero && currentTime - lastShootTime >= shootInterval{
+            if aimDirection != .zero && currentTime - lastShootTime >= playerState.currentAttackSpeed{
                 lastShootTime = currentTime
                 shootProjectile(in: aimDirection)
                 
@@ -1404,6 +1440,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func handleBossDefeat() {
+         // Create the special skill spinner overlay
+        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager)
+        overlayManager.enqueueOverlay(spinnerOverlay)
+        
         isBossStage = false
         isTransitioningWave = true
         currentWaveIndex += 1 // Move to next wave in cycle
@@ -1520,7 +1560,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         //Set up movement action in the specified direction
         let normalizedDirection = CGVector(dx: direction.x, dy: direction.y).normalized
         //let moveDistance: CGFloat = 800
-        let moveAction = SKAction.move(by: CGVector(dx: normalizedDirection.dx * projectileMoveDistance, dy: normalizedDirection.dy * projectileMoveDistance), duration: 2)
+        let moveAction = SKAction.move(by: CGVector(dx: normalizedDirection.dx * playerState.currentRange, dy: normalizedDirection.dy * playerState.currentRange), duration: 2)
         //Collision check
         let collisionAction = SKAction.run {
             self.checkProjectileCollision(projectile)
@@ -1540,11 +1580,17 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         for (index, zombie) in zombies.enumerated().reversed() {
             if projectile.frame.intersects(zombie.frame) {
                 if !updatedHitEnemies.contains(where: { $0 === zombie }) {
-                    zombie.takeDamage(amount: attackDamage)
+                    zombie.takeDamage(amount: playerState.currentDamage)
                     if zombie.isDead {
+                        // MARK: OLD
+//                        zombie.removeFromParent()
+//                        zombies.remove(at: index)
+//                        handleEnemyDefeat()
+                        // MARK: NEW
+                        let lastHitZombiePosition = zombie.position
                         zombie.removeFromParent()
                         zombies.remove(at: index)
-                        handleEnemyDefeat()
+                        handleEnemyDefeat(at: lastHitZombiePosition)
                     }
                     updatedHitEnemies.append(zombie)
                     
@@ -1566,7 +1612,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         if let wizard = scene?.childNode(withName: "wizard") as? ZPWizard, projectile.frame.intersects(wizard.frame) {
             //Check if the wizard has already been hit by this projectile
             if !updatedHitEnemies.contains(where: { $0 === wizard }) {
-                wizard.takeDamage(amount: attackDamage)
+                wizard.takeDamage(amount: playerState.currentDamage)
                 updatedHitEnemies.append(wizard)
                 if wizard.health <= 0 {
                     bossIsAlive = false
@@ -1678,9 +1724,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                         zombie.lastSpinningBladeDamageTime = currentTime
 
                         if zombie.isDead {
+                            let lastHitZombiePosition = zombie.position
                             zombie.removeFromParent()
                             zombies.remove(at: index)
-                            handleEnemyDefeat()
+                            handleEnemyDefeat(at: lastHitZombiePosition)
                         }
 
                         // Optional: Add visual or audio feedback here
@@ -1751,9 +1798,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                         zombie.lastBarrierDamageTime = currentTime
                         
                         if zombie.isDead {
+                            let lastHitZombiePosition = zombie.position
                             zombie.removeFromParent()
                             zombies.remove(at: index)
-                            handleEnemyDefeat()
+                            handleEnemyDefeat(at: lastHitZombiePosition)
                         }
                         
                         // Optional: Add visual or audio feedback here
@@ -1869,7 +1917,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         // Calculate direction vector towards the target
         let direction = CGVector(dx: target.position.x - player.position.x, dy: target.position.y - player.position.y).normalized
         
-        // Set up movement action (adjust `projectileMoveDistance` as needed)
+        // Set up movement action (adjust `playerState.currentRange` as needed)
         let moveDistance: CGFloat = 400
         let moveAction = SKAction.move(by: CGVector(dx: direction.dx * moveDistance, dy: direction.dy * moveDistance), duration: 2.0)
         
@@ -2031,7 +2079,16 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
     
-    func handleEnemyDefeat() {
+    func updateXPBar() {
+        xpBarNode.setXP(currentXP: upgradeShopManager.XPCount, xpToNextLevel: upgradeShopManager.XPToNextLevel, xpThreshold: upgradeShopManager.nextShopXPThreshold)
+    }
+    
+    func handleEnemyDefeat(at lastHitZombiePosition: CGPoint) {
+        spawnXPNode(at: lastHitZombiePosition)
+        
+        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager)
+        overlayManager.enqueueOverlay(spinnerOverlay)
+        
         score += 1
         pendingEnemies -= 1
         if pendingEnemies < 0 {
@@ -2049,6 +2106,39 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                 transitionToNextWave()
             } else if waveCycle[currentWaveIndex].allEnemiesSpawned {
                 handleWaveProgression()
+            }
+        }
+    }
+    
+    func spawnXPNode(at position: CGPoint) {
+        let xpNode = XPNode(xpAmount: Int.random(in: 3...10))
+        xpNode.position = position
+        addChild(xpNode)
+        xpNodes.append(xpNode)
+    }
+    
+    func spawnRandomXPNode() {
+        // Spawn a node at a random position within the playable area
+        // Adjust the bounds as necessary; here we use the camera or scene size.
+        let randomX = CGFloat.random(in: -size.width/2...size.width/2) + player.position.x
+        let randomY = CGFloat.random(in: -size.height/2...size.height/2) + player.position.y
+        let randomPosition = CGPoint(x: randomX, y: randomY)
+        spawnXPNode(at: randomPosition)
+    }
+    
+    func checkXPCollection() {
+        for (index, xpNode) in xpNodes.enumerated().reversed() {
+            let distance = player.position.distance(to: xpNode.position)
+            if distance < playerState.xpPickupRadius {
+
+                playerState.currentXP += xpNode.xpAmount
+                upgradeShopManager.incrementXPCount()
+                updateXPBar()
+    
+                // add a sound/animation
+    
+                xpNode.removeFromParent()
+                xpNodes.remove(at: index)
             }
         }
     }
@@ -2138,9 +2228,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         zombieHealth = 3
         zombieSpeed = 0.3
         wizardHealth = 15
-        attackDamage = playerState.baseDamage
-        shootInterval = playerState.baseAttackSpeed
-        projectileMoveDistance = playerState.baseRange
         enemiesToDefeat = 3
         maxRegularZombies = 3
         maxChargerZombies = 0
@@ -2151,6 +2238,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         gracePeriod = 10.0
         pendingEnemies = 0
         enemiesToSpawn = 0
+        
+        playerState.currentXP = 0
+        playerState.resetToBaseStats()
         
         if let existingWizard = wizardBoss {
             existingWizard.removeFromParent()
@@ -2177,7 +2267,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func updateUpgradeStatsLabel() {
-        upgradeStatsLabel.text = "Dmg: \(attackDamage ?? 0) | Range: \(projectileMoveDistance ?? 0) | AtkSpeed: \(shootInterval ?? 0)"
+        upgradeStatsLabel.text = "Dmg: \(playerState.currentDamage) | Range: \(playerState.currentRange) | AtkSpeed: \(playerState.currentAttackSpeed)"
     }
     
     //Function used to handle removing zombies from tracking structure (in exploder class)
