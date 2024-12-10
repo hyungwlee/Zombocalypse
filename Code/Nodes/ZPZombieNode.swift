@@ -60,4 +60,22 @@ class ZPZombie: SKSpriteNode {
             removeFromParent()
         }
     }
+    
+    func freeze(currentTime: TimeInterval, duration: TimeInterval) {
+        isFrozen = true
+        freezeEndTime = currentTime + duration
+        color = .cyan
+        colorBlendFactor = 1.0
+    }
+    
+    func updateFreezeState(currentTime: TimeInterval) {
+        if isFrozen && currentTime >= freezeEndTime {
+            unfreeze()
+        }
+    }
+    
+    func unfreeze() {
+        isFrozen = false
+        colorBlendFactor = 0.0
+    }
 }

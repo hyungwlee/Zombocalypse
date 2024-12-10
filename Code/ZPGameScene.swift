@@ -1322,18 +1322,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                 exploderZombie.update(deltaTime: currentTime, playerPosition: player.position)
             }
             //Handle frozen enemies
-            if zombie.isFrozen {
-                if currentGameTime < zombie.freezeEndTime {
-                    //Freeze
-                    zombie.color = .cyan
-                    zombie.colorBlendFactor = 1.0 //Reset to original color
-                } else {
-                    //Unfreeze
-                    zombie.isFrozen = false
-                    zombie.color = .red
-                    zombie.colorBlendFactor = 0.0
-                }
-            }
+            zombie.updateFreezeState(currentTime: currentGameTime)
         }
         
         if currentWaveIndex < waveCycle.count {
@@ -1684,6 +1673,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                 zombie.freezeEndTime =  currentGameTime + 2.0 + playerState.freezeDuration //playerState.freezeDuration
                 zombie.color = .cyan
                 zombie.colorBlendFactor = 1.0
+//                zombie.freeze(currentTime: currentGameTime, freezeDuration: 2.0 + playerState.freezeDuration)
             }
         }
         
