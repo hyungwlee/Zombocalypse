@@ -34,6 +34,7 @@ protocol PlayerStateDelegate: AnyObject {
 class PlayerState {
     weak var delegate: PlayerStateDelegate?
     
+    // Default values
     var baseDamage: Double = 1
     var baseAttackSpeed: Double = 1.0
     var baseMovementSpeed: Double = 100.0

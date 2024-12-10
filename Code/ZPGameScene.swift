@@ -887,18 +887,14 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     
     // SPECIAL SKILLS
     func playerStateDidActivateHelpingHand(_ state: PlayerState) { /// ACTIVATE
-        if state.hasHelpingHand {
-            //Start firing additional projectiles every 4 seconds
-            let fireAction = SKAction.run { [weak self] in
-                self?.fireHelpingHandProjectile()
-            }
-            let waitAction = SKAction.wait(forDuration: 2.0)
-            let sequence = SKAction.sequence([fireAction, waitAction])
-            let repeatForever = SKAction.repeatForever(sequence)
-            run(repeatForever, withKey: "helpingHandFire")
-        } else {
-            removeAction(forKey: "helpingHandFire")
+        //Start firing additional projectiles every 4 seconds
+        let fireAction = SKAction.run { [weak self] in
+            self?.fireHelpingHandProjectile()
         }
+        let waitAction = SKAction.wait(forDuration: 2.0)
+        let sequence = SKAction.sequence([fireAction, waitAction])
+        let repeatForever = SKAction.repeatForever(sequence)
+        run(repeatForever, withKey: "helpingHandFire")
     }
     
     func playerStateDidDeactivateHelpingHand() { /// DEACTIVATE
@@ -1997,7 +1993,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         //Start cooldown timer to reactivate the shield after 'shieldCooldown'
         DispatchQueue.main.asyncAfter(deadline: .now() + shieldCooldown) { [weak self] in
             guard let self = self else { return }
-            self.playerState.activateSpectralShield()
+            if playerState.spectralShieldActive {
+                self.playerState.activateSpectralShield()
+            }
         }
     }
     
