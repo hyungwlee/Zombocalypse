@@ -492,7 +492,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         // Randomly select one of the possible types
 //        return possibleTypes.randomElement() ?? .regular
-        return .charger
+        return .exploder
     }
 
     

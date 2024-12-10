@@ -44,13 +44,21 @@ class ZPExploderZombieNode: ZPZombie {
     }
     
     func update(deltaTime: TimeInterval, playerPosition: CGPoint) {
+        if isFrozen {
+            removeAllActions()
+            isPreparingToExplode = false
+            blastIndicator?.alpha = 0.3
+            blastIndicator?.fillColor = .clear
+            return
+        }
+        
         let distanceToPlayer = hypot(playerPosition.x - position.x, playerPosition.y - position.y)
         
         if !isPreparingToExplode && distanceToPlayer < explosionRange && deltaTime - lastExplosionAttemptTime > explosionCooldown {
             prepareToExplode()
             lastExplosionAttemptTime = deltaTime
         } else if !isPreparingToExplode {
-            moveToward(playerPosition)
+            moveTowards(playerPosition: playerPosition, speed: exploderMovementSpeed)
         }
     }
     
@@ -83,6 +91,8 @@ class ZPExploderZombieNode: ZPZombie {
     }
     
     private func explode() {
+        guard let gameScene = scene as? ZPGameScene else { return }
+        
         isPreparingToExplode = false
         blastIndicator?.alpha = 0.3
         blastIndicator?.fillColor = .clear
@@ -90,10 +100,6 @@ class ZPExploderZombieNode: ZPZombie {
         let explosionDamage = self.health
         let explosionCenter = self.position
         //print("Exploding with damage: \(explosionDamage)")
-        
-        guard let gameScene = parent as? ZPGameScene else {
-            return
-        }
         
         // Remove from parent after exploding
         gameScene.removeZombieFromTracking(self)
@@ -115,13 +121,6 @@ class ZPExploderZombieNode: ZPZombie {
         }
         
     }
-    
-    private func moveToward(_ target: CGPoint) {
-        // Standard movement toward the target
-        let offset = CGPoint(x: target.x - position.x, y: target.y - position.y)
-        let direction = CGVector(dx: offset.x, dy: offset.y).normalized
-        let movementVector = CGVector(dx: direction.dx * exploderMovementSpeed, dy: direction.dy * exploderMovementSpeed)
-        position = CGPoint(x: position.x + movementVector.dx, y: position.y + movementVector.dy)
-    }
+
 }
 
