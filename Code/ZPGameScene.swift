@@ -1712,74 +1712,74 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
     
-    func checkSpinningBladesCollision() {
-        let currentTime = CACurrentMediaTime()
-        let damageCooldown: TimeInterval = 1.0 // 1 second cooldown
-
-        guard let bladesContainer = bladesContainer else { return }
-
-        for blade in bladesContainer.children where blade.name == "spinningBlade" {
-            // Safely cast blade to SKSpriteNode
-            guard let bladeSprite = blade as? SKSpriteNode else {
-                continue
-            }
-
-            let bladePosition = bladeSprite.convert(CGPoint.zero, to: self)
-
-            // Check collision with zombies
-            for (index, zombie) in enemyManager.enemies.enumerated().reversed() {
-                let zombiePosition = zombie.position
-                let distance = hypot(bladePosition.x - zombiePosition.x, bladePosition.y - zombiePosition.y)
-
-                // Calculate collision distance based on blade and zombie sizes
-                let collisionDistance = (bladeSprite.size.width / 2) + (zombie.size.width / 2)
-
-                if distance < collisionDistance {
-                    if currentTime - zombie.lastSpinningBladeDamageTime > damageCooldown {
-                        zombie.takeDamage(amount: Double(playerState.spinningBladesDamage))
-                        zombie.lastSpinningBladeDamageTime = currentTime
-
-                        if zombie.isDead {
-                            let lastHitZombiePosition = zombie.position
-                            enemyManager.removeEnemy(zombie)
-                            handleEnemyDefeat(at: lastHitZombiePosition)
-                        }
-
-                        // Optional: Add visual or audio feedback here
-                    }
-                }
-            }
-
-            // Check collision with wizard
-            if let wizard = scene?.childNode(withName: "wizard") as? ZPWizard {
-                let wizardPosition = wizard.position
-                let distance = hypot(bladePosition.x - wizardPosition.x, bladePosition.y - wizardPosition.y)
-
-                // Calculate collision distance based on blade and wizard sizes
-                let collisionDistance = (bladeSprite.size.width / 2) + (wizard.size.width / 2)
-
-                if distance < collisionDistance {
-                    if currentTime - wizard.lastSpinningBladeDamageTime > damageCooldown {
-                        wizard.takeDamage(amount: Double(playerState.spinningBladesDamage))
-                        wizard.lastSpinningBladeDamageTime = currentTime
-
-                        if wizard.health <= 0 {
-                            wizardBoss?.isAlive = false
-                            arenaBounds = nil
-                            handleBossDefeat()
-
-                            if let outline = childNode(withName: "arenaOutline") as? SKShapeNode {
-                                outline.removeFromParent()
-                            }
-
-                        }
-
-                        // Optional: Add visual or audio feedback here
-                    }
-                }
-            }
-        }
-    }
+//    func checkSpinningBladesCollision() {
+//        let currentTime = CACurrentMediaTime()
+//        let damageCooldown: TimeInterval = 1.0 // 1 second cooldown
+//
+//        guard let bladesContainer = bladesContainer else { return }
+//
+//        for blade in bladesContainer.children where blade.name == "spinningBlade" {
+//            // Safely cast blade to SKSpriteNode
+//            guard let bladeSprite = blade as? SKSpriteNode else {
+//                continue
+//            }
+//
+//            let bladePosition = bladeSprite.convert(CGPoint.zero, to: self)
+//
+//            // Check collision with zombies
+//            for (index, zombie) in enemyManager.enemies.enumerated().reversed() {
+//                let zombiePosition = zombie.position
+//                let distance = hypot(bladePosition.x - zombiePosition.x, bladePosition.y - zombiePosition.y)
+//
+//                // Calculate collision distance based on blade and zombie sizes
+//                let collisionDistance = (bladeSprite.size.width / 2) + (zombie.size.width / 2)
+//
+//                if distance < collisionDistance {
+//                    if currentTime - zombie.lastSpinningBladeDamageTime > damageCooldown {
+//                        zombie.takeDamage(amount: Double(playerState.spinningBladesDamage))
+//                        zombie.lastSpinningBladeDamageTime = currentTime
+//
+//                        if zombie.isDead {
+//                            let lastHitZombiePosition = zombie.position
+//                            enemyManager.removeEnemy(zombie)
+//                            handleEnemyDefeat(at: lastHitZombiePosition)
+//                        }
+//
+//                        // Optional: Add visual or audio feedback here
+//                    }
+//                }
+//            }
+//
+//            // Check collision with wizard
+//            if let wizard = scene?.childNode(withName: "wizard") as? ZPWizard {
+//                let wizardPosition = wizard.position
+//                let distance = hypot(bladePosition.x - wizardPosition.x, bladePosition.y - wizardPosition.y)
+//
+//                // Calculate collision distance based on blade and wizard sizes
+//                let collisionDistance = (bladeSprite.size.width / 2) + (wizard.size.width / 2)
+//
+//                if distance < collisionDistance {
+//                    if currentTime - wizard.lastSpinningBladeDamageTime > damageCooldown {
+//                        wizard.takeDamage(amount: Double(playerState.spinningBladesDamage))
+//                        wizard.lastSpinningBladeDamageTime = currentTime
+//
+//                        if wizard.health <= 0 {
+//                            wizardBoss?.isAlive = false
+//                            arenaBounds = nil
+//                            handleBossDefeat()
+//
+//                            if let outline = childNode(withName: "arenaOutline") as? SKShapeNode {
+//                                outline.removeFromParent()
+//                            }
+//
+//                        }
+//
+//                        // Optional: Add visual or audio feedback here
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     func checkBarrierCollision() {
         let currentTime = CACurrentMediaTime()
@@ -2380,7 +2380,7 @@ extension ZPGameScene: SKPhysicsContactDelegate {
                 if enemyNode.isDead {
                     let pos = enemyNode.position
                     enemyManager.removeEnemy(enemyNode)
-                    handleEnemyDefeat(at: pos) // Spawn XP if needed later
+                    handleEnemyDefeat(at: pos)
                 }
                 // Remove projectile if not piercing
                 if !playerState.projectilesPierce {
@@ -2389,17 +2389,40 @@ extension ZPGameScene: SKPhysicsContactDelegate {
             }
         }
 
+        let enemyOrBossMask = PhysicsCategory.enemy | PhysicsCategory.boss
         // Blade & Enemy collision
-        if (firstBody.categoryBitMask == PhysicsCategory.blade && secondBody.categoryBitMask == PhysicsCategory.enemy) {
-            // Apply blade damage
-            // Note: You may need a cooldown to avoid too-frequent damage
-            if let bladeNode = firstBody.node as? SKSpriteNode,
-               let enemyNode = secondBody.node as? ZPZombie {
-                enemyNode.takeDamage(amount: Double(playerState.spinningBladesDamage))
-                if enemyNode.isDead {
-                    let pos = enemyNode.position
-                    enemyManager.removeEnemy(enemyNode)
-                    handleEnemyDefeat(at: pos)
+        if firstBody.categoryBitMask == PhysicsCategory.blade && (secondBody.categoryBitMask & enemyOrBossMask) != 0 {
+            if let bladeNode = firstBody.node as? SKSpriteNode {
+                let currentTime = CACurrentMediaTime()
+                
+                if let enemyNode = secondBody.node as? ZPZombie {
+                    // Enemy hit by blade
+                    if currentTime - enemyNode.lastSpinningBladeDamageTime > playerState.spinningBladesDamageCooldown {
+                        enemyNode.takeDamage(amount: Double(playerState.spinningBladesDamage))
+                        enemyNode.lastSpinningBladeDamageTime = currentTime
+                        
+                        if enemyNode.isDead {
+                            let pos = enemyNode.position
+                            enemyManager.removeEnemy(enemyNode)
+                            handleEnemyDefeat(at: pos)
+                        }
+                    }
+                } else if let bossNode = secondBody.node as? ZPWizard {
+                    // Boss hit by blade
+                    // Add a similar property to the boss if needed, e.g., bossNode.lastSpinningBladeDamageTime
+                    if currentTime - bossNode.lastSpinningBladeDamageTime > playerState.spinningBladesDamageCooldown {
+                        bossNode.takeDamage(amount: Double(playerState.spinningBladesDamage))
+                        bossNode.lastSpinningBladeDamageTime = currentTime
+                        
+                        if bossNode.health <= 0 {
+                            bossNode.isAlive = false
+                            arenaBounds = nil
+                            handleBossDefeat()
+                            if let outline = childNode(withName: "arenaOutline") as? SKShapeNode {
+                                outline.removeFromParent()
+                            }
+                        }
+                    }
                 }
             }
         }

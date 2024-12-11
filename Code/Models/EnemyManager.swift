@@ -74,6 +74,14 @@ class EnemyManager {
         wizardBoss?.removeFromParent()
         
         let wizard = ZPWizard(health: health)
+        
+        wizard.physicsBody = SKPhysicsBody(circleOfRadius: wizard.size.width / 2)
+        wizard.physicsBody?.categoryBitMask = PhysicsCategory.boss
+        wizard.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield
+        wizard.physicsBody?.collisionBitMask = PhysicsCategory.shield
+        wizard.physicsBody?.affectedByGravity = false
+        wizard.physicsBody?.allowsRotation = false
+        
         wizard.position = spawnLocation
         scene.addChild(wizard)
         wizardBoss = wizard

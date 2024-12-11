@@ -58,6 +58,7 @@ class PlayerState {
     var spinningBladesCount: Int = 0
     var spinningBladesDamage: Int = 0
     var spinningBladesSpeed: Double = 0.0
+    let spinningBladesDamageCooldown: TimeInterval = 1.0
     
     // Protective Barrier
     var barrierSize: Double = 0.0
