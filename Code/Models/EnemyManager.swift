@@ -124,6 +124,9 @@ class EnemyManager {
             enemies.remove(at: index)
         }
         enemy.removeFromParent()
+        
+        //Notify the scene to stop damaging if necessary
+        scene?.damagingEnemies.remove(enemy)
     }
     
     func removeAllEnemies() {

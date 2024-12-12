@@ -14,6 +14,7 @@ struct PhysicsCategory {
     static let xp: UInt32                     = 0x1 << 4
     static let protectiveBarrier: UInt32      = 0x1 << 5
     static let border: UInt32                 = 0x1 << 5
+    static let arenaBarrier: UInt32           = 0x1 << 6
     static let blade: UInt32                  = 1 << 6
     static let shield: UInt32                 = 1 << 7
     static let none: UInt32                   = 1 << 8

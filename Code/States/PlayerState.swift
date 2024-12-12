@@ -5,6 +5,8 @@
 //  Created by Sam Richard on 12/5/24.
 //
 
+import Foundation
+
 
 /// This allows us to use ZPGameScene as our "delegate" (sort of like a parent)
 /// We can call only these 5 methods that we will implement in our delegate

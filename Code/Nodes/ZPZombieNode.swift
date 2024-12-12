@@ -14,6 +14,7 @@ class ZPZombie: SKSpriteNode {
     var freezeEndTime: TimeInterval = 0
     var baseColor: SKColor = .red
     var movementSpeed: CGFloat = 0.4
+    var isAttacking: Bool = false
     
     var health: Double {
         didSet{
@@ -43,6 +44,7 @@ class ZPZombie: SKSpriteNode {
     }
     
     func moveTowards(playerPosition: CGPoint, speed: CGFloat? = nil) {
+        guard !isAttacking else { return }
         if isFrozen {
             //Do not move if frozen
             return

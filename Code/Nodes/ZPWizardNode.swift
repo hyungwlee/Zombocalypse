@@ -46,7 +46,7 @@ class ZPWizard: SKSpriteNode {
         bossLabel.fontColor = .red
         bossLabel.position = CGPoint.zero
 
-        super.init(texture: nil, color: .clear, size: CGSize(width: 50, height: 50))
+        super.init(texture: nil, color: .purple, size: CGSize(width: 50, height: 50))
         self.name = "wizard"
         self.addChild(healthLabel)
         self.addChild(bossLabel)
@@ -68,7 +68,7 @@ class ZPWizard: SKSpriteNode {
         }
         
         if !isChargingBeam {
-            moveAlongScreenEdge(deltaTime: deltaTime)
+            moveSideToSide(deltaTime: deltaTime)
         }
 
         // Handle meteor attack
@@ -98,31 +98,43 @@ class ZPWizard: SKSpriteNode {
         scene?.addChild(explosion ?? SKNode())
         self.removeFromParent()
     }
-
-    private func moveAlongScreenEdge(deltaTime: TimeInterval) {
+    
+    private func moveSideToSide(deltaTime: TimeInterval) {
+        guard let scene = scene as? ZPGameScene,
+              let arenaBounds = scene.arenaBounds else { return }
+        
+        if isFrozen { return } // Do not move if frozen
+        
+        //Define movement boundaries
+        
+        let minX = arenaBounds.minX
+        let maxX = arenaBounds.maxX
+        
+        //Fixed Y-position
+        let spawnY = arenaBounds.maxY + 100.0 // MUST MATCH SPAWN POSITION IN ZPGAMESCENE
+        
+        //Maintain fixed Y-position
+        position.y = spawnY
+        
         if currentDirection == .zero {
             currentDirection = CGVector(dx: moveSpeed, dy: 0)
         }
-
         
-        let movement = CGVector(dx: currentDirection.dx * CGFloat(deltaTime),
-                                dy: currentDirection.dy * CGFloat(deltaTime))
+        let movement = CGVector(dx: currentDirection.dx * CGFloat(deltaTime), dy: 0)
         position.x += movement.dx
-        position.y += movement.dy
-
-        // Check bounds and reverse direction if hitting the screen edge
-        if position.x <= 0 || position.x >= scene!.size.width {
+        
+        //Reverse direction upon reaching movement boundaries
+        if position.x <= minX || position.x >= maxX {
             currentDirection.dx *= -1
-        }
-        if position.y <= 0 || position.y >= scene!.size.height {
-            currentDirection.dy *= -1
         }
     }
 
     private func spawnRandomMeteors() {
+        guard let scene = scene as? ZPGameScene,
+              let arenaBounds = scene.arenaBounds else { return }
         for _ in 0..<3 {
-            let randomX = CGFloat.random(in: 0...scene!.size.width)
-            let randomY = CGFloat.random(in: 0...scene!.size.height)
+            let randomX = CGFloat.random(in: arenaBounds.minX...arenaBounds.maxX)
+            let randomY = CGFloat.random(in: arenaBounds.minY...arenaBounds.maxY)
             let targetPosition = CGPoint(x: randomX, y: randomY)
             telegraphMeteor(at: targetPosition)
         }
@@ -278,9 +290,14 @@ class ZPWizard: SKSpriteNode {
     func freeze(currentTime: TimeInterval, freezeDuration: TimeInterval) {
         isFrozen = true
         freezeEndTime = currentTime + freezeDuration
+        color = .cyan
+        colorBlendFactor = 1.0
+        print("Wizard has been fronzen until \(freezeEndTime)")
     }
     
     func unfreeze() {
         isFrozen = false
+        colorBlendFactor = 0.0
+        print("Wizard has been unfrozen.")
     }
 }
