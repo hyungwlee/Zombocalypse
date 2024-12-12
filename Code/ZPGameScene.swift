@@ -91,6 +91,13 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var joystick: ZPJoystick!
     var shootJoystick: ZPJoystick!
     var player: SKSpriteNode!
+    var playerHealthBar: HealthBarNode!
+    var playerShootingProgressBar: HealthBarNode!
+    var shootingProgress: CGFloat = 1.0 { // 0.0 (not ready) to 1.0 (ready)
+        didSet {
+            playerShootingProgressBar.setProgress(shootingProgress)
+        }
+    }
 //    var enemyManager.enemies: [ZPZombie] = [] // Array to hold the zombies moved to Enemy Manager
     
     var damagingEnemies: Set<ZPZombie> = [] // Set to keep track of enemies currently damaging the player
@@ -100,9 +107,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var zombieSpeed: CGFloat = 0.4
     let zombieBufferDistance: CGFloat = 10 // Adjust this value to experiment with zombie spacing w one another
     var playerLivesLabel: SKLabelNode!
-    var playerLives: Double = 3.0 {
+    var playerLives: Double = 3.0 {            
         didSet {
             playerLivesLabel.text = "Lives: \(playerLives)"
+            playerHealthBar.setHealth(playerLives)
         }
     }
     var gameOver: Bool = false
@@ -208,6 +216,29 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         self.camera = cameraNode
         addChild(cameraNode)
         
+        //Initialize HealthBar for player
+        let healthBarSize = CGSize(width: 80, height: 7)
+        playerHealthBar = HealthBarNode(
+            size: healthBarSize,
+            maxHealth: playerState.baseMaxHealth,
+            foregroundColor: .green,
+            backgroundColor: .darkGray
+        )
+        playerHealthBar.position = CGPoint(x: 0, y: 30)
+        playerHealthBar.zPosition = 5
+        //Initialize shooting progress bar
+        let progressBarSize = CGSize(width: healthBarSize.width, height: 5)
+        playerShootingProgressBar = HealthBarNode(
+            size: progressBarSize,
+            maxHealth: 1.0, //Represents progress from 0.0 to 1.0
+            foregroundColor: .darkGray, //This changes the color that is behind the shootprogressbar
+            backgroundColor: .darkGray, 
+            showProgressBar: true,
+            progressColor: .blue
+        )
+        playerShootingProgressBar.position = CGPoint(x: 0, y: -healthBarSize.height - 5) // Positioned below the health bar
+        playerHealthBar.addChild(playerShootingProgressBar)
+        
         setUpGame()
         //Wave message label (center of screen every round)
         waveMessageLabel.fontSize = 40
@@ -219,6 +250,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         //Add camera-related HUD elements
         cameraNode.addChild(playerLivesLabel)
+        cameraNode.addChild(playerHealthBar)
         cameraNode.addChild(scoreLabel)
         cameraNode.addChild(waveLabel)
         cameraNode.addChild(progressLabel)
@@ -258,7 +290,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             playerLabel.text = "Player"
             playerLabel.fontSize = 20
             playerLabel.fontColor = .black
-            playerLabel.position = CGPoint(x: 0, y: player.size.height / 2 + 10)
+            playerLabel.position = CGPoint(x: 0, y: player.size.height / 2 + 30)
             playerLabel.name = "playerLabel"
             player.addChild(playerLabel)
         }
@@ -329,7 +361,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             upgradeStatsLabel = SKLabelNode(fontNamed: "Arial")
             upgradeStatsLabel.fontSize = 12
             upgradeStatsLabel.fontColor = .black
-            upgradeStatsLabel.position = CGPoint(x: 0, y: player.size.height / 2 + 30)
+            upgradeStatsLabel.position = CGPoint(x: 0, y: player.size.height / 2 + 50)
             player.addChild(upgradeStatsLabel)
         }
         updateUpgradeStatsLabel()
@@ -1226,6 +1258,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             return
         }
         
+        //Update shooting progress bar
+        let timeSinceLastShot = currentGameTime - lastShootTime
+        let attackSpeed = playerState.currentAttackSpeed > 0 ? playerState.currentAttackSpeed : 2.0
+        shootingProgress = CGFloat(timeSinceLastShot / attackSpeed)
+        shootingProgress = min(shootingProgress, 1.0) // Clamp to 1.0
+        
         // Calculate time delta for consistent movement
         let deltaTime = currentTime - lastUpdateTime
         lastUpdateTime = currentTime
@@ -1251,6 +1289,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         if shootJoystick.isActive {
             let aimDirection = shootJoystick.positionDelta
             if aimDirection != .zero && currentTime - lastShootTime >= playerState.currentAttackSpeed{
+                shootingProgress = 0.0
                 lastShootTime = currentTime
                 shootProjectile(in: aimDirection)
                 

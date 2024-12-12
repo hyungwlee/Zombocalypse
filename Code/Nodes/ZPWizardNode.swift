@@ -22,10 +22,12 @@ class ZPWizard: SKSpriteNode {
     private var currentDirection: CGVector = .zero
     var health: Double {
         didSet {
-            healthLabel.text = "Wizard | HP:\(health)"
+            //healthLabel.text = "Wizard | HP:\(health)"
+            healthBar.setHealth(health)
         }
     }
-    private let healthLabel: SKLabelNode
+    private let healthBar: HealthBarNode
+    //private let healthLabel: SKLabelNode
     private let bossLabel: SKLabelNode
     private var isChargingBeam: Bool = false // Prevents movement during beam charging
     private var playerHitByBeam: Bool = false
@@ -33,12 +35,17 @@ class ZPWizard: SKSpriteNode {
 
     init(health: Double) {
         self.health = health
+        
+        //Initialize HealthBar
+        let barSize = CGSize(width: 100, height: 15)
+        self.healthBar = HealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
+        healthBar.position = CGPoint(x: 0, y: 30)
 
         // Create the health label
-        self.healthLabel = SKLabelNode(text: "Wizard | HP:\(health)")
-        healthLabel.fontSize = 20
-        healthLabel.fontColor = .black
-        healthLabel.position = CGPoint(x: 0, y: 30)
+//        self.healthLabel = SKLabelNode(text: "Wizard | HP:\(health)")
+//        healthLabel.fontSize = 20
+//        healthLabel.fontColor = .black
+//        healthLabel.position = CGPoint(x: 0, y: 30)
 
         // Create the boss label
         self.bossLabel = SKLabelNode(text: "BOSS")
@@ -48,7 +55,8 @@ class ZPWizard: SKSpriteNode {
 
         super.init(texture: nil, color: .purple, size: CGSize(width: 50, height: 50))
         self.name = "wizard"
-        self.addChild(healthLabel)
+        //self.addChild(healthLabel)
+        self.addChild(healthBar)
         self.addChild(bossLabel)
     }
 
