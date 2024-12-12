@@ -14,8 +14,10 @@ class ZPZombie: SKSpriteNode {
     var freezeEndTime: TimeInterval = 0
     var baseColor: SKColor = .red
     var movementSpeed: CGFloat = 0.4
+    var baseSpeed: CGFloat = 0.4
     var isAttacking: Bool = false
     private let healthBar: HealthBarNode
+    var isSlowedByBarrier = false
     
     var health: Double {
         didSet{

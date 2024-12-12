@@ -96,7 +96,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             playerShootingProgressBar.setProgress(shootingProgress)
         }
     }
-//    var enemyManager.enemies: [ZPZombie] = [] // Array to hold the zombies moved to Enemy Manager
     
     var damagingEnemies: Set<ZPZombie> = [] // Set to keep track of enemies currently damaging the player
     let damageInterval: TimeInterval = 1.0 // Enemy damage interval
@@ -261,11 +260,11 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //        let spinningBladesSkill = skillManager.createRegularSkillInstance(for: .spinningBlades)
 //        skillManager.acquireOrUpgradeRegularSkill(spinningBladesSkill!)
         
-//        let protectiveBarrierSkill = skillManager.createRegularSkillInstance(for: .protectiveBarrier)
-//        skillManager.acquireOrUpgradeRegularSkill(protectiveBarrierSkill!)
+        let protectiveBarrierSkill = skillManager.createRegularSkillInstance(for: .protectiveBarrier)
+        skillManager.acquireOrUpgradeRegularSkill(protectiveBarrierSkill!)
         
-        let freezeSkill = skillManager.createRegularSkillInstance(for: .freeze)
-        skillManager.acquireOrUpgradeRegularSkill(freezeSkill!)
+//        let freezeSkill = skillManager.createRegularSkillInstance(for: .freeze)
+//        skillManager.acquireOrUpgradeRegularSkill(freezeSkill!)
 
 //        skillManager.acquireSpecialSkill(.helpingHand)
 //        skillManager.acquireSpecialSkill(.spectralShield)
@@ -1068,37 +1067,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             }
         }
         
-        //Update zombies positions to move towards the player and adjust speed based on barrier proximity
-        for (index, zombie) in enemyManager.enemies.enumerated().reversed() {
-            var speed = zombieSpeed
-            
-            //Determine if the zombie is within any barrier's radius
-            if let barrierContainer = barrierContainer {
-                for barrier in barrierContainer.children where barrier.name == "protectiveBarrier" {
-                    guard let barrierShape = barrier as? SKShapeNode else { continue }
-                    
-                    let barrierScenePosition = barrierShape.convert(CGPoint.zero, to: self)
-                    let barrierRadius = barrierShape.frame.size.width / 2
-                    let distance = hypot(barrierScenePosition.x - zombie.position.x, barrierScenePosition.y - zombie.position.y)
-                    let collisionDistance = barrierRadius + (zombie.size.width / 2)
-                    
-                    if distance < collisionDistance {
-                        speed = zombieSpeed - playerState.barrierSlowAmount
-                        //Change color of slowed enemies.
-                        zombie.color = SKColor.gray
-                        zombie.colorBlendFactor = 0.5
-                        speed = max(speed, 0.05)
-                        break //Assuming one barrier; remove if multiple barriers can affect the same zombie
-                    }
-                }
-            }
-            zombie.moveTowards(playerPosition: player.position, speed: speed)
-            
-            //PREVENT ZOMBIES FROM OVERLAPPING ONE ANOTHER
-            preventZombieOverlap(zombie: zombie, index: index)
-            
-        }
-        
         enemyManager.updateEnemies(currentTime: currentTime, deltaTime: deltaTime, playerPosition: player.position)
         
         if currentWaveIndex < waveCycle.count {
@@ -1177,10 +1145,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     
     func clearAllEnemies() {
         enemyManager.removeAllEnemies()
-//        for zombie in enemyManager.enemies {
-//            zombie.removeFromParent()
-//        }
-//        enemyManager.enemies.removeAll()
     }
     
     
@@ -1224,6 +1188,14 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func handleBossDefeat() {
+        
+        wizardBoss?.isAlive = false
+        arenaBounds = nil
+
+        if let outline = childNode(withName: "arenaOutline") as? SKShapeNode {
+            outline.removeFromParent()
+        }
+        
          // Create the special skill spinner overlay
         let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager)
         overlayManager.enqueueOverlay(spinnerOverlay)
@@ -1330,16 +1302,19 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
 
-
-    
     func shootProjectile(in direction: CGPoint) {
-        //Create projectile node
-        let projectile = SKSpriteNode(color: .green, size: CGSize(width: 10, height: 10))
+        let projectileColor: SKColor
+        if playerState.projectilesPierce {
+            projectileColor = .brown
+        } else {
+            projectileColor = .green
+        }
+        
+        let projectile = SKSpriteNode(color: projectileColor, size: CGSize(width: 10, height: 10))
         projectile.position = player.position
         projectile.name = "projectile"
         projectile.userData = NSMutableDictionary()
         projectile.userData?.setValue(playerState.projectilesPierce, forKey: "pierce")
-        projectile.userData?.setValue([], forKey: "hitEnemies")
         
         projectile.physicsBody = SKPhysicsBody(circleOfRadius: 5)
         projectile.physicsBody?.categoryBitMask = PhysicsCategory.projectile
@@ -1349,79 +1324,19 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         projectile.physicsBody?.allowsRotation = false
         
         addChild(projectile)
-        //Set up movement action in the specified direction
+
         let normalizedDirection = CGVector(dx: direction.x, dy: direction.y).normalized
-        //let moveDistance: CGFloat = 800
-        let moveAction = SKAction.move(by: CGVector(dx: normalizedDirection.dx * playerState.currentRange, dy: normalizedDirection.dy * playerState.currentRange), duration: 2)
-        //Collision check
-        let collisionAction = SKAction.run {
-            self.checkProjectileCollision(projectile)
-        }
-        let collisionCheckSequence = SKAction.sequence([collisionAction, SKAction.wait(forDuration: 0.05)])
-        let repeatCollisionCheck = SKAction.repeat(collisionCheckSequence, count: Int(2.0 / 0.05)) // Run for duration of 'moveAction'
-        
-        let combinedAction = SKAction.group([moveAction, repeatCollisionCheck])
-        projectile.run(SKAction.sequence([combinedAction, SKAction.removeFromParent()]))
-    }
-    
-    func checkProjectileCollision(_ projectile: SKSpriteNode) {
-        guard let hitEnemies = projectile.userData?.value(forKey: "hitEnemies") as? [SKSpriteNode] else { return }
-        let shouldPierce = playerState.projectilesPierce   // This gets triggered to true when the skill is selected as upgrade
-        var updatedHitEnemies = hitEnemies
-        //var didHitEnemy = false
-        for (index, zombie) in enemyManager.enemies.enumerated().reversed() {
-            if projectile.frame.intersects(zombie.frame) {
-                if !updatedHitEnemies.contains(where: { $0 === zombie }) {
-                    zombie.takeDamage(amount: playerState.currentDamage)
-                    if zombie.isDead {
-                        // MARK: OLD
-//                        zombie.removeFromParent()
-//                        zombies.remove(at: index)
-//                        handleEnemyDefeat()
-                        // MARK: NEW
-                        let lastHitZombiePosition = zombie.position
-                        enemyManager.removeEnemy(zombie)
-                        handleEnemyDefeat(at: lastHitZombiePosition)
-                    }
-                    updatedHitEnemies.append(zombie)
-                    
-                    //Apply knockback if mightyknockback is active
-                    if playerState.mightyKnockbackActive {
-                        applyKnockback(to: zombie, strength: 50, duration: 0.2)
-                    }
-                }
-                
-                //If projectiles do NOT pierce, remove the projectile after hitting
-                if !shouldPierce {
-                    projectile.removeFromParent()
-                    break
-                }
-                //If projectiles DO pierce, continue checking other enemies
-            }
-        }
-        //Check collision for wizard
-        if let wizard = scene?.childNode(withName: "wizard") as? ZPWizard, projectile.frame.intersects(wizard.frame) {
-            //Check if the wizard has already been hit by this projectile
-            if !updatedHitEnemies.contains(where: { $0 === wizard }) {
-                wizard.takeDamage(amount: playerState.currentDamage)
-                updatedHitEnemies.append(wizard)
-                if wizard.health <= 0 {
-                    wizardBoss?.isAlive = false
-                    arenaBounds = nil
-                    handleBossDefeat()
-                    if let outline = childNode(withName: "arenaOutline") as? SKShapeNode {
-                        outline.removeFromParent()
-                    }
-                }
-                
-                if !shouldPierce {
-                    projectile.removeFromParent()
-                }
-            }
-        }
-             
-        //Update hitEnemies list
-        projectile.userData?.setValue(updatedHitEnemies, forKey: "hitEnemies")
+
+        let moveDistance: CGFloat = playerState.currentRange
+        let speed: CGFloat = playerState.projectileSpeed
+        let duration = TimeInterval(moveDistance / speed)
+
+        let moveAction = SKAction.move(by: CGVector(dx: normalizedDirection.dx * moveDistance,
+                                                    dy: normalizedDirection.dy * moveDistance),
+                                       duration: duration)
+
+        let removeAction = SKAction.removeFromParent()
+        projectile.run(SKAction.sequence([moveAction, removeAction]))
     }
     
     func shootGrenade(in direction: CGPoint) {
@@ -1668,27 +1583,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         // Run the actions on the enemy
         enemy.run(SKAction.sequence([flashAction, moveAction]), withKey: "knockback")
     }
-
-    
-    func preventZombieOverlap(zombie: ZPZombie, index: Int){
-        for (otherIndex, otherZombie) in enemyManager.enemies.enumerated() where otherIndex != index {
-            if zombie.frame.intersects(otherZombie.frame) {
-                let zombieCenter = zombie.position
-                let otherZombieCenter = otherZombie.position
-                
-                let direction = CGVector(dx: zombieCenter.x - otherZombieCenter.x, dy: zombieCenter.y - otherZombieCenter.y)
-                let distance = sqrt(direction.dx * direction.dx + direction.dy * direction.dy)
-                let targetDistance = zombie.size.width / 2 + otherZombie.size.width / 2 + zombieBufferDistance
-                
-                if distance < targetDistance {
-                    let overlapDistance = targetDistance - distance
-                    let normalizedDirection = CGVector(dx: direction.dx / distance, dy: direction.dy / distance)
-                    let adjustment = CGVector(dx: normalizedDirection.dx * overlapDistance * 0.1, dy: normalizedDirection.dy * overlapDistance * 0.1)
-                    zombie.position = CGPoint(x: zombie.position.x + adjustment.dx, y: zombie.position.y + adjustment.dy)
-                }
-            }
-        }
-    }
     
     func applyContinuousDamage(currentTime: TimeInterval) {
         //Initialize lastDamageTime if it's the first call
@@ -1709,7 +1603,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                 }
                 
                 if isPlayerStillInContact(with: enemy) {
-                    applyDamage(from: enemy)
+                    applyDamageToPlayer(from: enemy)
                     //Can add visual feedback here
                 } else {
                     resumeEnemyMovement(enemy)
@@ -1727,29 +1621,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         return distance <= contactRadius
     }
-    
-//    func handlePlayerHit(zombieIndex: Int) {
-//        playerLives -= 1
-//        enemyManager.enemies[zombieIndex].removeFromParent()
-//        enemyManager.enemies.remove(at: zombieIndex)
-//        pendingEnemies -= 1
-//        updateProgressLabel()
-//        
-//        if pendingEnemies < 0 {
-//            pendingEnemies = 0 // Safeguard against negative values
-//        }
-//        //Check if grace period should start
-//        if currentWaveIndex < waveCycle.count {
-//            let wave = waveCycle[currentWaveIndex]
-//            if wave.allEnemiesSpawned && pendingEnemies <= 0 && !isBossStage {
-//                handleWaveProgression()
-//            }
-//        }
-//        
-//        if playerLives <= 0 {
-//            showGameOverScreen()
-//        }
-//    }
     
     func updateXPBar() {
         xpBarNode.setXP(currentXP: upgradeShopManager.XPCount,
@@ -1975,22 +1846,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
     
-    func startDamagingPlayer(with enemy: ZPZombie, currentTime: TimeInterval) {
-        damagingEnemies.insert(enemy)
-        stopEnemyMovement(enemy)
-        applyDamage(from: enemy)
-        lastDamageTime = currentTime
-    }
-    
-    func applyDamage(from enemy: ZPZombie) {
-        playerLives -= 1
-        updateProgressLabel()
-        
-        if playerLives <= 0 {
-            showGameOverScreen()
-        }
-    }
-    
     func stopEnemyMovement(_ enemy: ZPZombie) {
         enemy.removeAllActions()
         enemy.isAttacking = true
@@ -2033,24 +1888,16 @@ extension ZPGameScene: SKPhysicsContactDelegate {
             }
         }
 
-        // Projectile & Enemy collision
-        if (firstBody.categoryBitMask == PhysicsCategory.enemy && secondBody.categoryBitMask == PhysicsCategory.projectile) {
-            if let projectileNode = firstBody.node as? SKSpriteNode,
-               let enemyNode = secondBody.node as? ZPZombie {
-                enemyNode.takeDamage(amount: playerState.currentDamage)
-                if enemyNode.isDead {
-                    let pos = enemyNode.position
-                    enemyManager.removeEnemy(enemyNode)
-                    handleEnemyDefeat(at: pos)
-                }
-                // Remove projectile if not piercing
-                if !playerState.projectilesPierce {
-                    projectileNode.removeFromParent()
-                }
+        // Projectile & Enemy/Boss collision
+        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss) && secondBody.categoryBitMask == PhysicsCategory.projectile) {
+            if let enemyNode = firstBody.node as? ZPZombie {
+                handleProjectileCollision(with: enemyNode)
+            } else if let bossNode = firstBody.node as? ZPWizard {
+                handleProjectileCollision(with: bossNode)
             }
         }
         
-        // Freeze Explosion & Enemy collision
+        // Freeze Explosion & Enemy/Boss collision
         if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss) && secondBody.categoryBitMask == PhysicsCategory.freeze) {
             let currentTime = CACurrentMediaTime()
             if let enemyNode = firstBody.node as? ZPZombie {
@@ -2060,64 +1907,29 @@ extension ZPGameScene: SKPhysicsContactDelegate {
             }
         }
 
-        // Blade & Enemy collision
-        if firstBody.categoryBitMask == PhysicsCategory.enemy && secondBody.categoryBitMask == PhysicsCategory.blade {
-            let currentTime = CACurrentMediaTime()
+        // Blade & Enemy/Boss collision
+        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss) && secondBody.categoryBitMask == PhysicsCategory.blade) {
             if let enemyNode = firstBody.node as? ZPZombie {
-                if currentTime - enemyNode.lastSpinningBladeDamageTime > playerState.spinningBladesDamageCooldown {
-                    enemyNode.takeDamage(amount: Double(playerState.spinningBladesDamage))
-                    enemyNode.lastSpinningBladeDamageTime = currentTime
-                    
-                    if enemyNode.isDead {
-                        let pos = enemyNode.position
-                        enemyManager.removeEnemy(enemyNode)
-                        handleEnemyDefeat(at: pos)
-                    }
-                }
+                handleBladeCollision(with: enemyNode)
+            } else if let bossNode = firstBody.node as? ZPWizard {
+                handleBladeCollision(with: bossNode)
             }
         }
-        // Blade & Boss collision
-        if firstBody.categoryBitMask == PhysicsCategory.boss && secondBody.categoryBitMask == PhysicsCategory.blade {
-            let currentTime = CACurrentMediaTime()
-            if let bossNode = firstBody.node as? ZPWizard {
-                if currentTime - bossNode.lastSpinningBladeDamageTime > playerState.spinningBladesDamageCooldown {
-                    bossNode.takeDamage(amount: Double(playerState.spinningBladesDamage))
-                    bossNode.lastSpinningBladeDamageTime = currentTime
-                    
-                    if bossNode.health <= 0 {
-                        bossNode.isAlive = false
-                        arenaBounds = nil
-                        handleBossDefeat()
-                        if let outline = childNode(withName: "arenaOutline") as? SKShapeNode {
-                            outline.removeFromParent()
-                        }
-                    }
-                }
-            }
-        }
-//        
-        // Barrier & Enemy collision
-        if (firstBody.categoryBitMask == PhysicsCategory.enemy && secondBody.categoryBitMask == PhysicsCategory.protectiveBarrier) {
+        
+        // Barrier & Enemy/Boss collision
+        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss) && secondBody.categoryBitMask == PhysicsCategory.protectiveBarrier) {
             if let enemyNode = firstBody.node as? ZPZombie {
                 handleBarrierCollision(withEnemy: enemyNode)
-            }
-        }
-        // Barrier & Boss collision
-        if (firstBody.categoryBitMask == PhysicsCategory.boss && secondBody.categoryBitMask == PhysicsCategory.protectiveBarrier) {
-            if let bossNode = firstBody.node as? ZPWizard {
+            } else if let bossNode = firstBody.node as? ZPWizard {
                 handleBarrierCollision(withBoss: bossNode)
             }
         }
         
-        // Shield & Enemy collision
-        if (firstBody.categoryBitMask == PhysicsCategory.enemy && secondBody.categoryBitMask == PhysicsCategory.shield) {
+        // Shield & Enemy/Boss collision
+        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss) && secondBody.categoryBitMask == PhysicsCategory.shield) {
             if let enemyNode = firstBody.node as? ZPZombie {
                 handleShieldCollision(withEnemy: enemyNode)
-            }
-        }
-        // Shield & Boss collision
-        if (firstBody.categoryBitMask == PhysicsCategory.boss && secondBody.categoryBitMask == PhysicsCategory.shield) {
-            if let bossNode = firstBody.node as? ZPWizard {
+            } else if let bossNode = firstBody.node as? ZPWizard {
                 handleShieldCollision(withBoss: bossNode)
             }
         }
@@ -2125,7 +1937,72 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         // still need xp
     }
     
+    func didEnd(_ contact: SKPhysicsContact) {
+        let bodyA = contact.bodyA
+        let bodyB = contact.bodyB
+
+        let categoryA = bodyA.categoryBitMask
+        let categoryB = bodyB.categoryBitMask
+
+        let firstBody: SKPhysicsBody
+        let secondBody: SKPhysicsBody
+
+        if categoryA < categoryB {
+           firstBody = bodyA
+           secondBody = bodyB
+        } else {
+           firstBody = bodyB
+           secondBody = bodyA
+        }
+
+        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss) &&
+            secondBody.categoryBitMask == PhysicsCategory.protectiveBarrier) {
+            
+            if let enemyNode = firstBody.node as? ZPZombie {
+                enemyNode.isSlowedByBarrier = false
+                enemyNode.movementSpeed = enemyNode.baseSpeed
+                enemyNode.color = enemyNode.baseColor
+                enemyNode.colorBlendFactor = 1.0
+            } else if let bossNode = firstBody.node as? ZPWizard {
+                bossNode.isSlowedByBarrier = false
+                bossNode.movementSpeed = bossNode.baseSpeed
+                bossNode.color = bossNode.baseColor
+                bossNode.colorBlendFactor = 1.0
+            }
+        }
+    }
+    
     // MARK: Collision Methods
+    
+    /// Handles collisions between the Projectile and a ZPZombie (enemy).
+    func handleProjectileCollision(with enemy: ZPZombie) {
+        applyDamageToEnemy(enemy, damage: playerState.currentDamage)
+    }
+    
+    /// Handles collisions between the Projectile and the ZPWizard (boss).
+    func handleProjectileCollision(with boss: ZPWizard) {
+        applyDamageToBoss(boss, damage: playerState.currentDamage)
+    }
+    
+    /// Handles collisions between the Blade and a ZPZombie (enemy).
+    func handleBladeCollision(with enemy: ZPZombie) {
+        let currentTime = CACurrentMediaTime()
+        
+        if currentTime - enemy.lastSpinningBladeDamageTime > playerState.spinningBladesDamageCooldown {
+            enemy.lastSpinningBladeDamageTime = currentTime
+            applyDamageToEnemy(enemy, damage: playerState.spinningBladesDamage)
+        }
+    }
+    
+    /// Handles collisions between the Blade and the ZPWizard (boss).
+    func handleBladeCollision(with boss: ZPWizard) {
+        let currentTime = CACurrentMediaTime()
+        
+        if currentTime - boss.lastSpinningBladeDamageTime > playerState.spinningBladesDamageCooldown {
+            boss.lastSpinningBladeDamageTime = currentTime
+            applyDamageToBoss(boss, damage: playerState.spinningBladesDamage)
+        }
+    }
     
     /// Handles collision between protective barrier and an enemy.
     func handleBarrierCollision(withEnemy enemy: ZPZombie) {
@@ -2133,15 +2010,15 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         let damageCooldown: TimeInterval = max(0.3, 1.0 - playerState.barrierPulseFrequency)
         
         if currentTime - enemy.lastBarrierDamageTime > damageCooldown {
-            enemy.takeDamage(amount: Double(playerState.barrierDamage))
             enemy.lastBarrierDamageTime = currentTime
-            
-            if enemy.isDead {
-                let pos = enemy.position
-                enemyManager.removeEnemy(enemy)
-                handleEnemyDefeat(at: pos)
-            }
-            
+            applyDamageToEnemy(enemy, damage: playerState.currentDamage * playerState.barrierDamageFactor)
+        }
+        
+        if !enemy.isSlowedByBarrier {
+            enemy.isSlowedByBarrier = true
+            enemy.movementSpeed = max(enemy.movementSpeed - playerState.barrierSlowAmount, 0.05)
+            enemy.color = .gray
+            enemy.colorBlendFactor = 0.5
         }
     }
     
@@ -2151,18 +2028,15 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         let damageCooldown: TimeInterval = max(0.3, 1.0 - playerState.barrierPulseFrequency)
         
         if currentTime - boss.lastBarrierDamageTime > damageCooldown {
-            boss.takeDamage(amount: Double(playerState.barrierDamage))
             boss.lastBarrierDamageTime = currentTime
-            
-            if boss.health <= 0 {
-                boss.isAlive = false
-                arenaBounds = nil
-                handleBossDefeat()
-                if let outline = childNode(withName: "arenaOutline") as? SKShapeNode {
-                    outline.removeFromParent()
-                }
-            }
-            
+            applyDamageToBoss(boss, damage: playerState.currentDamage * playerState.barrierDamageFactor)
+        }
+        
+        if !boss.isSlowedByBarrier {
+            boss.isSlowedByBarrier = true
+            boss.movementSpeed = max(boss.movementSpeed - playerState.barrierSlowAmount, 0.05)
+            boss.color = .gray
+            boss.colorBlendFactor = 0.5
         }
     }
     
@@ -2174,32 +2048,48 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         let damageCooldown: TimeInterval = max(0.3, 1.0 - playerState.barrierPulseFrequency)
         
         if currentTime - enemy.lastBarrierDamageTime > damageCooldown {
-            enemy.takeDamage(amount: (enemy.health * playerState.spectralShieldDamageFactor))
             enemy.lastBarrierDamageTime = currentTime
-            
-            if enemy.isDead {
-                let pos = enemy.position
-                enemyManager.removeEnemy(enemy)
-                handleEnemyDefeat(at: pos)
-            }
-            
+            applyDamageToEnemy(enemy, damage: enemy.health * playerState.spectralShieldDamageFactor)
         }
     }
 
     /// Handles collision between the shield and the boss
     func handleShieldCollision(withBoss boss: ZPWizard) {
         absorbShieldHit()
+        applyDamageToBoss(boss, damage: boss.health * playerState.spectralShieldDamageFactor)
+    }
+    
+    
+    // MARK: Helpers for collisions
+    func startDamagingPlayer(with enemy: ZPZombie, currentTime: TimeInterval) {
+        damagingEnemies.insert(enemy)
+        stopEnemyMovement(enemy)
+        applyDamageToPlayer(from: enemy)
+        lastDamageTime = currentTime
+    }
+    
+    func applyDamageToPlayer(from enemy: ZPZombie) {
+        playerLives -= 1
+        updateProgressLabel()
         
-        boss.takeDamage(amount: playerState.currentDamage * 3.0)
-        
+        if playerLives <= 0 {
+            showGameOverScreen()
+        }
+    }
+    
+    func applyDamageToBoss(_ boss: ZPWizard, damage: Double) {
+        boss.takeDamage(amount: damage)
         if boss.health <= 0 {
-            boss.isAlive = false
-            arenaBounds = nil
             handleBossDefeat()
-            
-            if let outline = childNode(withName: "arenaOutline") as? SKShapeNode {
-                outline.removeFromParent()
-            }
+        }
+    }
+    
+    func applyDamageToEnemy(_ enemy: ZPZombie, damage: Double) {
+        enemy.takeDamage(amount: damage)
+        if enemy.isDead {
+            let pos = enemy.position
+            enemyManager.removeEnemy(enemy)
+            handleEnemyDefeat(at: pos)
         }
     }
 

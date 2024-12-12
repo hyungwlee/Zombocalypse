@@ -30,6 +30,7 @@ class ZPChargerZombieNode: ZPZombie {
     init(health: Double, movementSpeed chargerMovementSpeed: CGFloat) {
         super.init(health: health)
         self.movementSpeed = chargerMovementSpeed
+        self.baseSpeed = chargerMovementSpeed
         self.baseColor = .orange // Set the color to indicate it's a charger zombie
         self.color = baseColor
     }

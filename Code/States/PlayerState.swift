@@ -52,19 +52,21 @@ class PlayerState {
     var currentMaxHealth: Double = 0
     var currentCoinRadius: Double = 0
     
+    let projectileSpeed: Double = 100.0
+    
     // XP
     var currentXP: Int = 0
     var xpPickupRadius: Double = 30.0
     
     // Spinning blades properties
     var spinningBladesCount: Int = 0
-    var spinningBladesDamage: Int = 0
+    var spinningBladesDamage: Double = 0.0
     var spinningBladesSpeed: Double = 0.0
     let spinningBladesDamageCooldown: TimeInterval = 1.0
     
     // Protective Barrier
     var barrierSize: Double = 0.0
-    var barrierDamage: Int = 0
+    var barrierDamageFactor: Double = 0.0
     var barrierPulseFrequency: Double = 0.0
     var barrierSlowAmount: Double = 0.0
 
@@ -81,6 +83,7 @@ class PlayerState {
     var mightyKnockbackActive: Bool = false   // If true, every X seconds we push enemies away
     
     let spectralShieldDamageFactor: Double = 0.5
+    let spectralShieldBossDamageFactor: Double = 0.1
     let shieldMaxHits: Int = 3
     let shieldCooldown: TimeInterval = 10.0
     var shieldHitsRemaining: Int = 3
@@ -104,7 +107,7 @@ class PlayerState {
         spinningBladesSpeed = 0.0
         
         barrierSize = 0.0
-        barrierDamage = 0
+        barrierDamageFactor = 0
         barrierPulseFrequency = 0.0
         barrierSlowAmount = 0.0
 
@@ -126,7 +129,7 @@ class PlayerState {
     
     
     // MARK: Regular Skills
-    func addSpinningBlades(count: Int, damage: Int, speed: Double) {
+    func addSpinningBlades(count: Int, damage: Double, speed: Double) {
         spinningBladesCount += count
         spinningBladesDamage += damage
         spinningBladesSpeed += speed
@@ -135,9 +138,9 @@ class PlayerState {
         delegate?.playerStateDidAddSpinningBlades(self)
     }
     
-    func upgradeBarrier(sizeIncrement: Double, damageIncrement: Int, pulseFrequencyIncrement: Double, slowAmountIncrement: Double) {
+    func upgradeBarrier(sizeIncrement: Double, damageIncrement: Double, pulseFrequencyIncrement: Double, slowAmountIncrement: Double) {
         barrierSize += sizeIncrement
-        barrierDamage += damageIncrement
+        barrierDamageFactor += damageIncrement
         barrierPulseFrequency += pulseFrequencyIncrement
         barrierSlowAmount += slowAmountIncrement
         

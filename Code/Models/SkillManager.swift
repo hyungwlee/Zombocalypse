@@ -89,27 +89,27 @@ enum SkillType {
 
 /// This should be all fields adjusted by upgrading regular skills
 struct SkillLevelEffect {
-    var damageIncrement: Double = 0
-    var attackSpeedIncrement: Double = 0
-    var movementSpeedIncrement: Double = 0
-    var rangeIncrement: Double = 0
+    var damageIncrement: Double = 0.0
+    var attackSpeedIncrement: Double = 0.0
+    var movementSpeedIncrement: Double = 0.0
+    var rangeIncrement: Double = 0.0
 
     // Special Skills may need adjusted or additional fields:
     var bladeCountIncrement: Int = 0
-    var bladeDamageIncrement: Int = 0
-    var bladeSpeedIncrement: Double = 0
+    var bladeDamageIncrement: Double = 0.0
+    var bladeSpeedIncrement: Double = 0.0
 
-    var barrierSizeIncrement: Double = 0
-    var barrierDamageIncrement: Int = 0
-    var barrierPulseFrequencyIncrement: Double = 0
-    var barrierSlowAmountIncrement: Double = 0
+    var barrierSizeIncrement: Double = 0.0
+    var barrierDamageFactor: Double = 0.0
+    var barrierPulseFrequencyIncrement: Double = 0.0
+    var barrierSlowAmountIncrement: Double = 0.0
 
-    var healthIncrement: Double = 0
-    var coinRadiusIncrement: Double = 0
+    var healthIncrement: Double = 0.0
+    var coinRadiusIncrement: Double = 0.0
 
-    var freezeGrenadeCooldownReduction: Double = 0
-    var freezeDurationIncrement: Double = 0
-    var freezeRadiusIncrement: Double = 0
+    var freezeGrenadeCooldownReduction: Double = 0.0
+    var freezeDurationIncrement: Double = 0.0
+    var freezeRadiusIncrement: Double = 0.0
 }
 
 struct SkillDefinition {
@@ -286,10 +286,10 @@ extension SkillManager {
         /// Each upgrade increases all values
         allRegularDefinitions.append(
             SkillDefinition(type: .protectiveBarrier, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(barrierSizeIncrement: 10, barrierDamageIncrement: 1, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.05),
-                SkillLevelEffect(barrierSizeIncrement: 15, barrierDamageIncrement: 2, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.1),
-                SkillLevelEffect(barrierSizeIncrement: 20, barrierDamageIncrement: 3, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.15),
-                SkillLevelEffect(barrierSizeIncrement: 30, barrierDamageIncrement: 4, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.2)
+                SkillLevelEffect(barrierSizeIncrement: 40, barrierDamageFactor: 0.2, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.05),
+                SkillLevelEffect(barrierSizeIncrement: 15, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.1),
+                SkillLevelEffect(barrierSizeIncrement: 20, barrierDamageFactor: 0.8, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.15),
+                SkillLevelEffect(barrierSizeIncrement: 30, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.2)
             ])
         )
 

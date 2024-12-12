@@ -18,7 +18,8 @@ class ZPWizard: SKSpriteNode {
     private var lastBeamTime: TimeInterval = 0
     private let meteorInterval: TimeInterval = 5.0
     private let beamInterval: TimeInterval = 8.0
-    private let moveSpeed: CGFloat = 150.0
+    public var movementSpeed: CGFloat = 150.0
+    public let baseSpeed: CGFloat = 150.0
     private var currentDirection: CGVector = .zero
     var health: Double {
         didSet {
@@ -31,6 +32,7 @@ class ZPWizard: SKSpriteNode {
     private var playerHitByBeam: Bool = false
     public var isAlive: Bool = true
     var baseColor: SKColor = .purple
+    var isSlowedByBarrier: Bool = false
 
     init(health: Double) {
         self.health = health
@@ -111,7 +113,7 @@ class ZPWizard: SKSpriteNode {
         position.y = spawnY
         
         if currentDirection == .zero {
-            currentDirection = CGVector(dx: moveSpeed, dy: 0)
+            currentDirection = CGVector(dx: movementSpeed, dy: 0)
         }
         
         let movement = CGVector(dx: currentDirection.dx * CGFloat(deltaTime), dy: 0)
