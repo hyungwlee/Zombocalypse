@@ -53,7 +53,6 @@ class ZPZombie: SKSpriteNode {
     func moveTowards(playerPosition: CGPoint, speed: CGFloat? = nil) {
         guard !isAttacking else { return }
         if isFrozen {
-            //Do not move if frozen
             return
         }
         let updatedSpeed = speed ?? movementSpeed

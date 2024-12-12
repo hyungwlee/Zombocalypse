@@ -22,40 +22,30 @@ class ZPWizard: SKSpriteNode {
     private var currentDirection: CGVector = .zero
     var health: Double {
         didSet {
-            //healthLabel.text = "Wizard | HP:\(health)"
             healthBar.setHealth(health)
         }
     }
     private let healthBar: HealthBarNode
-    //private let healthLabel: SKLabelNode
     private let bossLabel: SKLabelNode
-    private var isChargingBeam: Bool = false // Prevents movement during beam charging
+    private var isChargingBeam: Bool = false
     private var playerHitByBeam: Bool = false
     public var isAlive: Bool = true
+    var baseColor: SKColor = .purple
 
     init(health: Double) {
         self.health = health
         
-        //Initialize HealthBar
         let barSize = CGSize(width: 100, height: 15)
         self.healthBar = HealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
         healthBar.position = CGPoint(x: 0, y: 30)
 
-        // Create the health label
-//        self.healthLabel = SKLabelNode(text: "Wizard | HP:\(health)")
-//        healthLabel.fontSize = 20
-//        healthLabel.fontColor = .black
-//        healthLabel.position = CGPoint(x: 0, y: 30)
-
-        // Create the boss label
         self.bossLabel = SKLabelNode(text: "BOSS")
         bossLabel.fontSize = 40
         bossLabel.fontColor = .red
         bossLabel.position = CGPoint.zero
 
-        super.init(texture: nil, color: .purple, size: CGSize(width: 50, height: 50))
+        super.init(texture: nil, color: baseColor, size: CGSize(width: 50, height: 50))
         self.name = "wizard"
-        //self.addChild(healthLabel)
         self.addChild(healthBar)
         self.addChild(bossLabel)
     }
@@ -65,15 +55,14 @@ class ZPWizard: SKSpriteNode {
     }
 
     func update(currentTime: TimeInterval, deltaTime: TimeInterval, playerPosition: CGPoint) {
-        //Handle freezing logic
+        updateFreezeState(currentTime: currentTime)
+
         if isFrozen {
-            if currentTime >= freezeEndTime {
-                unfreeze()
-            } else {
-                //While frozen, do not perform any actions
-                return
-            }
+            self.removeAllActions()
+            self.isChargingBeam = false
+            return
         }
+        
         
         if !isChargingBeam {
             moveSideToSide(deltaTime: deltaTime)
@@ -101,7 +90,7 @@ class ZPWizard: SKSpriteNode {
 
     private func die() {
         isAlive = false
-        let explosion = SKEmitterNode(fileNamed: "Explosion") // Optional: Add a visual effect
+        let explosion = SKEmitterNode(fileNamed: "Explosion")
         explosion?.position = self.position
         scene?.addChild(explosion ?? SKNode())
         self.removeFromParent()
@@ -111,17 +100,14 @@ class ZPWizard: SKSpriteNode {
         guard let scene = scene as? ZPGameScene,
               let arenaBounds = scene.arenaBounds else { return }
         
-        if isFrozen { return } // Do not move if frozen
+        if isFrozen { return }
         
         //Define movement boundaries
-        
         let minX = arenaBounds.minX
         let maxX = arenaBounds.maxX
         
         //Fixed Y-position
         let spawnY = arenaBounds.maxY + 100.0 // MUST MATCH SPAWN POSITION IN ZPGAMESCENE
-        
-        //Maintain fixed Y-position
         position.y = spawnY
         
         if currentDirection == .zero {
@@ -218,7 +204,7 @@ class ZPWizard: SKSpriteNode {
 
         // Animate the warning to flash
         let fadeIn = SKAction.fadeAlpha(to: 1.0, duration: 0.3)
-        let fadeOut = SKAction.fadeAlpha(to: 0.5, duration: 0.3)
+        let fadeOut = SKAction.fadeAlpha(to: 0.1, duration: 0.3)
         let flash = SKAction.sequence([fadeIn, fadeOut])
         let repeatFlash = SKAction.repeat(flash, count: 5)
 
@@ -238,6 +224,8 @@ class ZPWizard: SKSpriteNode {
 
     private func spawnBeam(towards targetPosition: CGPoint) {
         guard let scene = scene as? ZPGameScene else { return }
+        
+        if isFrozen { return }
         
         let beam = SKShapeNode()
         let path = CGMutablePath()
@@ -295,17 +283,23 @@ class ZPWizard: SKSpriteNode {
         self.run(SKAction.sequence([delay, resume]))
     }
     
-    func freeze(currentTime: TimeInterval, freezeDuration: TimeInterval) {
+    func freeze(currentTime: TimeInterval, duration: TimeInterval) {
         isFrozen = true
-        freezeEndTime = currentTime + freezeDuration
+        freezeEndTime = currentTime + duration
         color = .cyan
         colorBlendFactor = 1.0
         print("Wizard has been fronzen until \(freezeEndTime)")
     }
     
+    func updateFreezeState(currentTime: TimeInterval) {
+        if isFrozen && currentTime >= freezeEndTime {
+            unfreeze()
+        }
+    }
+    
     func unfreeze() {
         isFrozen = false
-        colorBlendFactor = 0.0
+        color = baseColor
         print("Wizard has been unfrozen.")
     }
 }

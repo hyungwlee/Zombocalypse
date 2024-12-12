@@ -24,7 +24,7 @@ class EnemyManager {
         let zombie = ZPZombie(health: health)
         zombie.physicsBody = SKPhysicsBody(circleOfRadius: zombie.size.width / 2)
         zombie.physicsBody?.categoryBitMask = PhysicsCategory.enemy
-        zombie.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield
+        zombie.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
         zombie.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.shield
         zombie.physicsBody?.affectedByGravity = false
         zombie.physicsBody?.allowsRotation = false
@@ -40,7 +40,7 @@ class EnemyManager {
         let charger = ZPChargerZombieNode(health: health, movementSpeed: speed)
         charger.physicsBody = SKPhysicsBody(circleOfRadius: charger.size.width / 2)
         charger.physicsBody?.categoryBitMask = PhysicsCategory.enemy
-        charger.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield
+        charger.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
         charger.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.shield
         charger.physicsBody?.affectedByGravity = false
         charger.physicsBody?.allowsRotation = false
@@ -56,7 +56,7 @@ class EnemyManager {
         let exploder = ZPExploderZombieNode(health: health, movementSpeed: speed)
         exploder.physicsBody = SKPhysicsBody(circleOfRadius: exploder.size.width / 2)
         exploder.physicsBody?.categoryBitMask = PhysicsCategory.enemy
-        exploder.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield
+        exploder.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
         exploder.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.shield
         exploder.physicsBody?.affectedByGravity = false
         exploder.physicsBody?.allowsRotation = false
@@ -77,7 +77,7 @@ class EnemyManager {
         
         wizard.physicsBody = SKPhysicsBody(circleOfRadius: wizard.size.width / 2)
         wizard.physicsBody?.categoryBitMask = PhysicsCategory.boss
-        wizard.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield
+        wizard.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
         wizard.physicsBody?.collisionBitMask = PhysicsCategory.shield
         wizard.physicsBody?.affectedByGravity = false
         wizard.physicsBody?.allowsRotation = false

@@ -69,7 +69,8 @@ class PlayerState {
     var barrierSlowAmount: Double = 0.0
 
     // Freeze Grenade
-    var freezeGrenadeCooldown: Double = 0.0
+    let freezeGrenadeBaseCooldown: Double = 5.0
+    var freezeGrenadeCooldownReduction: Double = 0.0
     var freezeDuration: Double = 0.0
     var freezeRadius: Double = 0.0
     
@@ -78,6 +79,11 @@ class PlayerState {
     var projectilesPierce: Bool = false       // If true, Reinforced Arrow effect
     var spectralShieldActive: Bool = false    // If true, a shield should appear around player
     var mightyKnockbackActive: Bool = false   // If true, every X seconds we push enemies away
+    
+    let spectralShieldDamageFactor: Double = 0.5
+    let shieldMaxHits: Int = 3
+    let shieldCooldown: TimeInterval = 10.0
+    var shieldHitsRemaining: Int = 3
 
     // This is called every time a new skill is added.
     // It is a refresh to make sure the increments don't stack
@@ -102,17 +108,20 @@ class PlayerState {
         barrierPulseFrequency = 0.0
         barrierSlowAmount = 0.0
 
-        freezeGrenadeCooldown = 0.0
+        freezeGrenadeCooldownReduction = 0.0
         freezeDuration = 0.0
         freezeRadius = 0.0
         
         // Reset Special Skill Flags
         hasHelpingHand = false
-        delegate?.playerStateDidDeactivateHelpingHand()
         projectilesPierce = false
         spectralShieldActive = false
-        delegate?.playerStateDidDeactivateSpectralShield()
         mightyKnockbackActive = false
+        
+        delegate?.playerStateDidDeactivateHelpingHand()
+        delegate?.playerStateDidDeactivateSpectralShield()
+
+        shieldHitsRemaining = 3
     }
     
     
@@ -151,7 +160,7 @@ class PlayerState {
     }
 
     func upgradeFreeze(cooldownReduction: Double, durationIncrement: Double, radiusIncrement: Double) {
-        freezeGrenadeCooldown += cooldownReduction
+        freezeGrenadeCooldownReduction += cooldownReduction
         freezeDuration += durationIncrement
         freezeRadius += radiusIncrement
         

@@ -201,6 +201,26 @@ class SkillManager {
             special.apply(to: player)
         }
     }
+    
+    func createRegularSkillInstance(for type: SkillType) -> RegularSkill? {
+        // Check if the skill type is a regular skill
+        if let definition = allRegularDefinitions.first(where: { $0.type == type }) {
+            return RegularSkill(definition: definition)
+        }
+        
+        // If the skill type is not found in either category, return nil
+        return nil
+    }
+    
+    func createSpecialSkillInstance(for type: SkillType) -> SpecialSkill? {
+        // Check if the skill type is a special skill
+        if allSpecialTypes.contains(type) {
+            return SpecialSkill(type: type)
+        }
+        
+        // If the skill type is not found in either category, return nil
+        return nil
+    }
 }
 
 
@@ -299,10 +319,10 @@ extension SkillManager {
         /// Improves grenade cooldown, freeze duration, and radius
         allRegularDefinitions.append(
             SkillDefinition(type: .freeze, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.1, freezeDurationIncrement: 0.5, freezeRadiusIncrement: 25),
-                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.15, freezeDurationIncrement: 0.5, freezeRadiusIncrement: 25),
-                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.2, freezeDurationIncrement: 1.0, freezeRadiusIncrement: 50),
-                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.3, freezeDurationIncrement: 1.0, freezeRadiusIncrement: 50)
+                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.1, freezeDurationIncrement: 2.5, freezeRadiusIncrement: 25),
+                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.15, freezeDurationIncrement: 3.5, freezeRadiusIncrement: 30),
+                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.2, freezeDurationIncrement: 4.0, freezeRadiusIncrement: 40),
+                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.3, freezeDurationIncrement: 5.0, freezeRadiusIncrement: 50)
             ])
         )
     }
