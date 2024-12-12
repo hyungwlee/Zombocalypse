@@ -844,37 +844,60 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func spawnWizardBoss() {
-        guard let cameraNode = self.camera else { return }
-        let cameraCenter = cameraNode.position
-        
-        arenaBounds = CGRect(
-            x: cameraCenter.x - size.width / 2,
-            y: cameraCenter.y - size.height / 2,
-            width: size.width - 75,
-            height: size.height - 200
-        )
+        teleportPlayerToCenter { [weak self] in
+            guard let self = self else { return }
+            guard let cameraNode = self.camera else { return }
+            let cameraCenter = cameraNode.position
+            //cameraNode.position = self.player.position
             
-        if let arenaBounds = arenaBounds {
-            let outline = SKShapeNode(rectOf: CGSize(width: arenaBounds.width, height: arenaBounds.height))
-            outline.position = CGPoint(x: arenaBounds.midX, y: arenaBounds.midY)
-            outline.strokeColor = .purple
-            outline.fillColor = .clear
-            outline.lineWidth = 2.0
-            outline.name = "arenaOutline"
-            addChild(outline)
+            arenaBounds = CGRect(
+                x: cameraCenter.x - size.width / 2,
+                y: cameraCenter.y - size.height / 2,
+                width: size.width - 75,
+                height: size.height - 200
+            )
+            
+            if let arenaBounds = arenaBounds {
+                let outline = SKShapeNode(rectOf: CGSize(width: arenaBounds.width, height: arenaBounds.height))
+                outline.position = CGPoint(x: arenaBounds.midX, y: arenaBounds.midY)
+                outline.strokeColor = .purple
+                outline.fillColor = .clear
+                outline.lineWidth = 2.0
+                outline.name = "arenaOutline"
+                addChild(outline)
+            }
+            
+            setupArenaBarrier()
+            
+            //Define boss spawn position outside the arena
+            let spawnOffsetY: CGFloat = 100.0
+            let spawnY = arenaBounds!.maxY + spawnOffsetY
+            let spawnX = arenaBounds!.minX
+            let spawnPosition = CGPoint(x: spawnX, y: spawnY)
+            
+            wizardBoss?.isAlive = true
+            enemyManager.spawnWizardBoss(health: wizardHealth, at: spawnPosition)
         }
         
-        setupArenaBarrier()
+    }
+    
+    func teleportPlayerToCenter(completion: (() -> Void)? = nil) {
+        //Define the center position. Can adjust to any other point too.
+        let centerPosition = CGPoint(x: size.width / 2, y: size.height / 2 - 700)
         
-        //Define boss spawn position outside the arena
-        let spawnOffsetY: CGFloat = 100.0
-        let spawnY = arenaBounds!.maxY + spawnOffsetY
-        let spawnX = arenaBounds!.minX
-        let spawnPosition = CGPoint(x: spawnX, y: spawnY)
+        //Optional fade effect - test
+        let fadeOut = SKAction.fadeOut(withDuration: 0.2)
+        let fadeIn = SKAction.fadeIn(withDuration: 0.2)
+        let teleport = SKAction.run { [weak self] in
+            self?.player.position = centerPosition
+        }
+        let sequence = SKAction.sequence([fadeOut, teleport, fadeIn])
         
-        wizardBoss?.isAlive = true
-        enemyManager.spawnWizardBoss(health: wizardHealth, at: spawnPosition)
-        
+        //Run the action sequence
+        self.run(sequence) {
+            //Call the completion handler after teleportation
+            completion?()
+        }
     }
     
     func updatePlayerMovement() {
