@@ -13,6 +13,7 @@ class ZPWizard: SKSpriteNode {
     var lastSpinningBladeDamageTime: TimeInterval = 0
     var lastBarrierDamageTime: TimeInterval = 0
     var isFrozen: Bool = false
+    var isBossPaused: Bool = false
     var freezeEndTime: TimeInterval = 0
     private var lastMeteorTime: TimeInterval = 0
     private var lastBeamTime: TimeInterval = 0
@@ -59,7 +60,7 @@ class ZPWizard: SKSpriteNode {
     func update(currentTime: TimeInterval, deltaTime: TimeInterval, playerPosition: CGPoint) {
         updateFreezeState(currentTime: currentTime)
 
-        if isFrozen {
+        if isFrozen || isBossPaused {
             self.removeAllActions()
             self.isChargingBeam = false
             return
@@ -102,7 +103,7 @@ class ZPWizard: SKSpriteNode {
         guard let scene = scene as? ZPGameScene,
               let arenaBounds = scene.arenaBounds else { return }
         
-        if isFrozen { return }
+        if isFrozen || isBossPaused { return }
         
         //Define movement boundaries
         let minX = arenaBounds.minX
@@ -227,7 +228,7 @@ class ZPWizard: SKSpriteNode {
     private func spawnBeam(towards targetPosition: CGPoint) {
         guard let scene = scene as? ZPGameScene else { return }
         
-        if isFrozen { return }
+        if isFrozen || isBossPaused { return }
         
         let beam = SKShapeNode()
         let path = CGMutablePath()
@@ -303,5 +304,13 @@ class ZPWizard: SKSpriteNode {
         isFrozen = false
         color = baseColor
         print("Wizard has been unfrozen.")
+    }
+    
+    func pause() {
+        isBossPaused = true
+    }
+    
+    func resume() {
+        isBossPaused = false
     }
 }

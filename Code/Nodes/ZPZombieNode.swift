@@ -11,6 +11,7 @@ class ZPZombie: SKSpriteNode {
     var lastSpinningBladeDamageTime: TimeInterval = 0
     var lastBarrierDamageTime: TimeInterval = 0
     var isFrozen: Bool = false
+    var isZombiePaused: Bool = false
     var freezeEndTime: TimeInterval = 0
     var baseColor: SKColor = .red
     var movementSpeed: CGFloat = 0.4
@@ -56,7 +57,7 @@ class ZPZombie: SKSpriteNode {
     
     func moveTowards(playerPosition: CGPoint, speed: CGFloat? = nil) {
         guard !isAttacking else { return }
-        if isFrozen {
+        if isFrozen || isZombiePaused {
             return
         }
         let updatedSpeed = speed ?? movementSpeed
@@ -98,5 +99,13 @@ class ZPZombie: SKSpriteNode {
     func unfreeze() {
         isFrozen = false
         color = baseColor
+    }
+    
+    func pause() {
+        isZombiePaused = true
+    }
+    
+    func resume() {
+        isZombiePaused = false
     }
 }

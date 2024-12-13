@@ -71,6 +71,7 @@ class PlayerState {
     var barrierSlowAmount: Double = 0.0
 
     // Freeze Grenade
+    var freezeGrenadeActive: Bool = false
     let freezeGrenadeBaseCooldown: Double = 5.0
     var freezeGrenadeCooldownReduction: Double = 0.0
     var freezeDuration: Double = 0.0
@@ -111,6 +112,7 @@ class PlayerState {
         barrierPulseFrequency = 0.0
         barrierSlowAmount = 0.0
 
+        freezeGrenadeActive = false
         freezeGrenadeCooldownReduction = 0.0
         freezeDuration = 0.0
         freezeRadius = 0.0
@@ -166,6 +168,7 @@ class PlayerState {
         freezeGrenadeCooldownReduction += cooldownReduction
         freezeDuration += durationIncrement
         freezeRadius += radiusIncrement
+        freezeGrenadeActive = false
         
         // Calls to logic in GameScene relating to this skill
         delegate?.playerStateDidUpgradeFreeze(self)

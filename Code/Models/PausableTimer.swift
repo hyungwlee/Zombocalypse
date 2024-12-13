@@ -12,7 +12,7 @@ class PausableTimer {
     private var timer: Timer?
     private var interval: TimeInterval
     private var repeats: Bool
-    private var callback: () -> Void
+    public var callback: () -> Void
     private var remainingTime: TimeInterval
     private var startTime: TimeInterval?
     

@@ -175,7 +175,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     private var lastUpdateTime: TimeInterval = 0
     private let centerPosition: CGPoint
     private var activeTouches: [UITouch: ZPJoystick] = [:]
-    
+        
     //Upgrades Settings
 //    var upgradePopup: SKShapeNode!
     var upgradeStatsLabel: SKLabelNode!
@@ -263,8 +263,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //        let spinningBladesSkill = skillManager.createRegularSkillInstance(for: .spinningBlades)
 //        skillManager.acquireOrUpgradeRegularSkill(spinningBladesSkill!)
         
-        let protectiveBarrierSkill = skillManager.createRegularSkillInstance(for: .protectiveBarrier)
-        skillManager.acquireOrUpgradeRegularSkill(protectiveBarrierSkill!)
+//        let protectiveBarrierSkill = skillManager.createRegularSkillInstance(for: .protectiveBarrier)
+//        skillManager.acquireOrUpgradeRegularSkill(protectiveBarrierSkill!)
         
 //        let freezeSkill = skillManager.createRegularSkillInstance(for: .freeze)
 //        skillManager.acquireOrUpgradeRegularSkill(freezeSkill!)
@@ -433,10 +433,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         //Invalidate and store remaining time for timers if necessary
         stopXPSpawnTimer()
         
-        //Pause any ongoing actions that shouldn't run during pause
-        self.enumerateChildNodes(withName: "//enemy") { node, _ in
-            node.speed = 0
-        }
+//        //Pause any ongoing actions that shouldn't run during pause
+//        self.enumerateChildNodes(withName: "//enemy") { node, _ in
+//            node.speed = 0
+//        }
     }
     
     func unpauseGame() {
@@ -452,10 +452,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         //Restart XP spawn timer
         startXPSpawnTimer()
         
-        //Resume any paused actions
-        self.enumerateChildNodes(withName: "//enemy") { node, _ in
-            node.speed = 1
-        }
+//        //Resume any paused actions
+//        self.enumerateChildNodes(withName: "//enemy") { node, _ in
+//            node.speed = 1
+//        }
     }
     
     func initializeWaves() {
@@ -511,7 +511,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             showEnemyIntroductionMessage(enemyMessage)
             displayedEnemyMessages.insert(wave.waveNumber)
         }
-        
+        print("-")
+        print("wave", wave)
         if wave.isBoss {
             clearAllEnemies() //Clear existing enemies only for boss waves
             startBossStage()
@@ -885,6 +886,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func spawnWizardBoss() {
+        waveTransitionTimer?.callback = {}
+        
         teleportPlayerToCenter { [weak self] in
             guard let self = self else { return }
             guard let cameraNode = self.camera else { return }
@@ -1045,10 +1048,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     override func update(_ currentTime: TimeInterval) {
         super.update(currentTime)
         currentGameTime = currentTime
-        
-//        checkSpinningBladesCollision()
-//        checkBarrierCollision()
-//        checkSpectralShieldCollision()
+    
         checkXPCollection()
         
         guard !gameOver, !isGamePaused else { return }
@@ -1101,10 +1101,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                 lastShootTime = currentTime
                 shootProjectile(in: aimDirection)
                 
-                let freezeGrenadeInterval = playerState.freezeGrenadeBaseCooldown - playerState.freezeGrenadeCooldownReduction
-                if  currentTime - lastGrenadeTime >= freezeGrenadeInterval {
-                    lastGrenadeTime = currentTime
-                    shootGrenade(in: aimDirection)
+                if playerState.freezeGrenadeActive {
+                    let freezeGrenadeInterval = playerState.freezeGrenadeBaseCooldown - playerState.freezeGrenadeCooldownReduction
+                    if  currentTime - lastGrenadeTime >= freezeGrenadeInterval {
+                        lastGrenadeTime = currentTime
+                        shootGrenade(in: aimDirection)
+                    }
                 }
             }
         }
@@ -1194,6 +1196,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func afterGracePeriodEnds() {
+        waveTransitionTimer?.callback = {}
+        
         if self.waveCycle[self.currentWaveIndex].requiresFullClearance {
             if self.pendingEnemies > 0 {
                 // Do not proceed. Wait until all enemies are defeated
@@ -1231,6 +1235,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     
     
     func startBossStage() {
+        print("startBossStage", currentWaveIndex, "<", waveCycle.count)
         guard currentWaveIndex < waveCycle.count else { return }
         let wave = waveCycle[currentWaveIndex]
         guard wave.isBoss else { return }
@@ -1249,6 +1254,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //            self.spawnWizardBoss()
 //        }
         waveTransitionTimer = PausableTimer(interval: 3.0, repeats: false) { [weak self] in
+            print("timer mark")
             self?.waveMessageLabel.isHidden = true
             self?.isTransitioningWave = false
             self?.spawnWizardBoss()
@@ -1320,6 +1326,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func restartCycleWithIncreasedDifficulty() {
+        print("restarting")
         //Remove existing waves
         waveCycle.removeAll()
         
@@ -1978,10 +1985,23 @@ extension ZPGameScene: SKPhysicsContactDelegate {
 
         // Projectile & Enemy/Boss collision
         if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss) && secondBody.categoryBitMask == PhysicsCategory.projectile) {
-            if let enemyNode = firstBody.node as? ZPZombie {
-                handleProjectileCollision(with: enemyNode)
-            } else if let bossNode = firstBody.node as? ZPWizard {
-                handleProjectileCollision(with: bossNode)
+            if let projectileNode = secondBody.node as? SKSpriteNode {
+                if let enemyNode = firstBody.node as? ZPZombie {
+                    handleProjectileCollision(with: enemyNode)
+                } else if let bossNode = firstBody.node as? ZPWizard {
+                    handleProjectileCollision(with: bossNode)
+                }
+                if !playerState.projectilesPierce {
+                    projectileNode.removeFromParent()
+                }
+            }
+        }
+        // remove projectile if it hits border
+        if ((firstBody.categoryBitMask == PhysicsCategory.border) && secondBody.categoryBitMask == PhysicsCategory.projectile) {
+            if let projectileNode = secondBody.node as? SKSpriteNode {
+                if !playerState.projectilesPierce {
+                    projectileNode.removeFromParent()
+                }
             }
         }
         
