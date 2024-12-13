@@ -12,6 +12,7 @@ class EnemyManager {
     // References
     weak var scene: ZPGameScene?  // The scene in which enemies are placed
     var enemies: [ZPZombie] = []
+    private var isPaused: Bool = false
     var wizardBoss: ZPWizard?  // If you have only one boss at a time
     
     init(scene: ZPGameScene) {
@@ -34,6 +35,12 @@ class EnemyManager {
             scene?.addChild(zombie)
             enemies.append(zombie)
         }
+        
+        if isPaused {
+            zombie.speed = 0
+        } else {
+            zombie.moveTowards(playerPosition: playerPosition)
+        }
     }
     
     func spawnChargerZombie(health: Double, speed: CGFloat) {
@@ -50,6 +57,12 @@ class EnemyManager {
             scene?.addChild(charger)
             enemies.append(charger)
         }
+        
+        if isPaused {
+            charger.speed = 0
+        } else {
+            charger.moveTowards(playerPosition: playerPosition)
+        }
     }
     
     func spawnExploderZombie(health: Double, speed: CGFloat) {
@@ -65,6 +78,12 @@ class EnemyManager {
             exploder.position = spawnPosition
             scene?.addChild(exploder)
             enemies.append(exploder)
+        }
+        
+        if isPaused {
+            exploder.speed = 0
+        } else {
+            exploder.moveTowards(playerPosition: playerPosition)
         }
     }
     
@@ -85,6 +104,30 @@ class EnemyManager {
         wizard.position = spawnLocation
         scene.addChild(wizard)
         wizardBoss = wizard
+        
+        if isPaused {
+            wizard.speed = 0
+        }
+    }
+    
+    func pauseAll() {
+        guard !isPaused else { return }
+        isPaused = true
+        for enemy in enemies {
+            enemy.speed = 0
+            enemy.removeAllActions()
+        }
+    }
+    
+    func resumeAll() {
+        guard isPaused else { return }
+        isPaused = false
+        for enemy in enemies {
+            enemy.speed = 1
+            if !enemy.isDead {
+                enemy.moveTowards(playerPosition: playerPosition)
+            }
+        }
     }
     
     // MARK: - Update

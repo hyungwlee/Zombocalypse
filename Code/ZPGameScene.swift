@@ -104,13 +104,17 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var zombieSpeed: CGFloat = 0.4
     let zombieBufferDistance: CGFloat = 10 // Adjust this value to experiment with zombie spacing w one another
     var playerLivesLabel: SKLabelNode!
-    var playerLives: Double = 3.0 {            
+    var playerLives: Double = 3.0 {
         didSet {
             playerLivesLabel.text = "Lives: \(playerLives)"
             playerHealthBar.setHealth(playerLives)
         }
     }
     var gameOver: Bool = false
+    var isGamePaused: Bool = false
+    private var waveTransitionTimer: PausableTimer?
+    private var remainingGracePeriod: TimeInterval = 0.0
+    private var isGracePeriodActive: Bool = false
     
     //Revamp wave settings
     var enemiesToDefeat = 3
@@ -173,7 +177,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     private var activeTouches: [UITouch: ZPJoystick] = [:]
     
     //Upgrades Settings
-    private var isGamePaused: Bool = false
 //    var upgradePopup: SKShapeNode!
     var upgradeStatsLabel: SKLabelNode!
 //    var currentUpgradeChoices: [RegularSkill] = []
@@ -415,6 +418,44 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         camera?.addChild(xpBar)
         self.xpBarNode = xpBar
         startXPSpawnTimer()
+    }
+    
+    func pauseGame() {
+        guard !isGamePaused else { return }
+        isGamePaused = true
+        
+        //Pause enemymanager
+        enemyManager.pauseAll()
+        
+        //Pause wave progression timers
+        waveTransitionTimer?.pause()
+        
+        //Invalidate and store remaining time for timers if necessary
+        stopXPSpawnTimer()
+        
+        //Pause any ongoing actions that shouldn't run during pause
+        self.enumerateChildNodes(withName: "//enemy") { node, _ in
+            node.speed = 0
+        }
+    }
+    
+    func unpauseGame() {
+        guard isGamePaused else { return }
+        isGamePaused = false
+        
+        //Resume EnemyManager
+        enemyManager.resumeAll()
+        
+        //Resume wave progression timers
+        waveTransitionTimer?.resume()
+        
+        //Restart XP spawn timer
+        startXPSpawnTimer()
+        
+        //Resume any paused actions
+        self.enumerateChildNodes(withName: "//enemy") { node, _ in
+            node.speed = 1
+        }
     }
     
     func initializeWaves() {
@@ -1098,36 +1139,44 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         waveMessageLabel.zPosition = 5
         waveMessageLabel.isHidden = false
         
-        waveProgressionWorkItem = DispatchWorkItem { [weak self] in
-            guard let self = self else { return }
-            if self.waveCycle[currentWaveIndex].requiresFullClearance {
-                if self.pendingEnemies > 0 {
-                    //Do not proceed. Wait until all enemies are defeated
-                    self.waveMessageLabel.text = "Defeat all enemies to proceed.."
-                    self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
-                    self.waveMessageLabel.zPosition = 5
-                } else {
-                    self.transitionToNextWave()
-                }
-            } else {
-                //Regular wave progression
-                if self.pendingEnemies > 0 {
-                    self.waveMessageLabel.text = "Next wave starting.."
-                    self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
-                    self.waveMessageLabel.zPosition = 5
-                } else {
-                    self.waveMessageLabel.text = "Wave Cleared. Next wave starting.."
-                    self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
-                    self.waveMessageLabel.zPosition = 5
-                }
-                self.transitionToNextWave()
-            }
-            self.waveMessageLabel.isHidden = false
+        isGracePeriodActive = true
+        remainingGracePeriod = gracePeriod
+        
+        waveTransitionTimer = PausableTimer(interval: gracePeriod, repeats: false) { [weak self] in
+            self?.afterGracePeriodEnds()
         }
-        //Schedule the wave progression after graceperiod
-        if let workItem = waveProgressionWorkItem {
-            DispatchQueue.main.asyncAfter(deadline: .now() + gracePeriod, execute: workItem)
-        }
+        waveTransitionTimer?.start()
+        
+//        waveProgressionWorkItem = DispatchWorkItem { [weak self] in
+//            guard let self = self else { return }
+//            if self.waveCycle[currentWaveIndex].requiresFullClearance {
+//                if self.pendingEnemies > 0 {
+//                    //Do not proceed. Wait until all enemies are defeated
+//                    self.waveMessageLabel.text = "Defeat all enemies to proceed.."
+//                    self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+//                    self.waveMessageLabel.zPosition = 5
+//                } else {
+//                    self.transitionToNextWave()
+//                }
+//            } else {
+//                //Regular wave progression
+//                if self.pendingEnemies > 0 {
+//                    self.waveMessageLabel.text = "Next wave starting.."
+//                    self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+//                    self.waveMessageLabel.zPosition = 5
+//                } else {
+//                    self.waveMessageLabel.text = "Wave Cleared. Next wave starting.."
+//                    self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+//                    self.waveMessageLabel.zPosition = 5
+//                }
+//                self.transitionToNextWave()
+//            }
+//            self.waveMessageLabel.isHidden = false
+//        }
+//        //Schedule the wave progression after graceperiod
+//        if let workItem = waveProgressionWorkItem {
+//            DispatchQueue.main.asyncAfter(deadline: .now() + gracePeriod, execute: workItem)
+//        }
     }
     
     func transitionToNextWave() {
@@ -1135,13 +1184,45 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         if self.currentWaveIndex >= self.waveCycle.count {
             self.restartCycleWithIncreasedDifficulty()
         } else {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-                guard let self = self else { return }
-                self.waveMessageLabel.isHidden = true
-                self.isTransitioningWave = false
-                self.startNextWave()
-            }
+            //DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                //guard let self = self else { return }
+            self.waveMessageLabel.isHidden = true
+            self.isTransitioningWave = false
+            self.startNextWave()
+            //}
         }
+    }
+    
+    func afterGracePeriodEnds() {
+        if self.waveCycle[self.currentWaveIndex].requiresFullClearance {
+            if self.pendingEnemies > 0 {
+                // Do not proceed. Wait until all enemies are defeated
+                self.waveMessageLabel.text = "Defeat all enemies to proceed.."
+                self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+                self.waveMessageLabel.zPosition = 5
+                self.waveMessageLabel.isHidden = false
+                // Maintain isGracePeriodActive and isTransitioningWave to prevent further progression
+            } else {
+                self.transitionToNextWave()
+            }
+        } else {
+            // Regular wave progression
+            if self.pendingEnemies > 0 {
+                self.waveMessageLabel.text = "Next wave starting.."
+                self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+                self.waveMessageLabel.zPosition = 5
+            } else {
+                self.waveMessageLabel.text = "Wave Cleared. Next wave starting.."
+                self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+                self.waveMessageLabel.zPosition = 5
+            }
+            self.waveMessageLabel.isHidden = false
+            self.transitionToNextWave()
+        }
+
+        // Reset wave progression status
+        self.isGracePeriodActive = false
+        self.isTransitioningWave = false
     }
     
     func clearAllEnemies() {
@@ -1162,11 +1243,17 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         waveMessageLabel.text = "Boss Stage Starting.."
         waveMessageLabel.isHidden = false
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            self.waveMessageLabel.isHidden = true
-            self.isTransitioningWave = false
-            self.spawnWizardBoss()
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+//            self.waveMessageLabel.isHidden = true
+//            self.isTransitioningWave = false
+//            self.spawnWizardBoss()
+//        }
+        waveTransitionTimer = PausableTimer(interval: 3.0, repeats: false) { [weak self] in
+            self?.waveMessageLabel.isHidden = true
+            self?.isTransitioningWave = false
+            self?.spawnWizardBoss()
         }
+        waveTransitionTimer?.start()
     }
     
     

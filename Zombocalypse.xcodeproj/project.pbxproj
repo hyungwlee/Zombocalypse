@@ -31,6 +31,7 @@
 		FC070AAD2CCAF86200946357 /* ZPBoxNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AAC2CCAF86200946357 /* ZPBoxNode.swift */; };
 		FC070AAF2CCAF9CA00946357 /* ZPGameIdleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */; };
 		FC0CD3DF2D0AAFA8009106B5 /* HealthBarNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0CD3DE2D0AAFA8009106B5 /* HealthBarNode.swift */; };
+		FC0CD3E12D0C279B009106B5 /* PausableTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0CD3E02D0C279B009106B5 /* PausableTimer.swift */; };
 		FC5F2F892CFEBD160000C91A /* infGenTestImgLg.png in Resources */ = {isa = PBXBuildFile; fileRef = FC5F2F882CFEBD160000C91A /* infGenTestImgLg.png */; };
 		FCC9B8D72CD4592A006077B4 /* ZPJoystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8D62CD4592A006077B4 /* ZPJoystick.swift */; };
 		FCC9B8D92CD4767C006077B4 /* ZPZombieNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */; };
@@ -84,6 +85,7 @@
 		FC070AAC2CCAF86200946357 /* ZPBoxNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPBoxNode.swift; sourceTree = "<group>"; };
 		FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameIdleState.swift; sourceTree = "<group>"; };
 		FC0CD3DE2D0AAFA8009106B5 /* HealthBarNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthBarNode.swift; sourceTree = "<group>"; };
+		FC0CD3E02D0C279B009106B5 /* PausableTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PausableTimer.swift; sourceTree = "<group>"; };
 		FC5F2F882CFEBD160000C91A /* infGenTestImgLg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = infGenTestImgLg.png; sourceTree = "<group>"; };
 		FCC9B8D62CD4592A006077B4 /* ZPJoystick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPJoystick.swift; sourceTree = "<group>"; };
 		FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPZombieNode.swift; sourceTree = "<group>"; };
@@ -144,6 +146,7 @@
 				9EA377C52D028B730000D5DB /* SkillManager.swift */,
 				9EA377C12D028B460000D5DB /* SpecialSkill.swift */,
 				9EA377BF2D028B230000D5DB /* RegularSkill.swift */,
+				FC0CD3E02D0C279B009106B5 /* PausableTimer.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -397,6 +400,7 @@
 				FC070AAF2CCAF9CA00946357 /* ZPGameIdleState.swift in Sources */,
 				FC070AA72CCAEBC500946357 /* ZPGameInfo.swift in Sources */,
 				FC070AAB2CCAF10E00946357 /* ZPGameScene.swift in Sources */,
+				FC0CD3E12D0C279B009106B5 /* PausableTimer.swift in Sources */,
 				9EA378732D0577920000D5DB /* OverlayManager.swift in Sources */,
 				9EA378712D05704B0000D5DB /* UpgradeShopOverlayNode.swift in Sources */,
 				9E7110412D08D67400F441AC /* EnemyManager.swift in Sources */,
