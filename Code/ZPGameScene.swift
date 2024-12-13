@@ -1552,7 +1552,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         let direction = CGVector(dx: target.position.x - player.position.x, dy: target.position.y - player.position.y).normalized
         
         // Set up movement action (adjust `playerState.currentRange` as needed)
-        let moveDistance: CGFloat = 400
+        let moveDistance: CGFloat = playerState.currentRange * 3.0
         let moveAction = SKAction.move(by: CGVector(dx: direction.dx * moveDistance, dy: direction.dy * moveDistance), duration: 2.0)
         
         // Placeholder for collision check (to be implemented later)
@@ -1769,26 +1769,63 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func spawnXPNode(at position: CGPoint) {
-        let xpNode = XPNode(xpAmount: Int.random(in: 3...10))
+        let timeUntilDespawn: TimeInterval = 25
+        
+        let xpValue = 1
+        let xpNode = XPNode(xpAmount: xpValue)
         xpNode.position = position
+        
+        xpNode.alpha = 0.0
+        xpNode.setScale(0.0)
+        
         addChild(xpNode)
         xpNodes.append(xpNode)
+        
+        // Spawn animation
+        let scaleUp = SKAction.scale(to: 1.1, duration: 0.2)
+        let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
+        let fadeIn = SKAction.fadeIn(withDuration: 0.3)
+        let spawnGroup = SKAction.group([scaleUp, fadeIn])
+        let spawnSequence = SKAction.sequence([spawnGroup, scaleDown])
+        
+        xpNode.run(spawnSequence)
+        
+        // Despawn animation
+        let despawnDelay = SKAction.wait(forDuration: timeUntilDespawn)
+        let fadeOut = SKAction.fadeOut(withDuration: 0.2)
+        let shrink = SKAction.scale(to: 0.0, duration: 0.2)
+        let group = SKAction.group([fadeOut, shrink])
+        let removeFromScene = SKAction.removeFromParent()
+        let removeFromArray = SKAction.run { [weak self, weak xpNode] in
+            guard let self = self, let node = xpNode else { return }
+            if let index = self.xpNodes.firstIndex(where: { $0 === node }) {
+                self.xpNodes.remove(at: index)
+            }
+        }
+        
+        let sequence = SKAction.sequence([despawnDelay, group, removeFromScene, removeFromArray])
+        xpNode.run(sequence)
     }
     
     func spawnRandomXPNode() {
-        let spawnBuffer: CGFloat = 30.0 // Buffer to prevent spawning too close to the edges
+        let spawnBuffer: CGFloat = 30.0
+        let spawnRadius: CGFloat = size.height / 2.0
 
-        // Define the minimum and maximum Y based on vertical bounds and buffer
-        let minY = bottomBound + spawnBuffer
-        let maxY = topBound - spawnBuffer
+        guard let player = player else { return }
 
-        // Define the minimum and maximum X based on scene size and buffer
-        let minX = -size.width / 2 - spawnBuffer
-        let maxX = size.width / 2 + spawnBuffer
+        let angle = CGFloat.random(in: 0...2 * .pi)
+        let distance = CGFloat.random(in: spawnBuffer...spawnRadius)
 
-        let randomX = CGFloat.random(in: minX...maxX)
-        let randomY = CGFloat.random(in: minY...maxY)
-        let randomPosition = CGPoint(x: randomX, y: randomY)
+        let offsetX = distance * cos(angle)
+        let offsetY = distance * sin(angle)
+        var randomPosition = CGPoint(x: player.position.x + offsetX, y: player.position.y + offsetY)
+        randomPosition.y = min(max(randomPosition.y, bottomBound + spawnBuffer), topBound - spawnBuffer)
+
+        if let arena = arenaBounds {
+            let clampedX = max(arena.minX + spawnBuffer, min(randomPosition.x, arena.maxX - spawnBuffer))
+            let clampedY = randomPosition.y
+            randomPosition = CGPoint(x: clampedX, y: clampedY)
+        }
 
         spawnXPNode(at: randomPosition)
     }
