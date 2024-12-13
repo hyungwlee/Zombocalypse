@@ -101,13 +101,10 @@ class ZPExploderZombieNode: ZPZombie {
         let explosionCenter = self.position
         //print("Exploding with damage: \(explosionDamage)")
         
-        // Remove from parent after exploding
-        gameScene.removeZombieFromTracking(self)
-        removeFromParent()
-        
-        
         // Apply damage to zombies within the explosion radius
         gameScene.children.compactMap { $0 as? ZPZombie }.forEach { zombie in
+            //Exclude self to prevent double handling
+            if zombie === self { return }
             let distanceToZombie = hypot(zombie.position.x - explosionCenter.x, zombie.position.y - explosionCenter.y)
             if distanceToZombie <= explosionRange {
                 zombie.takeDamage(amount: explosionDamage) // Adjust damage as needed
@@ -119,6 +116,13 @@ class ZPExploderZombieNode: ZPZombie {
         if playerDistance <= explosionRange {
             gameScene.playerLives -= explosionDamage
         }
+        
+        // Remove from parent after exploding
+        gameScene.removeZombieFromTracking(self)
+        removeFromParent()
+        
+        //Notify the scene that this enemy has been defeated
+        gameScene.handleEnemyDefeat(at: explosionCenter)
         
     }
 

@@ -808,16 +808,17 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
         
     func spawnExploderZombie() {
-        let exploderZombie = ZPExploderZombieNode(health: zombieHealth, movementSpeed: zombieSpeed)
-        let safeRadius: CGFloat = 250.0
-        let exploderZombieSize = exploderZombie.size.width
-        var position: CGPoint
-        repeat {
-            position = CGPoint(x: CGFloat.random(in: exploderZombieSize...(size.width - exploderZombieSize)), y: CGFloat.random(in: exploderZombieSize...(size.height - exploderZombieSize)))
-        } while enemyManager.enemies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: exploderZombie.size)) }) || position.distance(to: player.position) < safeRadius
-        exploderZombie.position = position
-        addChild(exploderZombie)
-        enemyManager.enemies.append(exploderZombie)
+        enemyManager.spawnExploderZombie(health: zombieHealth, speed: zombieSpeed)
+//        let exploderZombie = ZPExploderZombieNode(health: zombieHealth, movementSpeed: zombieSpeed)
+//        let safeRadius: CGFloat = 250.0
+//        let exploderZombieSize = exploderZombie.size.width
+//        var position: CGPoint
+//        repeat {
+//            position = CGPoint(x: CGFloat.random(in: exploderZombieSize...(size.width - exploderZombieSize)), y: CGFloat.random(in: exploderZombieSize...(size.height - exploderZombieSize)))
+//        } while enemyManager.enemies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: exploderZombie.size)) }) || position.distance(to: player.position) < safeRadius
+//        exploderZombie.position = position
+//        addChild(exploderZombie)
+//        enemyManager.enemies.append(exploderZombie)
     }
     
     func checkAndRespawnZombies(respawnRadius: CGFloat) {

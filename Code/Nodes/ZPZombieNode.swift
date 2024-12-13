@@ -22,9 +22,11 @@ class ZPZombie: SKSpriteNode {
     var health: Double {
         didSet{
             healthBar.setHealth(health)
-            if isDead {
-                removeFromParent()
-            }
+            //Commenting this out deals with zombies not decrementing count in pendingEnemies when caught in explosion
+            //Leaving here for now just in case this breaks something later down the line
+//            if isDead {
+//                removeFromParent()
+//            }
         }
     }
     var isDead: Bool {
@@ -72,6 +74,10 @@ class ZPZombie: SKSpriteNode {
     func takeDamage(amount: Double) {
         health -= amount
         if isDead {
+            if let gameScene = self.scene as? ZPGameScene {
+                gameScene.handleEnemyDefeat(at: self.position)
+                gameScene.enemyManager.removeEnemy(self)
+            }
             removeFromParent()
         }
     }
