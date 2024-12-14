@@ -64,23 +64,33 @@ enum SkillType {
     var iconName: String {
         switch self {
         case .attackDamage:
-            return ""
+            return "zp_attack_damage"
         case .attackSpeed:
-            return ""
+            return "zp_attack_speed"
         case .movementSpeed:
-            return ""
+            return "zp_movement_speed"
         case .attackRange:
-            return ""
+            return "zp_attack_range"
         case .spinningBlades:
-            return ""
+            return "zp_spinning_blades"
         case .protectiveBarrier:
-            return ""
+            return "zp_protective_barrier"
         case .healthUpgrade:
-            return ""
+            return "zp_health_upgrade"
         case .magnet:
-            return ""
+            return "zp_magnet"
         case .freeze:
-            return ""
+            return "zp_freeze_grenade"
+        case .helpingHand:
+            return "zp_helping_hand"
+        case .reinforcedArrow:
+            return "zp_reinforced_arrow"
+        case .spectralShield:
+            return "zp_spectral_shield"
+        case .mightyKnockback:
+            return "zp_mighty_knockback"
+        case .bonusHealth:
+            return "zp_bonus_health"
         default:
             return ""
         }
