@@ -34,6 +34,7 @@ class ZPWizard: SKSpriteNode {
     public var isAlive: Bool = true
     var baseColor: SKColor = .purple
     var isSlowedByBarrier: Bool = false
+    private var fireballFrames: [SKTexture] = []
 
     init(health: Double) {
         self.health = health
@@ -51,6 +52,8 @@ class ZPWizard: SKSpriteNode {
         self.name = "wizard"
         self.addChild(healthBar)
         self.addChild(bossLabel)
+        
+        loadFireballAnimation()
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -58,6 +61,7 @@ class ZPWizard: SKSpriteNode {
     }
 
     func update(currentTime: TimeInterval, deltaTime: TimeInterval, playerPosition: CGPoint) {
+        let cappedDeltaTime = min(deltaTime, 1.0 / 60.0 * 2) // max 2 frames worth // Used to prevent weird movement while paused
         updateFreezeState(currentTime: currentTime)
 
         if isFrozen || isBossPaused {
@@ -68,7 +72,7 @@ class ZPWizard: SKSpriteNode {
         
         
         if !isChargingBeam {
-            moveSideToSide(deltaTime: deltaTime)
+            moveSideToSide(deltaTime: cappedDeltaTime)
         }
 
         // Handle meteor attack
@@ -88,6 +92,13 @@ class ZPWizard: SKSpriteNode {
         health -= amount
         if health <= 0 {
             die()
+        }
+    }
+    
+    private func loadFireballAnimation() {
+        let frameCount = 15
+        fireballFrames = (1...frameCount).map { frameNumber in
+            SKTexture(imageNamed: "fireball_\(frameNumber)")
         }
     }
 
@@ -133,8 +144,33 @@ class ZPWizard: SKSpriteNode {
             let randomX = CGFloat.random(in: arenaBounds.minX...arenaBounds.maxX)
             let randomY = CGFloat.random(in: arenaBounds.minY...arenaBounds.maxY)
             let targetPosition = CGPoint(x: randomX, y: randomY)
-            telegraphMeteor(at: targetPosition)
+            //telegraphMeteor(at: targetPosition)
+            animateFireball(at: targetPosition)
         }
+    }
+    
+    private func animateFireball(at targetPosition: CGPoint) {
+        //Create the fireball sprite node
+        let fireball = SKSpriteNode(texture: fireballFrames.first)
+        fireball.position = targetPosition
+        fireball.zPosition = 10
+        fireball.name = "fireball"
+        scene?.addChild(fireball)
+        
+        let animationDuration = 1.5 // Total duration of the animation
+        let animate = SKAction.animate(with: fireballFrames, timePerFrame: animationDuration / Double(fireballFrames.count))
+        
+        let checkCollision = SKAction.run { [weak self, weak fireball] in
+            guard let self = self, let fireball = fireball, let scene = scene as? ZPGameScene else { return }
+            if fireball.frame.intersects(scene.player.frame) {
+                scene.bossHitPlayer()
+            }
+        }
+        
+        let remove = SKAction.removeFromParent()
+        let sequence = SKAction.sequence([animate, checkCollision, remove])
+        
+        fireball.run(sequence)
     }
 
     private func telegraphMeteor(at targetPosition: CGPoint) {
