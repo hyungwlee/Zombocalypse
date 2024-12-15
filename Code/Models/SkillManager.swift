@@ -64,23 +64,33 @@ enum SkillType {
     var iconName: String {
         switch self {
         case .attackDamage:
-            return ""
+            return "zp_attack_damage"
         case .attackSpeed:
-            return ""
+            return "zp_attack_speed"
         case .movementSpeed:
-            return ""
+            return "zp_movement_speed"
         case .attackRange:
-            return ""
+            return "zp_attack_range"
         case .spinningBlades:
-            return ""
+            return "zp_spinning_blades"
         case .protectiveBarrier:
-            return ""
+            return "zp_protective_barrier"
         case .healthUpgrade:
-            return ""
+            return "zp_health_upgrade"
         case .magnet:
-            return ""
+            return "zp_magnet"
         case .freeze:
-            return ""
+            return "zp_freeze_grenade"
+        case .helpingHand:
+            return "zp_helping_hand"
+        case .reinforcedArrow:
+            return "zp_reinforced_arrow"
+        case .spectralShield:
+            return "zp_spectral_shield"
+        case .mightyKnockback:
+            return "zp_mighty_knockback"
+        case .bonusHealth:
+            return "zp_bonus_health"
         default:
             return ""
         }
@@ -89,27 +99,27 @@ enum SkillType {
 
 /// This should be all fields adjusted by upgrading regular skills
 struct SkillLevelEffect {
-    var damageIncrement: Double = 0
-    var attackSpeedIncrement: Double = 0
-    var movementSpeedIncrement: Double = 0
-    var rangeIncrement: Double = 0
+    var damageIncrement: Double = 0.0
+    var attackSpeedIncrement: Double = 0.0
+    var movementSpeedIncrement: Double = 0.0
+    var rangeIncrement: Double = 0.0
 
     // Special Skills may need adjusted or additional fields:
     var bladeCountIncrement: Int = 0
-    var bladeDamageIncrement: Int = 0
-    var bladeSpeedIncrement: Double = 0
+    var bladeDamageIncrement: Double = 0.0
+    var bladeSpeedIncrement: Double = 0.0
 
-    var barrierSizeIncrement: Double = 0
-    var barrierDamageIncrement: Int = 0
-    var barrierPulseFrequencyIncrement: Double = 0
-    var barrierSlowAmountIncrement: Double = 0
+    var barrierSizeIncrement: Double = 0.0
+    var barrierDamageFactor: Double = 0.0
+    var barrierPulseFrequencyIncrement: Double = 0.0
+    var barrierSlowAmountIncrement: Double = 0.0
 
-    var healthIncrement: Double = 0
-    var coinRadiusIncrement: Double = 0
+    var healthIncrement: Double = 0.0
+    var coinRadiusIncrement: Double = 0.0
 
-    var freezeGrenadeCooldownReduction: Double = 0
-    var freezeDurationIncrement: Double = 0
-    var freezeRadiusIncrement: Double = 0
+    var freezeGrenadeCooldownReduction: Double = 0.0
+    var freezeDurationIncrement: Double = 0.0
+    var freezeRadiusIncrement: Double = 0.0
 }
 
 struct SkillDefinition {
@@ -201,6 +211,26 @@ class SkillManager {
             special.apply(to: player)
         }
     }
+    
+    func createRegularSkillInstance(for type: SkillType) -> RegularSkill? {
+        // Check if the skill type is a regular skill
+        if let definition = allRegularDefinitions.first(where: { $0.type == type }) {
+            return RegularSkill(definition: definition)
+        }
+        
+        // If the skill type is not found in either category, return nil
+        return nil
+    }
+    
+    func createSpecialSkillInstance(for type: SkillType) -> SpecialSkill? {
+        // Check if the skill type is a special skill
+        if allSpecialTypes.contains(type) {
+            return SpecialSkill(type: type)
+        }
+        
+        // If the skill type is not found in either category, return nil
+        return nil
+    }
 }
 
 
@@ -266,10 +296,10 @@ extension SkillManager {
         /// Each upgrade increases all values
         allRegularDefinitions.append(
             SkillDefinition(type: .protectiveBarrier, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(barrierSizeIncrement: 10, barrierDamageIncrement: 1, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.05),
-                SkillLevelEffect(barrierSizeIncrement: 15, barrierDamageIncrement: 2, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.1),
-                SkillLevelEffect(barrierSizeIncrement: 20, barrierDamageIncrement: 3, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.15),
-                SkillLevelEffect(barrierSizeIncrement: 30, barrierDamageIncrement: 4, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.2)
+                SkillLevelEffect(barrierSizeIncrement: 40, barrierDamageFactor: 0.2, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.05),
+                SkillLevelEffect(barrierSizeIncrement: 15, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.1),
+                SkillLevelEffect(barrierSizeIncrement: 20, barrierDamageFactor: 0.8, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.15),
+                SkillLevelEffect(barrierSizeIncrement: 30, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.2)
             ])
         )
 
@@ -299,10 +329,10 @@ extension SkillManager {
         /// Improves grenade cooldown, freeze duration, and radius
         allRegularDefinitions.append(
             SkillDefinition(type: .freeze, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.1, freezeDurationIncrement: 0.5, freezeRadiusIncrement: 25),
-                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.15, freezeDurationIncrement: 0.5, freezeRadiusIncrement: 25),
-                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.2, freezeDurationIncrement: 1.0, freezeRadiusIncrement: 50),
-                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.3, freezeDurationIncrement: 1.0, freezeRadiusIncrement: 50)
+                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.1, freezeDurationIncrement: 2.5, freezeRadiusIncrement: 25),
+                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.15, freezeDurationIncrement: 3.5, freezeRadiusIncrement: 30),
+                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.2, freezeDurationIncrement: 4.0, freezeRadiusIncrement: 40),
+                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.3, freezeDurationIncrement: 5.0, freezeRadiusIncrement: 50)
             ])
         )
     }

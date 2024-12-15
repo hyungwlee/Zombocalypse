@@ -5,6 +5,8 @@
 //  Created by Sam Richard on 12/5/24.
 //
 
+import Foundation
+
 
 /// This allows us to use ZPGameScene as our "delegate" (sort of like a parent)
 /// We can call only these 5 methods that we will implement in our delegate
@@ -50,23 +52,28 @@ class PlayerState {
     var currentMaxHealth: Double = 0
     var currentCoinRadius: Double = 0
     
+    let projectileSpeed: Double = 100.0
+    
     // XP
     var currentXP: Int = 0
     var xpPickupRadius: Double = 30.0
     
     // Spinning blades properties
     var spinningBladesCount: Int = 0
-    var spinningBladesDamage: Int = 0
+    var spinningBladesDamage: Double = 0.0
     var spinningBladesSpeed: Double = 0.0
+    let spinningBladesDamageCooldown: TimeInterval = 1.0
     
     // Protective Barrier
     var barrierSize: Double = 0.0
-    var barrierDamage: Int = 0
+    var barrierDamageFactor: Double = 0.0
     var barrierPulseFrequency: Double = 0.0
     var barrierSlowAmount: Double = 0.0
 
     // Freeze Grenade
-    var freezeGrenadeCooldown: Double = 0.0
+    var freezeGrenadeActive: Bool = false
+    let freezeGrenadeBaseCooldown: Double = 5.0
+    var freezeGrenadeCooldownReduction: Double = 0.0
     var freezeDuration: Double = 0.0
     var freezeRadius: Double = 0.0
     
@@ -75,6 +82,12 @@ class PlayerState {
     var projectilesPierce: Bool = false       // If true, Reinforced Arrow effect
     var spectralShieldActive: Bool = false    // If true, a shield should appear around player
     var mightyKnockbackActive: Bool = false   // If true, every X seconds we push enemies away
+    
+    let spectralShieldDamageFactor: Double = 0.5
+    let spectralShieldBossDamageFactor: Double = 0.1
+    let shieldMaxHits: Int = 3
+    let shieldCooldown: TimeInterval = 10.0
+    var shieldHitsRemaining: Int = 3
 
     // This is called every time a new skill is added.
     // It is a refresh to make sure the increments don't stack
@@ -95,26 +108,30 @@ class PlayerState {
         spinningBladesSpeed = 0.0
         
         barrierSize = 0.0
-        barrierDamage = 0
+        barrierDamageFactor = 0
         barrierPulseFrequency = 0.0
         barrierSlowAmount = 0.0
 
-        freezeGrenadeCooldown = 0.0
+        freezeGrenadeActive = false
+        freezeGrenadeCooldownReduction = 0.0
         freezeDuration = 0.0
         freezeRadius = 0.0
         
         // Reset Special Skill Flags
         hasHelpingHand = false
-        delegate?.playerStateDidDeactivateHelpingHand()
         projectilesPierce = false
         spectralShieldActive = false
-        delegate?.playerStateDidDeactivateSpectralShield()
         mightyKnockbackActive = false
+        
+        delegate?.playerStateDidDeactivateHelpingHand()
+        delegate?.playerStateDidDeactivateSpectralShield()
+
+        shieldHitsRemaining = 3
     }
     
     
     // MARK: Regular Skills
-    func addSpinningBlades(count: Int, damage: Int, speed: Double) {
+    func addSpinningBlades(count: Int, damage: Double, speed: Double) {
         spinningBladesCount += count
         spinningBladesDamage += damage
         spinningBladesSpeed += speed
@@ -123,9 +140,9 @@ class PlayerState {
         delegate?.playerStateDidAddSpinningBlades(self)
     }
     
-    func upgradeBarrier(sizeIncrement: Double, damageIncrement: Int, pulseFrequencyIncrement: Double, slowAmountIncrement: Double) {
+    func upgradeBarrier(sizeIncrement: Double, damageIncrement: Double, pulseFrequencyIncrement: Double, slowAmountIncrement: Double) {
         barrierSize += sizeIncrement
-        barrierDamage += damageIncrement
+        barrierDamageFactor += damageIncrement
         barrierPulseFrequency += pulseFrequencyIncrement
         barrierSlowAmount += slowAmountIncrement
         
@@ -148,9 +165,10 @@ class PlayerState {
     }
 
     func upgradeFreeze(cooldownReduction: Double, durationIncrement: Double, radiusIncrement: Double) {
-        freezeGrenadeCooldown += cooldownReduction
+        freezeGrenadeCooldownReduction += cooldownReduction
         freezeDuration += durationIncrement
         freezeRadius += radiusIncrement
+        freezeGrenadeActive = false
         
         // Calls to logic in GameScene relating to this skill
         delegate?.playerStateDidUpgradeFreeze(self)

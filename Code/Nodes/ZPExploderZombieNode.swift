@@ -15,13 +15,14 @@ class ZPExploderZombieNode: ZPZombie {
     private var explosionRange: CGFloat = 100.0 // Radius for area-of-effect damage
     private var explosionCooldown: TimeInterval = 1.0 // 1-second cooldown after exploding
     private var blastIndicator: SKShapeNode?
-    private var exploderMovementSpeed: CGFloat
     
     // Initialize with movement speed, pass health to the superclass
     init(health: Double, movementSpeed exploderMovementSpeed: CGFloat) {
-        self.exploderMovementSpeed = exploderMovementSpeed
         super.init(health: health)
-        self.color = .purple // Unique color for the exploder
+        self.movementSpeed = exploderMovementSpeed
+        self.baseSpeed = exploderMovementSpeed
+        self.baseColor = .purple // Unique color for the exploder
+        self.color = baseColor
         configureBlastIndicator()
     }
     
@@ -43,13 +44,21 @@ class ZPExploderZombieNode: ZPZombie {
     }
     
     func update(deltaTime: TimeInterval, playerPosition: CGPoint) {
+        if isFrozen {
+            removeAllActions()
+            isPreparingToExplode = false
+            blastIndicator?.alpha = 0.3
+            blastIndicator?.fillColor = .clear
+            return
+        }
+        
         let distanceToPlayer = hypot(playerPosition.x - position.x, playerPosition.y - position.y)
         
         if !isPreparingToExplode && distanceToPlayer < explosionRange && deltaTime - lastExplosionAttemptTime > explosionCooldown {
             prepareToExplode()
             lastExplosionAttemptTime = deltaTime
         } else if !isPreparingToExplode {
-            moveToward(playerPosition)
+            moveTowards(playerPosition: playerPosition, speed: movementSpeed)
         }
     }
     
@@ -82,6 +91,8 @@ class ZPExploderZombieNode: ZPZombie {
     }
     
     private func explode() {
+        guard let gameScene = scene as? ZPGameScene else { return }
+        
         isPreparingToExplode = false
         blastIndicator?.alpha = 0.3
         blastIndicator?.fillColor = .clear
@@ -90,17 +101,10 @@ class ZPExploderZombieNode: ZPZombie {
         let explosionCenter = self.position
         //print("Exploding with damage: \(explosionDamage)")
         
-        guard let gameScene = parent as? ZPGameScene else {
-            return
-        }
-        
-        // Remove from parent after exploding
-        gameScene.removeZombieFromTracking(self)
-        removeFromParent()
-        
-        
         // Apply damage to zombies within the explosion radius
         gameScene.children.compactMap { $0 as? ZPZombie }.forEach { zombie in
+            //Exclude self to prevent double handling
+            if zombie === self { return }
             let distanceToZombie = hypot(zombie.position.x - explosionCenter.x, zombie.position.y - explosionCenter.y)
             if distanceToZombie <= explosionRange {
                 zombie.takeDamage(amount: explosionDamage) // Adjust damage as needed
@@ -113,14 +117,14 @@ class ZPExploderZombieNode: ZPZombie {
             gameScene.playerLives -= explosionDamage
         }
         
+        // Remove from parent after exploding
+        gameScene.removeZombieFromTracking(self)
+        removeFromParent()
+        
+        //Notify the scene that this enemy has been defeated
+        gameScene.handleEnemyDefeat(at: explosionCenter)
+        
     }
-    
-    private func moveToward(_ target: CGPoint) {
-        // Standard movement toward the target
-        let offset = CGPoint(x: target.x - position.x, y: target.y - position.y)
-        let direction = CGVector(dx: offset.x, dy: offset.y).normalized
-        let movementVector = CGVector(dx: direction.dx * exploderMovementSpeed, dy: direction.dy * exploderMovementSpeed)
-        position = CGPoint(x: position.x + movementVector.dx, y: position.y + movementVector.dy)
-    }
+
 }
 

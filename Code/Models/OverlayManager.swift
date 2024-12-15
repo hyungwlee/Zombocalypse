@@ -27,14 +27,16 @@ class OverlayManager {
         isShowingOverlay = true
         let nextOverlay = overlayQueue.removeFirst()
         cameraNode.addChild(nextOverlay)
-        scene.isPaused = true
-        scene.stopXPSpawnTimer()
+        scene.pauseGame()
+//        scene.isPaused = true
+//        scene.stopXPSpawnTimer()
     }
     
     func closeCurrentOverlay(_ overlay: SKNode) {
         overlay.removeFromParent()
         isShowingOverlay = false
-        scene?.isPaused = false
+        scene?.unpauseGame()
+        //scene?.isPaused = false
         showNextOverlayIfPossible()
         scene?.updateXPBar()
         scene?.updateUpgradeStatsLabel()

@@ -100,7 +100,13 @@ class UpgradeShopOverlayNode: SKNode {
         var yPos = choicesStartY
         for (index, skill) in choices.enumerated() {
             let iconSize: CGFloat = 30
-            let icon = SKSpriteNode(color: .blue, size: CGSize(width: iconSize, height: iconSize))
+            let icon: SKSpriteNode
+            if !skill.definition.type.iconName.isEmpty {
+                icon = SKSpriteNode(imageNamed: skill.definition.type.iconName)
+                icon.size = CGSize(width: iconSize, height: iconSize)
+            } else {
+                icon = SKSpriteNode(color: .blue, size: CGSize(width: iconSize, height: iconSize))
+            }
             icon.position = CGPoint(x: -100, y: yPos)
             icon.zPosition = 101
             addChild(icon)
