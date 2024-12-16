@@ -266,29 +266,37 @@ class ZPWizard: SKSpriteNode {
         
         if isFrozen || isBossPaused { return }
         
-        let beam = SKShapeNode()
-        let path = CGMutablePath()
-        path.move(to: position)
-        path.addLine(to: extendedBeamEnd(from: position, to: targetPosition))
-        beam.path = path
-        beam.strokeColor = .yellow
-        beam.lineWidth = 5
+        //Calculate the beam's end point
+        let beamEnd = extendedBeamEnd(from: position, to: targetPosition)
+        
+        //Create the beam as a thin rectanlge for physics detection
+        let beamLength = hypot(beamEnd.x - position.x, beamEnd.y - position.y)
+        let beamWidth: CGFloat = 10.0 // Adjust thickness as needed
+        
+        let beam = SKSpriteNode(color: .yellow, size: CGSize(width: beamLength, height: beamWidth))
+        beam.position = CGPoint(x: (position.x + beamEnd.x) / 2, y: (position.y + beamEnd.y) / 2)
+        beam.zRotation = atan2(beamEnd.y - position.y, beamEnd.x - position.x)
         beam.alpha = 0.7
+        beam.zPosition = 5
+        beam.name = "beam"
+        
+        //Configure physics body
+        beam.physicsBody = SKPhysicsBody(rectangleOf: beam.size)
+        beam.physicsBody?.isDynamic = true
+        beam.physicsBody?.categoryBitMask = PhysicsCategory.bossBeam
+        beam.physicsBody?.contactTestBitMask = PhysicsCategory.player
+        beam.physicsBody?.collisionBitMask = PhysicsCategory.none
+        beam.physicsBody?.affectedByGravity = false
+        beam.physicsBody?.allowsRotation = false
+        beam.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+        beam.physicsBody?.angularVelocity = 0
+        
         scene.addChild(beam)
         
-        playerHitByBeam = false
-        
-        let dealDamage = SKAction.run { [weak self] in
-            guard let self = self else { return }
-            if self.isPlayerOnBeamPath(beamStart: self.position, beamEnd: targetPosition, playerPosition: scene.player.position), !self.playerHitByBeam {
-                //print("PLAYER HIT BY BEAM")
-                scene.bossHitPlayer()
-                self.playerHitByBeam = true // prevent further damage during this beam attack
-            }
-        }
-        let remove = SKAction.removeFromParent()
-        let wait = SKAction.wait(forDuration: 1.0)
-        beam.run(SKAction.sequence([SKAction.repeat(dealDamage, count: 3), wait, remove]))
+        let beamDuration: TimeInterval = 1.0
+        let removeBeam = SKAction.removeFromParent()
+        let sequence = SKAction.sequence([SKAction.wait(forDuration: beamDuration), removeBeam])
+        beam.run(sequence)
     }
         
     private func isPlayerOnBeamPath(beamStart: CGPoint, beamEnd: CGPoint, playerPosition: CGPoint) -> Bool {
