@@ -142,6 +142,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     private var zombieHealth: Double = 3.0
     private var wizardHealth: Double = 15.0
     private var wizardBoss: ZPWizard?
+    var activeBeamContacts: Set<SKPhysicsBody> = []
+    var beamDamageTimer: Timer?
+    
 //    private var bossisAlive: Bool = false -> changed to wizardBoss?.isAlive
     var arenaBounds: CGRect?
     var waveLabel: SKLabelNode!
@@ -257,8 +260,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         cameraNode.addChild(joystick)
         cameraNode.addChild(shootJoystick)
         
-        
-        
+        beamDamageTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
+            self?.applyBeamDamage()
+        }
         
 //        let spinningBladesSkill = skillManager.createRegularSkillInstance(for: .spinningBlades)
 //        skillManager.acquireOrUpgradeRegularSkill(spinningBladesSkill!)
@@ -273,6 +277,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //        skillManager.acquireSpecialSkill(.spectralShield)
 //        skillManager.acquireSpecialSkill(.reinforcedArrow)
 //        skillManager.acquireSpecialSkill(.mightyKnockback)
+    }
+    
+    deinit {
+        beamDamageTimer?.invalidate()
     }
     
     func setUpGame() {
@@ -316,7 +324,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         // MARK: Physics
         player.physicsBody = SKPhysicsBody(rectangleOf: player.size)
         player.physicsBody?.categoryBitMask = PhysicsCategory.player
-        player.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.xp
+        player.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.xp | PhysicsCategory.bossBeam
         player.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.arenaBarrier
         player.physicsBody?.affectedByGravity = false
         player.physicsBody?.allowsRotation = false
@@ -388,6 +396,14 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         wizardBoss?.isAlive = false
         childNode(withName: "wizard")?.removeFromParent()
         removeZombies()
+        
+        //Clear any existing boundaries/barriers from boss
+        if let arenaOutline = self.childNode(withName: "arenaOutline") {
+            arenaOutline.removeFromParent()
+        }
+        if let arenaBarrier = self.childNode(withName: "arenaBarrier") {
+            arenaBarrier.removeFromParent()
+        }
 
         //Wave function
         //maintainEnemyCount()
@@ -1709,6 +1725,23 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
     
+    func applyBeamDamage() {
+        //Identify beams that are no longer in the scene
+        var beamsToRemove: [SKPhysicsBody] = []
+        for beamBody in activeBeamContacts {
+            if beamBody.node?.parent == nil {
+                beamsToRemove.append(beamBody)
+            }
+        }
+        //Remove beams that are no longer present
+        for beamBody in beamsToRemove {
+            activeBeamContacts.remove(beamBody)
+        }
+        if !activeBeamContacts.isEmpty {
+            bossHitPlayer()
+        }
+    }
+    
     func isPlayerStillInContact(with enemy: ZPZombie) -> Bool {
         //Can use either physics contact info or distance check
         let distance = player.position.distance(to: enemy.position)
@@ -2033,6 +2066,16 @@ extension ZPGameScene: SKPhysicsContactDelegate {
                 }
             }
         }
+        
+        //Player & Beam Collision
+        if (firstBody.categoryBitMask == PhysicsCategory.bossBeam && secondBody.categoryBitMask == PhysicsCategory.player) || (firstBody.categoryBitMask == PhysicsCategory.player && secondBody.categoryBitMask == PhysicsCategory.bossBeam) {
+            if let beamNode = firstBody.categoryBitMask == PhysicsCategory.bossBeam ? firstBody.node : secondBody.node,
+               let beamBody = beamNode.physicsBody {
+                activeBeamContacts.insert(beamBody)
+            }
+            
+        }
+        
         // remove projectile if it hits border
         if ((firstBody.categoryBitMask == PhysicsCategory.border) && secondBody.categoryBitMask == PhysicsCategory.projectile) {
             if let projectileNode = secondBody.node as? SKSpriteNode {
@@ -2113,6 +2156,14 @@ extension ZPGameScene: SKPhysicsContactDelegate {
                 bossNode.movementSpeed = bossNode.baseSpeed
                 bossNode.color = bossNode.baseColor
                 bossNode.colorBlendFactor = 1.0
+            }
+        }
+        
+        //Player and beam collision end
+        if (firstBody.categoryBitMask == PhysicsCategory.bossBeam && secondBody.categoryBitMask == PhysicsCategory.player) || (firstBody.categoryBitMask == PhysicsCategory.player && secondBody.categoryBitMask == PhysicsCategory.bossBeam) {
+            if let beamNode = firstBody.categoryBitMask == PhysicsCategory.bossBeam ? firstBody.node : secondBody.node,
+               let beamBody = beamNode.physicsBody {
+                activeBeamContacts.remove(beamBody)
             }
         }
     }
@@ -2211,6 +2262,33 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         stopEnemyMovement(enemy)
         applyDamageToPlayer(from: enemy)
         lastDamageTime = currentTime
+    }
+    
+    func startDamagingPlayerWithBeam(withBeam beamNode: SKNode) {
+        //Add beam's physics body to activeBeamContacts
+        if let beamBody = beamNode.physicsBody {
+            activeBeamContacts.insert(beamBody)
+        }
+        
+        //Start applying damage every 0.5 seconds
+        let damageAction = SKAction.repeatForever(
+            SKAction.sequence([
+                SKAction.run { [weak self] in
+                    self?.bossHitPlayer()
+                },
+                SKAction.wait(forDuration: 0.5)
+            ])
+        )
+        beamNode.run(damageAction, withKey: "damagePlayerWithBeam")
+    }
+    
+    func stopDamagingPlayerWithBeam(withBeam beamNode: SKNode) {
+        //Remove beam's physics body from activeBeamContacts
+        if let beamBody = beamNode.physicsBody {
+            activeBeamContacts.remove(beamBody)
+        }
+        //Stop the damage action
+        beamNode.removeAction(forKey: "damagePlayerWithBeam")
     }
     
     func applyDamageToPlayer(from enemy: ZPZombie) {

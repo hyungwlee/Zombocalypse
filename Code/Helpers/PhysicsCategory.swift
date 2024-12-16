@@ -23,4 +23,6 @@ struct PhysicsCategory {
     static let shield: UInt32                 = 0x1 << 11
     
     static let none: UInt32                   = 0x1 << 12
+    
+    static let bossBeam: UInt32               = 0x1 << 13
 }
