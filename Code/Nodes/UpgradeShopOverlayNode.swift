@@ -103,7 +103,7 @@ class UpgradeShopOverlayNode: SKNode {
             let icon: SKSpriteNode
             if !skill.definition.type.iconName.isEmpty {
                 icon = SKSpriteNode(imageNamed: skill.definition.type.iconName)
-                icon.size = CGSize(width: iconSize, height: iconSize)
+                //icon.size = CGSize(width: iconSize, height: iconSize)
             } else {
                 icon = SKSpriteNode(color: .blue, size: CGSize(width: iconSize, height: iconSize))
             }

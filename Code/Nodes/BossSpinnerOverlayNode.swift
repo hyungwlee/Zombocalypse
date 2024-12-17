@@ -129,7 +129,7 @@ class BossSpinnerOverlayNode: SKNode {
             
             // Skill Icon
             let icon = SKSpriteNode(imageNamed: skillType.iconName) // Ensure each SkillType has an `iconName` property
-            icon.size = CGSize(width: 40, height: 40)
+            //icon.size = CGSize(width: 40, height: 40)
             icon.position = CGPoint.zero
             icon.zPosition = 102
             skillBox.addChild(icon)
