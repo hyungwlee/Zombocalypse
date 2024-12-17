@@ -229,7 +229,7 @@ class UpgradeShopOverlayNode: SKNode {
             // Description Labels with Text Wrapping
             let descriptionFont = UIFont(name: "InknutAntiqua-Regular", size: 12) ?? UIFont.systemFont(ofSize: 12)
             let descriptionColor = UIColor(hex: "#D3D3D3") ?? .lightGray  // LightGray color
-            let descriptionText = skill.definition.description
+            let descriptionText = skill.definition.type.skillDescription
             
             let descriptionMaxWidth = choiceBg.size.width * 0.6
             let descriptionLines = splitText(descriptionText, maxWidth: descriptionMaxWidth, font: descriptionFont)

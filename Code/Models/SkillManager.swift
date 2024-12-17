@@ -55,11 +55,9 @@ enum SkillType {
         case .spectralShield:
             return "SPECTRAL SHIELD"
         case .mightyKnockback:
-            return "MIGHT KNOCKBACK"
+            return "MIGHTY KNOCKBACK"
         case .bonusHealth:
             return "BONUS HEALTH"
-        default:
-            return "SKILL"
         }
     }
     
@@ -93,8 +91,39 @@ enum SkillType {
             return "sk_mighty_knockback"
         case .bonusHealth:
             return "sk_bonus_health"
-        default:
-            return ""
+        }
+    }
+    
+    var skillDescription: String {
+        switch self {
+        case .attackDamage:
+            return "Increase main weapon attack damage."
+        case .attackSpeed:
+            return "Conquer your foes even more swiftly."
+        case .movementSpeed:
+            return "Better off running than fighting... right?"
+        case .attackRange:
+            return "Boost your base attack radius."
+        case .spinningBlades:
+            return "Spinning death circling around you!"
+        case .protectiveBarrier:
+            return "Damages and slows all who near."
+        case .healthUpgrade:
+            return "Restores health and boosts capacity."
+        case .magnet:
+            return "Increase xp pickup radius."
+        case .freeze:
+            return "Stop enemies cold... literally!"
+        case .helpingHand:
+            return "A trusty companion firing on your behalf."
+        case .reinforcedArrow:
+            return "Projectiles pierce through enemies."
+        case .spectralShield:
+            return "A mystical shield that blocks attacks."
+        case .mightyKnockback:
+            return "Forcefully repel approaching foes."
+        case .bonusHealth:
+            return "A well deserved top-up."
         }
     }
 }
@@ -128,7 +157,6 @@ struct SkillDefinition {
     let type: SkillType
     let maxLevel: Int
     let levelEffects: [SkillLevelEffect]
-    let description: String
     
     // For special skills, maxLevel = 1 and levelEffects[0] can represent the base effect.
     // If you have no incremental stats, you could store minimal data here and handle logic directly in the skill’s apply method.
@@ -162,7 +190,7 @@ class SkillManager {
         }
         if available.count < 3 {
             for _ in available.count ..< 3 {
-                available.append(RegularSkill(definition: SkillDefinition(type: .bonusHealth, maxLevel: 1, levelEffects: [SkillLevelEffect(healthIncrement: 0.0)], description: "A well deserved top-up.")))
+                available.append(RegularSkill(definition: SkillDefinition(type: .bonusHealth, maxLevel: 1, levelEffects: [SkillLevelEffect(healthIncrement: 0.0)])))
             }
         }
         return Array(available.shuffled().prefix(3))
@@ -257,8 +285,7 @@ extension SkillManager {
                     SkillLevelEffect(damageIncrement: 2),
                     SkillLevelEffect(damageIncrement: 2.5),
                     SkillLevelEffect(damageIncrement: 3)
-                ],
-                description: "Increase main weapon attack damage."
+                ]
             )
         )
         
@@ -272,8 +299,7 @@ extension SkillManager {
                     SkillLevelEffect(attackSpeedIncrement: 0.15),
                     SkillLevelEffect(attackSpeedIncrement: 0.2),
                     SkillLevelEffect(attackSpeedIncrement: 0.25)
-                ],
-                description: "Conquer your foes even more swiftly."
+                ]
             )
         )
 
@@ -287,8 +313,7 @@ extension SkillManager {
                     SkillLevelEffect(movementSpeedIncrement: 0.15),
                     SkillLevelEffect(movementSpeedIncrement: 0.2),
                     SkillLevelEffect(movementSpeedIncrement: 0.3)
-                ],
-                description: "Better off running than fighting... right?"
+                ]
             )
         )
 
@@ -302,8 +327,7 @@ extension SkillManager {
                     SkillLevelEffect(rangeIncrement: 75),
                     SkillLevelEffect(rangeIncrement: 100),
                     SkillLevelEffect(rangeIncrement: 150)
-                ],
-                description: "Boost your base attack radius."
+                ]
             )
         )
 
@@ -319,8 +343,7 @@ extension SkillManager {
                     SkillLevelEffect(bladeCountIncrement: 2, bladeDamageIncrement: 3, bladeSpeedIncrement: 0.15),
                     SkillLevelEffect(bladeCountIncrement: 3, bladeDamageIncrement: 4, bladeSpeedIncrement: 0.2),
                     SkillLevelEffect(bladeCountIncrement: 4, bladeDamageIncrement: 5, bladeSpeedIncrement: 0.3)
-                ],
-                description: "Spinning death circling around you!"
+                ]
             )
         )
 
@@ -335,8 +358,7 @@ extension SkillManager {
                     SkillLevelEffect(barrierSizeIncrement: 15, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.1),
                     SkillLevelEffect(barrierSizeIncrement: 20, barrierDamageFactor: 0.8, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.15),
                     SkillLevelEffect(barrierSizeIncrement: 30, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.2)
-                ],
-                description: "Damages and slows all who near."
+                ]
             )
         )
 
@@ -351,8 +373,7 @@ extension SkillManager {
                     SkillLevelEffect(healthIncrement: 1.0),
                     SkillLevelEffect(healthIncrement: 1.5),
                     SkillLevelEffect(healthIncrement: 2.5)
-                ],
-                description: "Restores health and boosts capacity."
+                ]
             )
         )
 
@@ -367,8 +388,7 @@ extension SkillManager {
                     SkillLevelEffect(coinRadiusIncrement: 25),
                     SkillLevelEffect(coinRadiusIncrement: 25),
                     SkillLevelEffect(coinRadiusIncrement: 25)
-                ],
-                description: "Increase xp pickup radius."
+                ]
             )
         )
 
@@ -383,8 +403,7 @@ extension SkillManager {
                     SkillLevelEffect(freezeGrenadeCooldownReduction: 0.15, freezeDurationIncrement: 3.5, freezeRadiusIncrement: 30),
                     SkillLevelEffect(freezeGrenadeCooldownReduction: 0.2, freezeDurationIncrement: 4.0, freezeRadiusIncrement: 40),
                     SkillLevelEffect(freezeGrenadeCooldownReduction: 0.3, freezeDurationIncrement: 5.0, freezeRadiusIncrement: 50)
-                ],
-                description: "Stop enemies cold... literally!"
+                ]
             )
         )
     }

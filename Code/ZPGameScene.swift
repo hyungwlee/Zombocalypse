@@ -1228,7 +1228,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
         
          // Create the special skill spinner overlay
-        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager)
+        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager, overlaySize: size)
         overlayManager.enqueueOverlay(spinnerOverlay)
         
         isBossStage = false
@@ -2183,11 +2183,6 @@ extension ZPGameScene: SKPhysicsContactDelegate {
     
     func applyDamageToEnemy(_ enemy: ZPZombie, damage: Double) {
         enemy.takeDamage(amount: damage)
-        if enemy.isDead {
-            let pos = enemy.position
-            enemyManager.removeEnemy(enemy)
-            handleEnemyDefeat(at: pos)
-        }
     }
 
 }
