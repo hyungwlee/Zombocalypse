@@ -36,7 +36,10 @@ class UpgradeShopManager {
     
     func playerDidSelectSkill(_ skill: RegularSkill) {
         skillManager.acquireOrUpgradeRegularSkill(skill)
-        XPToNextLevel += 1
+        if skill.definition.type == .healthUpgrade || skill.definition.type == .bonusHealth {
+            scene?.restoreHealth(1.0)
+        }
+//        XPToNextLevel += 1
         nextShopXPThreshold = XPCount + XPToNextLevel
     }
 }
