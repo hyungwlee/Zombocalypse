@@ -66,6 +66,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var playerState = PlayerState()
     var skillManager: SkillManager!
     var enemyManager: EnemyManager!
+    var mapManager: MapManager!
     
     //Skills related settings
     var bladesContainer: SKNode?
@@ -77,9 +78,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var grenadeShootInterval: TimeInterval = 5.0
     
     //Inf background settings
-    var topBound: CGFloat = 0
-    var bottomBound: CGFloat = 0
-    var backgroundSections: [SKSpriteNode] = []
     let sectionWidth: CGFloat = 3340 // Example width of each section (Adjust based on image) 1024
     let sectionHeight: CGFloat = 3510 // Example height of each section (Adjust as needed) 768
     let numSections: Int = 5         // Number of sections (Higher = longer before repeated gen., Lower = shorter before repeated gen.)
@@ -132,7 +130,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     //New wave settings
     var waveCycle: [Wave] = []
     var currentWaveIndex: Int = 0
-    var gracePeriod: TimeInterval = 7.0 // Initial grace period
+    var gracePeriod: TimeInterval = 7.0
     var pendingEnemies: Int = 0
     var enemiesToSpawn: Int = 0
     var waveProgressionWorkItem: DispatchWorkItem?
@@ -145,7 +143,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var activeBeamContacts: Set<SKPhysicsBody> = []
     var beamDamageTimer: Timer?
     
-//    private var bossisAlive: Bool = false -> changed to wizardBoss?.isAlive
     var arenaBounds: CGRect?
     var waveLabel: SKLabelNode!
     private let waveMessageLabel = SKLabelNode(fontNamed: "Arial")
@@ -159,12 +156,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     private var displayedEnemyMessages: Set<Int> = []
     
     // Auto-attack variables
-    /// these are stored and tracked in PlayerState
-//    private var attackDamage: Double!
-//    private var projectileMoveDistance: CGFloat!
-//    private var shootInterval: TimeInterval!
     private var lastShootTime: TimeInterval = 0
-//    private var playerMoveSpeed: CGFloat!
     
     //Score Settings
     var score: Int = 0 {
@@ -180,9 +172,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     private var activeTouches: [UITouch: ZPJoystick] = [:]
         
     //Upgrades Settings
-//    var upgradePopup: SKShapeNode!
     var upgradeStatsLabel: SKLabelNode!
-//    var currentUpgradeChoices: [RegularSkill] = []
     
     var upgradeShopManager: UpgradeShopManager!
     var overlayManager: OverlayManager!
@@ -205,11 +195,14 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     override func didMove(to view: SKView) {
+        
         playerState.delegate = self
         skillManager = SkillManager(player: playerState)
         upgradeShopManager = UpgradeShopManager(scene: self, skillManager: skillManager)
         overlayManager = OverlayManager(scene: self)
         enemyManager = EnemyManager(scene: self)
+        mapManager = MapManager(sectionWidth: (size.height * 2.0) * 0.95331, sectionHeight: size.height * 2.0, numSections: 5)
+        mapManager.setupBackground(in: self, withTexture: "sk_map")
         
         self.physicsWorld.contactDelegate = self
                 
@@ -291,24 +284,38 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         // Sets up player at fixed start position
         if player == nil {
             player = SKSpriteNode(color: .blue, size: CGSize(width: 25, height: 25))
+            player.position = centerPosition
+            
+            // MARK: Physics
+            player.physicsBody = SKPhysicsBody(rectangleOf: player.size)
+            player.physicsBody?.categoryBitMask = PhysicsCategory.player
+            player.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.xp | PhysicsCategory.bossBeam | PhysicsCategory.border | PhysicsCategory.bossArenaBorder
+            player.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.bossArenaBorder
+            player.physicsBody?.affectedByGravity = false
+            player.physicsBody?.allowsRotation = false
+            player.physicsBody?.isDynamic = true
+            
             addChild(player)
             
             //Initialize blades container
             bladesContainer = SKNode()
             bladesContainer?.position = CGPoint.zero
             bladesContainer?.zPosition = 1
-            player.addChild(bladesContainer!)
+            bladesContainer?.name = "bladesContainer"
+            camera?.addChild(bladesContainer!)
             
             //Initialize barrier container
             barrierContainer = SKNode()
             barrierContainer?.position = CGPoint.zero
-            barrierContainer?.zPosition = 2 // Above blades for now but can change
-            player.addChild(barrierContainer!)
+            barrierContainer?.zPosition = 2
+            barrierContainer?.name = "barrierContainer"
+            camera?.addChild(barrierContainer!)
             
             shieldContainer = SKNode()
             shieldContainer?.position = CGPoint.zero
             shieldContainer?.zPosition = 3
-            player.addChild(shieldContainer!)
+            shieldContainer?.name = "shieldContainer"
+            camera?.addChild(shieldContainer!)
             
             //Player label above head
             let playerLabel = SKLabelNode(fontNamed: "Arial")
@@ -319,18 +326,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             playerLabel.name = "playerLabel"
             player.addChild(playerLabel)
         }
-        player.position = centerPosition
+
         
-        // MARK: Physics
-        player.physicsBody = SKPhysicsBody(rectangleOf: player.size)
-        player.physicsBody?.categoryBitMask = PhysicsCategory.player
-        player.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.xp | PhysicsCategory.bossBeam
-        player.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.arenaBarrier
-        player.physicsBody?.affectedByGravity = false
-        player.physicsBody?.allowsRotation = false
-        player.physicsBody?.isDynamic = false
-        
-        //TEST 'HARDSET' VALUES FOR BLADE
+//        TEST 'HARDSET' VALUES FOR BLADE
 //        playerState.spinningBladesCount = 2
 //        playerState.spinningBladesDamage = 3
 //        playerState.spinningBladesSpeed = 1.0
@@ -338,7 +336,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //            RegularSkill(definition: skillManager.allRegularDefinitions.first { $0.type == .spinningBlades }!)
 //        )
 //        playerState.barrierSize = 1000
-//        playerState.barrierDamage = 1
+////        playerState.barrierDamage = 1
 //        playerState.barrierPulseFrequency = 2.0
 //        skillManager.acquireOrUpgradeRegularSkill(
 //            RegularSkill(definition: skillManager.allRegularDefinitions.first { $0.type == .protectiveBarrier }!))
@@ -426,7 +424,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             //cameraNode?.addChild(shootJoystick)
         }
         updateUpgradeStatsLabel()
-        setupBackground()
         
         let xpBar = XPBarNode(width: 150, height: 20)
         xpBar.position = CGPoint(x: 0, y: size.height/2 - 230)
@@ -440,38 +437,20 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         guard !isGamePaused else { return }
         isGamePaused = true
         
-        //Pause enemymanager
         enemyManager.pauseAll()
-        
-        //Pause wave progression timers
         waveTransitionTimer?.pause()
-        
-        //Invalidate and store remaining time for timers if necessary
         stopXPSpawnTimer()
         
-//        //Pause any ongoing actions that shouldn't run during pause
-//        self.enumerateChildNodes(withName: "//enemy") { node, _ in
-//            node.speed = 0
-//        }
+        player.physicsBody?.velocity = .zero
     }
     
     func unpauseGame() {
         guard isGamePaused else { return }
         isGamePaused = false
         
-        //Resume EnemyManager
         enemyManager.resumeAll()
-        
-        //Resume wave progression timers
         waveTransitionTimer?.resume()
-        
-        //Restart XP spawn timer
         startXPSpawnTimer()
-        
-//        //Resume any paused actions
-//        self.enumerateChildNodes(withName: "//enemy") { node, _ in
-//            node.speed = 1
-//        }
     }
     
     func initializeWaves() {
@@ -638,32 +617,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
     
-    func setupBackground() {
-        // Calculate the height needed for the image
-        let totalHeight = size.height // The full height of the screen or desired play area
-        let aspectRatio = sectionWidth / sectionHeight // Maintain the image's aspect ratio
-        
-        // Resize the image to fit within the new bounds
-        let newHeight = totalHeight * 2 // Can change the multiplier to make bigger or smaller
-        let newWidth = newHeight * aspectRatio // Maintain proportions
-        
-        // Set the top and bottom 'invisible' boundaries
-        topBound = newHeight / 2 - 350
-        bottomBound = -newHeight / 2 + 50
-
-        // Set up the background sections
-        for i in 0..<numSections {
-            let section = SKSpriteNode(texture: SKTexture(imageNamed: "infGenTestImgLg"))
-            section.size = CGSize(width: newWidth, height: newHeight)
-            
-            // Position sections starting from the left side
-            section.position = CGPoint(x: CGFloat(i) * newWidth - newWidth / 2 + 10, y: 0)
-            section.zPosition = -1
-            addChild(section)
-            backgroundSections.append(section)
-        }
-    }
-    
     func showUpgradeShopOverlay(with choices: [RegularSkill]) {
         let upgradeOverlay = UpgradeShopOverlayNode(choices: choices, manager: upgradeShopManager, overlayManager: overlayManager, skillManager: skillManager)
         overlayManager.enqueueOverlay(upgradeOverlay)
@@ -701,6 +654,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             blade.physicsBody?.collisionBitMask = PhysicsCategory.none
             blade.physicsBody?.affectedByGravity = false
             blade.physicsBody?.allowsRotation = false
+            blade.physicsBody?.isDynamic = false
             
             // Calculate the position of the blade around the container
             let angle = CGFloat(i) * angleIncrement
@@ -770,10 +724,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
         
     func playerStateDidUpgradeHealth(_ state: PlayerState, restorePercentage: Double) {
-        // Just need to restore health based on the restorePercentage passed in
-        // currentMaxHealth is already updated in PlayerState
-        let restorationAmount = state.currentMaxHealth * restorePercentage
-        playerLives = max(playerLives + restorationAmount, state.currentMaxHealth)
+        //
+    }
+    
+    func restoreHealth(_ restorePercentage: Double) {
+        let restorationAmount = playerState.currentMaxHealth * restorePercentage
+        playerLives = min(playerLives + restorationAmount, playerState.currentMaxHealth)
     }
     
     func playerStateDidUpgradeMagnet(_ state: PlayerState) {
@@ -822,7 +778,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     
     func playerStateDidActivateBonusHealth(_ state: PlayerState, restorePercentage: Double) {
         // Restores player HP back to full health
-        playerLives = state.currentMaxHealth
+        //
     }
     
     func activateHelpingHand() {
@@ -838,45 +794,14 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 
     func spawnZombies(withHealth health: Double) {
         enemyManager.spawnRegularZombie(health: health)
-//        let zombie = ZPZombie(health: health)
-//        let safeRadius: CGFloat = 200.0
-//        let zombieSize = zombie.size.width
-//        var position: CGPoint
-//        //Ensure zombies do NOT overlap one another on spawn
-//        repeat{
-//            position = CGPoint(x: CGFloat.random(in: zombieSize...(size.width - zombieSize)), y: CGFloat.random(in: zombieSize...(size.height - zombieSize)))
-//        } while enemyManager.enemies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: zombie.size)) }) || position.distance(to: player.position) < safeRadius
-//        zombie.position = position
-//        addChild(zombie)
-//        enemyManager.enemies.append(zombie)
     }
     
     func spawnChargerZombie() {
         enemyManager.spawnChargerZombie(health: zombieHealth, speed: zombieSpeed)
-//        let chargerZombie = ZPChargerZombieNode(health: zombieHealth, movementSpeed: zombieSpeed)
-//        let safeRadius: CGFloat = 250.0
-//        let chargerZombieSize = chargerZombie.size.width
-//        var position: CGPoint
-//        repeat {
-//            position = CGPoint(x: CGFloat.random(in: chargerZombieSize...(size.width - chargerZombieSize)), y: CGFloat.random(in: chargerZombieSize...(size.height - chargerZombieSize)))
-//        } while enemyManager.enemies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: chargerZombie.size)) }) || position.distance(to: player.position) < safeRadius
-//        chargerZombie.position = position
-//        addChild(chargerZombie)
-//        enemyManager.enemies.append(chargerZombie)
     }
         
     func spawnExploderZombie() {
         enemyManager.spawnExploderZombie(health: zombieHealth, speed: zombieSpeed)
-//        let exploderZombie = ZPExploderZombieNode(health: zombieHealth, movementSpeed: zombieSpeed)
-//        let safeRadius: CGFloat = 250.0
-//        let exploderZombieSize = exploderZombie.size.width
-//        var position: CGPoint
-//        repeat {
-//            position = CGPoint(x: CGFloat.random(in: exploderZombieSize...(size.width - exploderZombieSize)), y: CGFloat.random(in: exploderZombieSize...(size.height - exploderZombieSize)))
-//        } while enemyManager.enemies.contains(where: { $0.frame.intersects(CGRect(origin: position, size: exploderZombie.size)) }) || position.distance(to: player.position) < safeRadius
-//        exploderZombie.position = position
-//        addChild(exploderZombie)
-//        enemyManager.enemies.append(exploderZombie)
     }
     
     func checkAndRespawnZombies(respawnRadius: CGFloat) {
@@ -960,13 +885,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
     
-    func updatePlayerMovement() {
-        if let bounds = arenaBounds {
-            player.position.x = max(bounds.minX, min(bounds.maxX, player.position.x))
-            player.position.y = max(bounds.minY, min(bounds.maxY, player.position.y))
-        }
-    }
-    
     func updateCamera() {
         guard let cameraNode = self.camera else { return }
         if arenaBounds == nil {
@@ -977,10 +895,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             )
         } else {
             //Lock camera at arena's center for when boss spawn
-            cameraNode.position = CGPoint(
-                x: arenaBounds!.midX,
-                y: arenaBounds!.midY
-            )
+//            cameraNode.position = CGPoint(
+//                x: arenaBounds!.midX,
+//                y: arenaBounds!.midY
+//            )
         }
     }
     
@@ -1064,18 +982,20 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     override func update(_ currentTime: TimeInterval) {
         super.update(currentTime)
         currentGameTime = currentTime
+        
+        camera?.position = player.position
+//        updateCamera()
     
         checkXPCollection()
         
         guard !gameOver, !isGamePaused else { return }
         
-        manageBackgroundScrolling()
-        let respawnRadius: CGFloat = 400 // Define the maximum allowed distance before zombie respawn
-        checkAndRespawnZombies(respawnRadius: respawnRadius)
+        mapManager.manageScrolling(playerPosition: player.position)
+        
+        checkAndRespawnZombies(respawnRadius: 400)
         applyContinuousDamage(currentTime: currentGameTime)
         
-        updatePlayerMovement()
-        updateCamera()
+
         
         if playerLives <= 0 {
             showGameOverScreen()
@@ -1091,23 +1011,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         // Calculate time delta for consistent movement
         let deltaTime = currentTime - lastUpdateTime
         lastUpdateTime = currentTime
-        
-        // Set the movement speed and calculate player velocity
-        let moveSpeed: CGFloat = playerState.currentMovementSpeed // Adjust speed as needed
-        let velocity = joystick.positionDelta
-        let dx = velocity.x * moveSpeed * CGFloat(deltaTime)
-        let dy = velocity.y * moveSpeed * CGFloat(deltaTime)
-        
-        //Center the camera on the player
-        self.position = CGPoint(
-            x: -player.position.x + size.width / 2,
-            y: -player.position.y + size.height / 2
-        )
-        camera?.position = player.position
-        
-        // Update player position and apply boundaries
-        let newPlayerPosition = CGPoint(x: player.position.x + dx, y: player.position.y + dy)
-        player.position = boundPosition(for: newPlayerPosition, within: CGSize(width: 1024, height: 768))
+
+        updatePlayerVelocity()
         
         //Check shoot joystick to aim and shoot projectiles
         if shootJoystick.isActive {
@@ -1127,6 +1032,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             }
         }
         
+        
         enemyManager.updateEnemies(currentTime: currentTime, deltaTime: deltaTime, playerPosition: player.position)
         
         if currentWaveIndex < waveCycle.count {
@@ -1136,6 +1042,20 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             }
         }
         
+    }
+    
+    func updatePlayerVelocity() {
+        // Define maximum velocity based on player speed
+        let maxVelocity = playerState.currentMovementSpeed
+        
+        // Get joystick input and normalize it
+        let inputVector = joystick.positionDelta
+        
+        // Calculate desired velocity
+        let desiredVelocity = CGVector(dx: inputVector.x * maxVelocity, dy: inputVector.y * maxVelocity)
+        
+        // Apply the velocity to the player's physics body
+        player.physicsBody?.velocity = desiredVelocity
     }
     
     
@@ -1288,7 +1208,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         //Configure physics body as an edge loop to prevent the player from leaving
         arenaBarrier.physicsBody = SKPhysicsBody(edgeLoopFrom: CGRect(x: -arenaBounds.width / 2, y: -arenaBounds.height / 2, width: arenaBounds.width, height: arenaBounds.height))
-        arenaBarrier.physicsBody?.categoryBitMask = PhysicsCategory.arenaBarrier
+        arenaBarrier.physicsBody?.categoryBitMask = PhysicsCategory.bossArenaBorder
         arenaBarrier.physicsBody?.contactTestBitMask = PhysicsCategory.player
         arenaBarrier.physicsBody?.collisionBitMask = PhysicsCategory.player
         arenaBarrier.physicsBody?.affectedByGravity = false
@@ -1381,36 +1301,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         enemiesToSpawn = 0
         updateProgressLabel()
         startNextWave()
-    }
-    
-    func manageBackgroundScrolling() {
-        // Define overlap offset to ensure smooth transition
-        let overlapOffset: CGFloat = 300.0
-
-        for section in backgroundSections {
-            let sectionLeftEdge = section.position.x - section.size.width / 2
-            let sectionRightEdge = section.position.x + section.size.width / 2
-            let sectionTopEdge = section.position.y + section.size.height / 2
-            let sectionBottomEdge = section.position.y - section.size.height / 2
-            
-            // **Horizontal Scrolling**
-            if player.position.x > sectionRightEdge + overlapOffset {
-                // Move section to the right before it leaves the visible area
-                section.position.x += CGFloat(numSections) * section.size.width
-            } else if player.position.x < sectionLeftEdge - overlapOffset {
-                // Move section to the left before it leaves the visible area
-                section.position.x -= CGFloat(numSections) * section.size.width
-            }
-
-            // **Vertical Scrolling**
-            if player.position.y > sectionTopEdge + overlapOffset {
-                // Move section downward before it leaves the visible area
-                section.position.y -= CGFloat(numSections) * section.size.height
-            } else if player.position.y < sectionBottomEdge - overlapOffset {
-                // Move section upward before it leaves the visible area
-                section.position.y += CGFloat(numSections) * section.size.height
-            }
-        }
     }
 
     func shootProjectile(in direction: CGPoint) {
@@ -1852,19 +1742,18 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         let offsetX = distance * cos(angle)
         let offsetY = distance * sin(angle)
         var randomPosition = CGPoint(x: player.position.x + offsetX, y: player.position.y + offsetY)
-        randomPosition.y = min(max(randomPosition.y, bottomBound + spawnBuffer), topBound - spawnBuffer)
+        randomPosition.y = min(max(randomPosition.y, mapManager.bottomBound + spawnBuffer), mapManager.topBound - spawnBuffer)
 
-        if let arena = arenaBounds {
-            let clampedX = max(arena.minX + spawnBuffer, min(randomPosition.x, arena.maxX - spawnBuffer))
-            let clampedY = randomPosition.y
-            randomPosition = CGPoint(x: clampedX, y: clampedY)
-        }
+//        if let arena = arenaBounds {
+//            let clampedX = max(arena.minX + spawnBuffer, min(randomPosition.x, arena.maxX - spawnBuffer))
+//            let clampedY = randomPosition.y
+//            randomPosition = CGPoint(x: clampedX, y: clampedY)
+//        }
 
         spawnXPNode(at: randomPosition)
     }
     
     func startXPSpawnTimer() {
-        // Ensure only one timer is active
         guard xpSpawnTimer == nil else { return }
         
         xpSpawnTimer = Timer.scheduledTimer(withTimeInterval: xpSpawnInterval, repeats: true) { [weak self] _ in
@@ -1899,7 +1788,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         enemyMessageLabel.run(fadeOut)
     }
     
-    //Note: Can change this at a later time to match HYEL gameoverscreen style
     func showGameOverScreen() {
         gameOver = true
         guard let cameraNode = self.camera else { return }
@@ -1917,14 +1805,13 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         gameOverLabel.zPosition = 5
         gameOverNode.addChild(gameOverLabel)
         
-        let scoreLabel = SKLabelNode(text: "Score: \(score)") //Placeholder for score to be implemented later
+        let scoreLabel = SKLabelNode(text: "Score: \(score)")
         scoreLabel.fontSize = 30
         scoreLabel.fontColor = .white
         scoreLabel.position = CGPoint(x: 0, y: size.height * 0.05)
         scoreLabel.zPosition = 5
         gameOverNode.addChild(scoreLabel)
         
-        //Main menu and leaderboard buttons are placeholders for now.
         let retryButton = createButton(withText: "Retry", atPosition: CGPoint(x: 0, y: 0))
         retryButton.name = "retryButton"
         retryButton.zPosition = 5
@@ -1983,23 +1870,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         setUpGame()
     }
     
-    // Keeps player within screen bounds
-    private func boundPosition(for position: CGPoint, within imageSize: CGSize) -> CGPoint {
-        var newPosition = position
-
-        // Allow free movement horizontally (no bounds on x-axis)
-        newPosition.x = position.x
-
-        // Restrict vertical movement within the top and bottom of the resized background
-        if newPosition.y > topBound {
-            newPosition.y = topBound
-        } else if newPosition.y < bottomBound {
-            newPosition.y = bottomBound
-        }
-
-        return newPosition
-    }
-    
     func updateUpgradeStatsLabel() {
         upgradeStatsLabel.text = "Dmg: \(playerState.currentDamage) | Range: \(playerState.currentRange) | AtkSpeed: \(playerState.currentAttackSpeed)"
     }
@@ -2044,6 +1914,10 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         } else {
            firstBody = bodyB
            secondBody = bodyA
+        }
+        
+        if (firstBody.categoryBitMask == PhysicsCategory.player && secondBody.categoryBitMask == PhysicsCategory.border) {
+//            print("🔴 Player collided with Border")
         }
 
         // Player & Enemy collision
@@ -2122,7 +1996,6 @@ extension ZPGameScene: SKPhysicsContactDelegate {
             }
         }
 
-        // still need xp
     }
     
     func didEnd(_ contact: SKPhysicsContact) {

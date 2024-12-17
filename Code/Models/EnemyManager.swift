@@ -203,21 +203,35 @@ class EnemyManager {
     private var playerPosition: CGPoint {
         // You can store a reference to the player or 
         // get it from the scene if player is publicly accessible.
-        guard let gameScene = scene as? ZPGameScene else { return .zero }
-        return gameScene.player.position
+        guard let scene = scene else { return .zero }
+        return scene.player.position
     }
 
     private func randomSpawnPosition(avoidingRadius: CGFloat, around point: CGPoint, size: CGSize) -> CGPoint? {
         guard let scene = scene else { return nil }
         var position: CGPoint
-        let width = scene.size.width
-        let height = scene.size.height
+        let minY = scene.mapManager.bottomBound
+        let maxY = scene.mapManager.topBound
+        let minX = -scene.size.width / 2 + size.width / 2
+        let maxX = scene.size.width / 2 - size.width / 2
 
-        repeat {
-            position = CGPoint(x: CGFloat.random(in: size.width...width - size.width),
-                               y: CGFloat.random(in: size.height...height - size.height))
-        } while position.distance(to: point) < avoidingRadius || enemies.contains(where: { $0.frame.contains(position) })
-        
-        return position
+        let maxAttempts = 100
+        var attempts = 0
+
+        while attempts < maxAttempts {
+            position = CGPoint(
+                x: CGFloat.random(in: minX...maxX),
+                y: CGFloat.random(in: minY...maxY)
+            )
+
+            if position.distance(to: point) >= avoidingRadius &&
+               !enemies.contains(where: { $0.frame.contains(position) }) {
+                return position
+            }
+
+            attempts += 1
+        }
+
+        return nil
     }
 }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9E381CE32D10F00C00FA8A84 /* MapManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E381CE22D10F00B00FA8A84 /* MapManager.swift */; };
 		9E3B877E2D07B92E00C5110B /* XPBarNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E3B877D2D07B92E00C5110B /* XPBarNode.swift */; };
 		9E7110412D08D67400F441AC /* EnemyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7110402D08D67400F441AC /* EnemyManager.swift */; };
 		9E7110432D08F2D800F441AC /* PhysicsCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7110422D08F2D800F441AC /* PhysicsCategory.swift */; };
@@ -32,7 +33,6 @@
 		FC070AAF2CCAF9CA00946357 /* ZPGameIdleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */; };
 		FC0CD3DF2D0AAFA8009106B5 /* HealthBarNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0CD3DE2D0AAFA8009106B5 /* HealthBarNode.swift */; };
 		FC0CD3E12D0C279B009106B5 /* PausableTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0CD3E02D0C279B009106B5 /* PausableTimer.swift */; };
-		FC5F2F892CFEBD160000C91A /* infGenTestImgLg.png in Resources */ = {isa = PBXBuildFile; fileRef = FC5F2F882CFEBD160000C91A /* infGenTestImgLg.png */; };
 		FCC9B8D72CD4592A006077B4 /* ZPJoystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8D62CD4592A006077B4 /* ZPJoystick.swift */; };
 		FCC9B8D92CD4767C006077B4 /* ZPZombieNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */; };
 		FCC9B8DB2CE55505006077B4 /* ZPChargerZombieNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8DA2CE55505006077B4 /* ZPChargerZombieNode.swift */; };
@@ -58,6 +58,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9E381CE22D10F00B00FA8A84 /* MapManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapManager.swift; sourceTree = "<group>"; };
 		9E3B877D2D07B92E00C5110B /* XPBarNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPBarNode.swift; sourceTree = "<group>"; };
 		9E7110402D08D67400F441AC /* EnemyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyManager.swift; sourceTree = "<group>"; };
 		9E7110422D08F2D800F441AC /* PhysicsCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsCategory.swift; sourceTree = "<group>"; };
@@ -86,7 +87,6 @@
 		FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameIdleState.swift; sourceTree = "<group>"; };
 		FC0CD3DE2D0AAFA8009106B5 /* HealthBarNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthBarNode.swift; sourceTree = "<group>"; };
 		FC0CD3E02D0C279B009106B5 /* PausableTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PausableTimer.swift; sourceTree = "<group>"; };
-		FC5F2F882CFEBD160000C91A /* infGenTestImgLg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = infGenTestImgLg.png; sourceTree = "<group>"; };
 		FCC9B8D62CD4592A006077B4 /* ZPJoystick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPJoystick.swift; sourceTree = "<group>"; };
 		FCC9B8D82CD4767C006077B4 /* ZPZombieNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPZombieNode.swift; sourceTree = "<group>"; };
 		FCC9B8DA2CE55505006077B4 /* ZPChargerZombieNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPChargerZombieNode.swift; sourceTree = "<group>"; };
@@ -140,6 +140,7 @@
 		9EA377BE2D028B1C0000D5DB /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				9E381CE22D10F00B00FA8A84 /* MapManager.swift */,
 				9E7110402D08D67400F441AC /* EnemyManager.swift */,
 				9EA378722D0577920000D5DB /* OverlayManager.swift */,
 				9EA3786E2D0570400000D5DB /* UpgradeShopManager.swift */,
@@ -191,7 +192,6 @@
 		FC070A9E2CCAD36200946357 /* Assets */ = {
 			isa = PBXGroup;
 			children = (
-				FC5F2F882CFEBD160000C91A /* infGenTestImgLg.png */,
 				FC070A842CCAB90300946357 /* Assets.xcassets */,
 			);
 			path = Assets;
@@ -364,7 +364,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FC5F2F892CFEBD160000C91A /* infGenTestImgLg.png in Resources */,
 				FC070A882CCAB90300946357 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -394,6 +393,7 @@
 				FC0CD3DF2D0AAFA8009106B5 /* HealthBarNode.swift in Sources */,
 				FCC9B8DB2CE55505006077B4 /* ZPChargerZombieNode.swift in Sources */,
 				9EA378752D05781F0000D5DB /* BossSpinnerOverlayNode.swift in Sources */,
+				9E381CE32D10F00C00FA8A84 /* MapManager.swift in Sources */,
 				FC070A972CCAD22700946357 /* GameType.swift in Sources */,
 				FC070A982CCAD22700946357 /* GameContext.swift in Sources */,
 				9E7110432D08F2D800F441AC /* PhysicsCategory.swift in Sources */,

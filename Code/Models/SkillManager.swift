@@ -56,6 +56,8 @@ enum SkillType {
             return "Spectral Shield"
         case .mightyKnockback:
             return "Mighty Knockback"
+        case .bonusHealth:
+            return "Bonus Health"
         default:
             return "Skill"
         }
@@ -148,7 +150,7 @@ class SkillManager {
     /// Returns 3 random regular choices
     func getRandomRegularChoices() -> [RegularSkill] {
         // find definition of regular skill in allRegularDefinitions
-        let available = allRegularDefinitions.compactMap { def -> RegularSkill? in
+        var available = allRegularDefinitions.compactMap { def -> RegularSkill? in
             // Check if we already own this skill
             if let owned = ownedRegularSkills.first(where: { $0.definition.type == def.type }) {
                 return owned.isMaxed ? nil : owned
@@ -157,7 +159,11 @@ class SkillManager {
                 return RegularSkill(definition: def)
             }
         }
-
+        if available.count < 3 {
+            for _ in available.count ..< 3 {
+                available.append(RegularSkill(definition: SkillDefinition(type: .bonusHealth, maxLevel: 1, levelEffects: [SkillLevelEffect(healthIncrement: 0.0)])))
+            }
+        }
         return Array(available.shuffled().prefix(3))
     }
 
@@ -308,9 +314,9 @@ extension SkillManager {
         allRegularDefinitions.append(
             SkillDefinition(type: .healthUpgrade, maxLevel: 4, levelEffects: [
                 SkillLevelEffect(healthIncrement: 0.5),
-                SkillLevelEffect(healthIncrement: 0.5),
-                SkillLevelEffect(healthIncrement: 0.5),
-                SkillLevelEffect(healthIncrement: 0.5)
+                SkillLevelEffect(healthIncrement: 1.0),
+                SkillLevelEffect(healthIncrement: 1.5),
+                SkillLevelEffect(healthIncrement: 2.5)
             ])
         )
 
@@ -324,9 +330,9 @@ extension SkillManager {
                 SkillLevelEffect(coinRadiusIncrement: 25)
             ])
         )
-
-        // 5. Freeze
-        /// Improves grenade cooldown, freeze duration, and radius
+//
+//        // 5. Freeze
+//        /// Improves grenade cooldown, freeze duration, and radius
         allRegularDefinitions.append(
             SkillDefinition(type: .freeze, maxLevel: 4, levelEffects: [
                 SkillLevelEffect(freezeGrenadeCooldownReduction: 0.1, freezeDurationIncrement: 2.5, freezeRadiusIncrement: 25),
