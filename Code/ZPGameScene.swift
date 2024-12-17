@@ -618,7 +618,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func showUpgradeShopOverlay(with choices: [RegularSkill]) {
-        let upgradeOverlay = UpgradeShopOverlayNode(choices: choices, manager: upgradeShopManager, overlayManager: overlayManager, skillManager: skillManager)
+        let overlaySize = CGSize(width: size.width, height: size.height)
+        let upgradeOverlay = UpgradeShopOverlayNode(choices: choices, manager: upgradeShopManager, overlayManager: overlayManager, skillManager: skillManager, overlaySize: overlaySize)
         overlayManager.enqueueOverlay(upgradeOverlay)
     }
     

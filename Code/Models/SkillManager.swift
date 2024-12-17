@@ -31,35 +31,35 @@ enum SkillType {
     var displayName: String {
         switch self {
         case .attackDamage:
-            return "Increase Attack Damage"
+            return "ATTACK DAMAGE"
         case .attackSpeed:
-            return "Increase Attack Speed"
+            return "ATTACK SPEED"
         case .movementSpeed:
-            return "Increase Movement Speed"
+            return "MOVEMENT SPEED"
         case .attackRange:
-            return "Increase Attack Range"
+            return "ATTACK RANGE"
         case .spinningBlades:
-            return "Spinning Blades"
+            return "SPINNING BLADES"
         case .protectiveBarrier:
-            return "Protective Barrier"
+            return "PROTECTIVE BARRIER"
         case .healthUpgrade:
-            return "Health Upgrade"
+            return "HEALTH UP"
         case .magnet:
-            return "XP Magnet"
+            return "XP MAGNET"
         case .freeze:
-            return "Freeze Grenade"
+            return "FREEZE GRENADE"
         case .helpingHand:
-            return "Helping Hand"
+            return "HELPING HAND"
         case .reinforcedArrow:
-            return "Reinforced Arrow"
+            return "REINFORCED ARROWS"
         case .spectralShield:
-            return "Spectral Shield"
+            return "SPECTRAL SHIELD"
         case .mightyKnockback:
-            return "Mighty Knockback"
+            return "MIGHT KNOCKBACK"
         case .bonusHealth:
-            return "Bonus Health"
+            return "BONUS HEALTH"
         default:
-            return "Skill"
+            return "SKILL"
         }
     }
     
@@ -128,6 +128,7 @@ struct SkillDefinition {
     let type: SkillType
     let maxLevel: Int
     let levelEffects: [SkillLevelEffect]
+    let description: String
     
     // For special skills, maxLevel = 1 and levelEffects[0] can represent the base effect.
     // If you have no incremental stats, you could store minimal data here and handle logic directly in the skill’s apply method.
@@ -161,7 +162,7 @@ class SkillManager {
         }
         if available.count < 3 {
             for _ in available.count ..< 3 {
-                available.append(RegularSkill(definition: SkillDefinition(type: .bonusHealth, maxLevel: 1, levelEffects: [SkillLevelEffect(healthIncrement: 0.0)])))
+                available.append(RegularSkill(definition: SkillDefinition(type: .bonusHealth, maxLevel: 1, levelEffects: [SkillLevelEffect(healthIncrement: 0.0)], description: "A well deserved top-up.")))
             }
         }
         return Array(available.shuffled().prefix(3))
@@ -248,98 +249,143 @@ extension SkillManager {
         // MARK: Base Stat Upgrade Regular Skills (4 Skills)
         // 1. Attack Damage
         allRegularDefinitions.append(
-            SkillDefinition(type: .attackDamage, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(damageIncrement: 1.5),
-                SkillLevelEffect(damageIncrement: 2),
-                SkillLevelEffect(damageIncrement: 2.5),
-                SkillLevelEffect(damageIncrement: 3)
-            ])
+            SkillDefinition(
+                type: .attackDamage,
+                maxLevel: 4,
+                levelEffects: [
+                    SkillLevelEffect(damageIncrement: 1.5),
+                    SkillLevelEffect(damageIncrement: 2),
+                    SkillLevelEffect(damageIncrement: 2.5),
+                    SkillLevelEffect(damageIncrement: 3)
+                ],
+                description: "Increase main weapon attack damage."
+            )
         )
         
         // 2. Attack Speed
         allRegularDefinitions.append(
-            SkillDefinition(type: .attackSpeed, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(attackSpeedIncrement: 0.1),
-                SkillLevelEffect(attackSpeedIncrement: 0.15),
-                SkillLevelEffect(attackSpeedIncrement: 0.2),
-                SkillLevelEffect(attackSpeedIncrement: 0.25)
-            ])
+            SkillDefinition(
+                type: .attackSpeed,
+                maxLevel: 4,
+                levelEffects: [
+                    SkillLevelEffect(attackSpeedIncrement: 0.1),
+                    SkillLevelEffect(attackSpeedIncrement: 0.15),
+                    SkillLevelEffect(attackSpeedIncrement: 0.2),
+                    SkillLevelEffect(attackSpeedIncrement: 0.25)
+                ],
+                description: "Conquer your foes even more swiftly."
+            )
         )
 
         // 3. Movement Speed
         allRegularDefinitions.append(
-            SkillDefinition(type: .movementSpeed, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(movementSpeedIncrement: 0.1),
-                SkillLevelEffect(movementSpeedIncrement: 0.15),
-                SkillLevelEffect(movementSpeedIncrement: 0.2),
-                SkillLevelEffect(movementSpeedIncrement: 0.3)
-            ])
+            SkillDefinition(
+                type: .movementSpeed,
+                maxLevel: 4,
+                levelEffects: [
+                    SkillLevelEffect(movementSpeedIncrement: 0.1),
+                    SkillLevelEffect(movementSpeedIncrement: 0.15),
+                    SkillLevelEffect(movementSpeedIncrement: 0.2),
+                    SkillLevelEffect(movementSpeedIncrement: 0.3)
+                ],
+                description: "Better off running than fighting... right?"
+            )
         )
 
         // 4. Attack Range
         allRegularDefinitions.append(
-            SkillDefinition(type: .attackRange, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(rangeIncrement: 50),
-                SkillLevelEffect(rangeIncrement: 75),
-                SkillLevelEffect(rangeIncrement: 100),
-                SkillLevelEffect(rangeIncrement: 150)
-            ])
+            SkillDefinition(
+                type: .attackRange,
+                maxLevel: 4,
+                levelEffects: [
+                    SkillLevelEffect(rangeIncrement: 50),
+                    SkillLevelEffect(rangeIncrement: 75),
+                    SkillLevelEffect(rangeIncrement: 100),
+                    SkillLevelEffect(rangeIncrement: 150)
+                ],
+                description: "Boost your base attack radius."
+            )
         )
 
         // MARK: "Complex" Regular Skills (5 Skills)
         // 1. Spinning Blades
         /// Each upgrade increases all values
         allRegularDefinitions.append(
-            SkillDefinition(type: .spinningBlades, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(bladeCountIncrement: 1, bladeDamageIncrement: 2, bladeSpeedIncrement: 0.1),
-                SkillLevelEffect(bladeCountIncrement: 2, bladeDamageIncrement: 3, bladeSpeedIncrement: 0.15),
-                SkillLevelEffect(bladeCountIncrement: 3, bladeDamageIncrement: 4, bladeSpeedIncrement: 0.2),
-                SkillLevelEffect(bladeCountIncrement: 4, bladeDamageIncrement: 5, bladeSpeedIncrement: 0.3)
-            ])
+            SkillDefinition(
+                type: .spinningBlades,
+                maxLevel: 4,
+                levelEffects: [
+                    SkillLevelEffect(bladeCountIncrement: 1, bladeDamageIncrement: 2, bladeSpeedIncrement: 0.1),
+                    SkillLevelEffect(bladeCountIncrement: 2, bladeDamageIncrement: 3, bladeSpeedIncrement: 0.15),
+                    SkillLevelEffect(bladeCountIncrement: 3, bladeDamageIncrement: 4, bladeSpeedIncrement: 0.2),
+                    SkillLevelEffect(bladeCountIncrement: 4, bladeDamageIncrement: 5, bladeSpeedIncrement: 0.3)
+                ],
+                description: "Spinning death circling around you!"
+            )
         )
 
         // 2. Protective Barrier
         /// Each upgrade increases all values
         allRegularDefinitions.append(
-            SkillDefinition(type: .protectiveBarrier, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(barrierSizeIncrement: 40, barrierDamageFactor: 0.2, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.05),
-                SkillLevelEffect(barrierSizeIncrement: 15, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.1),
-                SkillLevelEffect(barrierSizeIncrement: 20, barrierDamageFactor: 0.8, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.15),
-                SkillLevelEffect(barrierSizeIncrement: 30, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.2)
-            ])
+            SkillDefinition(
+                type: .protectiveBarrier,
+                maxLevel: 4,
+                levelEffects: [
+                    SkillLevelEffect(barrierSizeIncrement: 40, barrierDamageFactor: 0.2, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.05),
+                    SkillLevelEffect(barrierSizeIncrement: 15, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.1),
+                    SkillLevelEffect(barrierSizeIncrement: 20, barrierDamageFactor: 0.8, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.15),
+                    SkillLevelEffect(barrierSizeIncrement: 30, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.2)
+                ],
+                description: "Damages and slows all who near."
+            )
         )
 
         // 3. Health Upgrade
         /// Each upgrade adds +0.5 max health. Full restore logic handled by PlayerState method.
         allRegularDefinitions.append(
-            SkillDefinition(type: .healthUpgrade, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(healthIncrement: 0.5),
-                SkillLevelEffect(healthIncrement: 1.0),
-                SkillLevelEffect(healthIncrement: 1.5),
-                SkillLevelEffect(healthIncrement: 2.5)
-            ])
+            SkillDefinition(
+                type: .healthUpgrade,
+                maxLevel: 4,
+                levelEffects: [
+                    SkillLevelEffect(healthIncrement: 0.5),
+                    SkillLevelEffect(healthIncrement: 1.0),
+                    SkillLevelEffect(healthIncrement: 1.5),
+                    SkillLevelEffect(healthIncrement: 2.5)
+                ],
+                description: "Restores health and boosts capacity."
+            )
         )
 
         // 4. Magnet
         /// Each level further increases coin pickup radius
         allRegularDefinitions.append(
-            SkillDefinition(type: .magnet, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(coinRadiusIncrement: 25),
-                SkillLevelEffect(coinRadiusIncrement: 25),
-                SkillLevelEffect(coinRadiusIncrement: 25),
-                SkillLevelEffect(coinRadiusIncrement: 25)
-            ])
+            SkillDefinition(
+                type: .magnet,
+                maxLevel: 4,
+                levelEffects: [
+                    SkillLevelEffect(coinRadiusIncrement: 25),
+                    SkillLevelEffect(coinRadiusIncrement: 25),
+                    SkillLevelEffect(coinRadiusIncrement: 25),
+                    SkillLevelEffect(coinRadiusIncrement: 25)
+                ],
+                description: "Increase xp pickup radius."
+            )
         )
-//
-//        // 5. Freeze
-//        /// Improves grenade cooldown, freeze duration, and radius
+
+        // 5. Freeze
+        /// Improves grenade cooldown, freeze duration, and radius
         allRegularDefinitions.append(
-            SkillDefinition(type: .freeze, maxLevel: 4, levelEffects: [
-                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.1, freezeDurationIncrement: 2.5, freezeRadiusIncrement: 25),
-                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.15, freezeDurationIncrement: 3.5, freezeRadiusIncrement: 30),
-                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.2, freezeDurationIncrement: 4.0, freezeRadiusIncrement: 40),
-                SkillLevelEffect(freezeGrenadeCooldownReduction: 0.3, freezeDurationIncrement: 5.0, freezeRadiusIncrement: 50)
-            ])
+            SkillDefinition(
+                type: .freeze,
+                maxLevel: 4,
+                levelEffects: [
+                    SkillLevelEffect(freezeGrenadeCooldownReduction: 0.1, freezeDurationIncrement: 2.5, freezeRadiusIncrement: 25),
+                    SkillLevelEffect(freezeGrenadeCooldownReduction: 0.15, freezeDurationIncrement: 3.5, freezeRadiusIncrement: 30),
+                    SkillLevelEffect(freezeGrenadeCooldownReduction: 0.2, freezeDurationIncrement: 4.0, freezeRadiusIncrement: 40),
+                    SkillLevelEffect(freezeGrenadeCooldownReduction: 0.3, freezeDurationIncrement: 5.0, freezeRadiusIncrement: 50)
+                ],
+                description: "Stop enemies cold... literally!"
+            )
         )
     }
     
