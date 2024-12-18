@@ -1826,7 +1826,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func checkXPCollection() {
-        for (index, xpNode) in xpNodes.enumerated().reversed() {
+        for (_, xpNode) in xpNodes.enumerated().reversed() {
             let distance = player.position.distance(to: xpNode.position)
             if distance < playerState.currentXPRadius {
                 
@@ -1843,6 +1843,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                 let removeAction = SKAction.run { [weak self, weak xpNode] in
                     guard let self = self, let xpNode = xpNode else { return }
                     
+                    if let idx = self.xpNodesToRemove.firstIndex(where: { $0 === xpNode }) {
+                        self.xpNodesToRemove.remove(at: idx)
+                    }
+                    
                     // Update player XP
                     self.playerState.currentXP += xpNode.xpAmount
                     self.upgradeShopManager.incrementXPCount()
@@ -1850,6 +1854,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                     
                     // Remove the XP node from the scene
                     xpNode.removeFromParent()
+
                 }
                 
                 let sequence = SKAction.sequence([groupAction, removeAction])
