@@ -13,6 +13,9 @@ class ZPWizard: SKSpriteNode {
     //Texture settings
     private let textureLeft: SKTexture
     private let textureRight: SKTexture
+    private let spawnImage: SKSpriteNode
+    private var spawnAnimationStarted: Bool = false
+    private var hasSpawned: Bool = false
     
     var lastSpinningBladeDamageTime: TimeInterval = 0
     var lastBarrierDamageTime: TimeInterval = 0
@@ -43,6 +46,10 @@ class ZPWizard: SKSpriteNode {
         self.health = health
         self.textureLeft = SKTexture(imageNamed: "sk_wizard_left")
         self.textureRight = SKTexture(imageNamed: "sk_wizard_right")
+        self.spawnImage = SKSpriteNode(imageNamed: "sk_wizard_spawn")
+        self.spawnImage.size = CGSize(width: spawnImage.size.width, height: spawnImage.size.height)
+        self.spawnImage.position = CGPoint(x: 0, y: 0)
+        self.spawnImage.zPosition = 11
         
         let barSize = CGSize(width: 100, height: 15)
         self.healthBar = HealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
@@ -63,8 +70,13 @@ class ZPWizard: SKSpriteNode {
     func update(currentTime: TimeInterval, deltaTime: TimeInterval, playerPosition: CGPoint) {
         let cappedDeltaTime = min(deltaTime, 1.0 / 60.0 * 2) // max 2 frames worth // Used to prevent weird movement while paused
         updateFreezeState(currentTime: currentTime)
+        
+        //Trigger spawn animation once when the wizard is added to the scene
+        if !spawnAnimationStarted && scene != nil {
+            startSpawnAnimation()
+        }
 
-        if isFrozen || isBossPaused {
+        if !hasSpawned || isFrozen || isBossPaused {
             self.removeAllActions()
             self.isChargingBeam = false
             return
@@ -86,6 +98,44 @@ class ZPWizard: SKSpriteNode {
             performBeamAttack(towards: playerPosition)
             lastBeamTime = currentTime
         }
+    }
+    
+    private func startSpawnAnimation() {
+        spawnAnimationStarted = true
+        
+        // Add spawnImage to the wizard node
+        self.addChild(spawnImage)
+        
+        //Define Rotation Action
+        let spawnRotationSpeed: CGFloat = CGFloat.pi * 2 // Makes 1 circle rotation per second
+        let rotationDuration = 2 * CGFloat.pi / spawnRotationSpeed
+        let rotateAction = SKAction.rotate(byAngle: CGFloat.pi * 2, duration: Double(rotationDuration))
+        let rotateForever = SKAction.repeatForever(rotateAction)
+        
+        
+        // Define Grow Action
+        let growAction = SKAction.scale(to: 1.5, duration: 2.0)
+        
+        // Define Shrink Action
+        let shrinkAction = SKAction.scale(to: 0.0, duration: 1.0)
+        
+        // Define Remove Action
+        let removeSpawnImage = SKAction.removeFromParent()
+        
+        spawnImage.run(rotateForever)
+        
+        // Define the complete spawn animation sequence
+        let spawnSequence = SKAction.sequence([
+            growAction,
+            shrinkAction,
+            removeSpawnImage,
+            SKAction.run { [weak self] in
+                self?.hasSpawned = true
+            }
+        ])
+        
+        // Run the spawn animation
+        spawnImage.run(spawnSequence)
     }
 
     func takeDamage(amount: Double) {
