@@ -281,7 +281,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //        let freezeSkill = skillManager.createRegularSkillInstance(for: .freeze)
 //        skillManager.acquireOrUpgradeRegularSkill(freezeSkill!)
 
-//        skillManager.acquireSpecialSkill(.helpingHand)
+        skillManager.acquireSpecialSkill(.helpingHand)
 //        skillManager.acquireSpecialSkill(.spectralShield)
 //        skillManager.acquireSpecialSkill(.reinforcedArrow)
 //        skillManager.acquireSpecialSkill(.mightyKnockback)
@@ -1641,7 +1641,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         // Calculate direction vector towards the target
         let direction = CGVector(dx: target.position.x - player.position.x, dy: target.position.y - player.position.y).normalized
-        projectile.zRotation = atan2(direction.dy, direction.dx) - CGFloat.pi / 6
+        projectile.zRotation = atan2(direction.dy, direction.dx)
         
         // Set up movement action (adjust `playerState.currentRange` as needed)
         let moveDistance: CGFloat = playerState.currentRange * 3.0
