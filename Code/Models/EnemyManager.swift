@@ -55,8 +55,8 @@ class EnemyManager {
     func spawnExploderZombie(health: Double, speed: CGFloat) {
         let exploder = ZPExploderZombieNode(health: health, textureName: "sk_exploder", movementSpeed: speed)
         exploder.physicsBody = SKPhysicsBody(texture: exploder.texture!, size: exploder.size)
-        exploder.physicsBody?.categoryBitMask = PhysicsCategory.enemy
-        exploder.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
+        exploder.physicsBody?.categoryBitMask = PhysicsCategory.exploder
+        exploder.physicsBody?.contactTestBitMask = PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
         exploder.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.shield
         exploder.physicsBody?.affectedByGravity = false
         exploder.physicsBody?.allowsRotation = false

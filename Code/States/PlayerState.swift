@@ -41,7 +41,7 @@ class PlayerState {
     var baseAttackSpeed: Double = 1.0
     var baseMovementSpeed: Double = 100.0
     var baseRange: Double = 200.0
-    var baseMaxHealth: Double = 300.0
+    var baseMaxHealth: Double = 3.0
     var baseXPRadius: Double = 30.0
 
     // Derived stats after skill application:

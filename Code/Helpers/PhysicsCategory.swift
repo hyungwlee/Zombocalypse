@@ -9,6 +9,7 @@
 struct PhysicsCategory {
     static let player: UInt32                 = 0x1 << 0
     static let enemy: UInt32                  = 0x1 << 1
+    static let exploder: UInt32                  = 0x1 << 1
     static let boss: UInt32                   = 0x1 << 2
 
     static let xp: UInt32                     = 0x1 << 3

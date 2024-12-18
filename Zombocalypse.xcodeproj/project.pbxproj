@@ -28,6 +28,8 @@
 		9EA378712D05704B0000D5DB /* UpgradeShopOverlayNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA378702D05704B0000D5DB /* UpgradeShopOverlayNode.swift */; };
 		9EA378732D0577920000D5DB /* OverlayManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA378722D0577920000D5DB /* OverlayManager.swift */; };
 		9EA378752D05781F0000D5DB /* BossSpinnerOverlayNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA378742D05781F0000D5DB /* BossSpinnerOverlayNode.swift */; };
+		9EFEA6BC2D1284A0004DAC9A /* SKExplosion.sks in Resources */ = {isa = PBXBuildFile; fileRef = 9EFEA6BB2D1284A0004DAC9A /* SKExplosion.sks */; };
+		9EFEA6BD2D1284A0004DAC9A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9EFEA6BA2D1284A0004DAC9A /* Assets.xcassets */; };
 		FC070A882CCAB90300946357 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FC070A842CCAB90300946357 /* Assets.xcassets */; };
 		FC070A972CCAD22700946357 /* GameType.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A962CCAD22700946357 /* GameType.swift */; };
 		FC070A982CCAD22700946357 /* GameContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070A942CCAD22700946357 /* GameContext.swift */; };
@@ -87,6 +89,8 @@
 		9EA378702D05704B0000D5DB /* UpgradeShopOverlayNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpgradeShopOverlayNode.swift; sourceTree = "<group>"; };
 		9EA378722D0577920000D5DB /* OverlayManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayManager.swift; sourceTree = "<group>"; };
 		9EA378742D05781F0000D5DB /* BossSpinnerOverlayNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BossSpinnerOverlayNode.swift; sourceTree = "<group>"; };
+		9EFEA6BA2D1284A0004DAC9A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9EFEA6BB2D1284A0004DAC9A /* SKExplosion.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = SKExplosion.sks; sourceTree = "<group>"; };
 		FC070A552CCAB85600946357 /* Zombocalypse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zombocalypse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC070A652CCAB85700946357 /* ZombocalypseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZombocalypseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC070A6F2CCAB85700946357 /* ZombocalypseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZombocalypseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -285,6 +289,8 @@
 				9E7110422D08F2D800F441AC /* PhysicsCategory.swift */,
 				FC070AA42CCAEB9A00946357 /* ZPLayoutInfo.swift */,
 				FC070AA62CCAEBC500946357 /* ZPGameInfo.swift */,
+				9EFEA6BA2D1284A0004DAC9A /* Assets.xcassets */,
+				9EFEA6BB2D1284A0004DAC9A /* SKExplosion.sks */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -416,6 +422,8 @@
 				9E381D422D121F5700FA8A84 /* InknutAntiqua-Regular.ttf in Resources */,
 				9E381D432D121F5700FA8A84 /* InknutAntiqua-Light.ttf in Resources */,
 				9E381D442D121F5700FA8A84 /* InknutAntiqua-Black.ttf in Resources */,
+				9EFEA6BC2D1284A0004DAC9A /* SKExplosion.sks in Resources */,
+				9EFEA6BD2D1284A0004DAC9A /* Assets.xcassets in Resources */,
 				9E381D452D121F5700FA8A84 /* InknutAntiqua-ExtraBold.ttf in Resources */,
 				9E381D462D121F5700FA8A84 /* InknutAntiqua-Bold.ttf in Resources */,
 			);

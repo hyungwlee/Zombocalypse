@@ -31,8 +31,8 @@ class ZPChargerZombieNode: ZPZombie {
         super.init(health: health, textureName: textureName)
         self.movementSpeed = chargerMovementSpeed
         self.baseSpeed = chargerMovementSpeed
-        self.baseColor = .orange // Set the color to indicate it's a charger zombie
-        self.color = baseColor
+//        self.baseColor = .orange // Set the color to indicate it's a charger zombie
+//        self.color = baseColor
     }
     
     required init?(coder aDecoder: NSCoder) {

@@ -21,8 +21,8 @@ class ZPExploderZombieNode: ZPZombie {
         super.init(health: health, textureName: textureName)
         self.movementSpeed = exploderMovementSpeed
         self.baseSpeed = exploderMovementSpeed
-        self.baseColor = .purple // Unique color for the exploder
-        self.color = baseColor
+//        self.baseColor = .purple // Unique color for the exploder
+//        self.color = baseColor
         configureBlastIndicator()
     }
     
@@ -103,6 +103,24 @@ class ZPExploderZombieNode: ZPZombie {
         let explosionCenter = self.position
         //print("Exploding with damage: \(explosionDamage)")
         
+        if let explosionEmitter = SKEmitterNode(fileNamed: "SKExplosion") {
+            explosionEmitter.position = explosionCenter
+            explosionEmitter.zPosition = 100 // Ensure it renders above other nodes
+            explosionEmitter.targetNode = gameScene // Ensure particles interact with the scene
+            gameScene.addChild(explosionEmitter)
+            
+            // Remove the emitter after its lifetime
+            explosionEmitter.run(SKAction.sequence([
+                SKAction.wait(forDuration: 0.2),
+                SKAction.run {
+                    gameScene.enemyManager.removeEnemy(self)
+                    gameScene.handleEnemyDefeat(at: explosionCenter)
+                },
+                SKAction.removeFromParent()
+                
+            ]))
+        }
+        
         // Apply damage to zombies within the explosion radius
         gameScene.children.compactMap { $0 as? ZPZombie }.forEach { zombie in
             //Exclude self to prevent double handling
@@ -116,15 +134,16 @@ class ZPExploderZombieNode: ZPZombie {
         let playerDistance = hypot(gameScene.player.position.x - explosionCenter.x, gameScene.player.position.y - explosionCenter.y)
 
         if playerDistance <= explosionRange {
+            gameScene.flashPlayer()
             gameScene.playerLives -= explosionDamage
         }
         
         // Remove from parent after exploding
         gameScene.removeZombieFromTracking(self)
-        removeFromParent()
+//        removeFromParent()
         
         //Notify the scene that this enemy has been defeated
-        gameScene.handleEnemyDefeat(at: explosionCenter)
+//        gameScene.handleEnemyDefeat(at: explosionCenter)
         
     }
 

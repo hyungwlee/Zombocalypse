@@ -26,6 +26,9 @@ class ZPZombie: SKSpriteNode {
     private let healthBar: HealthBarNode
     private var iceNode: SKSpriteNode?
     
+    private var isFlashing: Bool = false
+    private var deathFrames: [SKTexture] = []
+    
     var health: Double {
         didSet{
             healthBar.setHealth(health)
@@ -59,10 +62,63 @@ class ZPZombie: SKSpriteNode {
 //        healthLabel.fontColor = .black
 //        healthLabel.position = CGPoint(x: 0, y: size.height / 2 + 10)
         addChild(healthBar)
+        
+        loadDeathAnimation()
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+        
+    }
+    
+    private func loadDeathAnimation() {
+        let frameCount = 14
+        deathFrames = (1...frameCount).map { frameNumber in
+            SKTexture(imageNamed: "sk_skeleton_death_\(frameNumber)")
+        }
+    }
+    
+    func die() {
+        // Disable physics to prevent further interactions
+        self.physicsBody?.categoryBitMask = PhysicsCategory.none
+        self.physicsBody?.contactTestBitMask = PhysicsCategory.none
+        self.physicsBody?.collisionBitMask = PhysicsCategory.none
+        
+        // Optionally, disable any movement or actions
+        self.removeAllActions()
+        
+        // Create a sequence of actions to update texture and size
+        var actions: [SKAction] = []
+        
+        for texture in deathFrames {
+            // Create an action to set the texture and adjust size
+            let setTexture = SKAction.setTexture(texture)
+            
+            // Calculate the new size based on the texture
+            let newSize = texture.size()
+            let resize = SKAction.resize(toWidth: newSize.width, height: newSize.height, duration: 0.05)
+//            let resize = SKAction.resize(toWidth: newSize.width * 0.35, height: newSize.height * 0.35, duration: 0.05)
+            
+            // Optionally, you can animate the size change smoothly
+            let group = SKAction.group([setTexture, resize])
+            
+            actions.append(group)
+        }
+        
+        // Add an action to remove the node after the animation
+        let removeAction = SKAction.removeFromParent()
+        actions.append(removeAction)
+        
+        // Run the sequence of actions
+        let sequence = SKAction.sequence(actions)
+        
+        self.run(sequence) { [weak self] in
+            guard let self = self else { return }
+            if let gameScene = self.scene as? ZPGameScene {
+                // Remove the zombie from the enemy manager
+                gameScene.enemyManager.removeEnemy(self)
+            }
+        }
     }
     
     func moveTowards(playerPosition: CGPoint, speed: CGFloat? = nil) {
@@ -84,12 +140,14 @@ class ZPZombie: SKSpriteNode {
     
     func takeDamage(amount: Double) {
         health -= amount
+        flashRed() // Trigger the flash effect when taking damage
         if isDead {
             if let gameScene = self.scene as? ZPGameScene {
                 gameScene.handleEnemyDefeat(at: self.position)
                 gameScene.enemyManager.removeEnemy(self)
+//                self.die()
             }
-            removeFromParent()
+//            removeFromParent()
         }
     }
     
@@ -147,5 +205,28 @@ class ZPZombie: SKSpriteNode {
         ice.run(sequence)
         
         iceNode = nil
+    }
+    
+    private func flashRed() {
+        guard !isFlashing else { return }
+        isFlashing = true
+        
+        let flashDuration: TimeInterval = 0.2
+        let originalColor = self.color
+        let flashColor = SKColor.white
+        
+        let colorizeToFlash = SKAction.colorize(with: flashColor, colorBlendFactor: 1.0, duration: 0.05)
+        let colorizeBack = SKAction.colorize(with: originalColor, colorBlendFactor: 1.0, duration: 0.05)
+        
+        let flashSequence = SKAction.sequence([colorizeToFlash, colorizeBack])
+        
+        let repeatFlash = SKAction.repeat(flashSequence, count: 1)
+        
+        let completion = SKAction.run { [weak self] in
+            self?.isFlashing = false
+            self?.colorBlendFactor = 0.0
+        }
+        
+        self.run(SKAction.sequence([repeatFlash, completion]))
     }
 }
