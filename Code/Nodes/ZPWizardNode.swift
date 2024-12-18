@@ -10,6 +10,10 @@ import SpriteKit
 import Foundation
 
 class ZPWizard: SKSpriteNode {
+    //Texture settings
+    private let textureLeft: SKTexture
+    private let textureRight: SKTexture
+    
     var lastSpinningBladeDamageTime: TimeInterval = 0
     var lastBarrierDamageTime: TimeInterval = 0
     var isFrozen: Bool = false
@@ -28,30 +32,26 @@ class ZPWizard: SKSpriteNode {
         }
     }
     private let healthBar: HealthBarNode
-    private let bossLabel: SKLabelNode
     private var isChargingBeam: Bool = false
     private var playerHitByBeam: Bool = false
     public var isAlive: Bool = true
-    var baseColor: SKColor = .purple
+    var baseColor: SKColor = .clear
     var isSlowedByBarrier: Bool = false
     private var fireballFrames: [SKTexture] = []
 
     init(health: Double) {
         self.health = health
+        self.textureLeft = SKTexture(imageNamed: "sk_wizard_left")
+        self.textureRight = SKTexture(imageNamed: "sk_wizard_right")
         
         let barSize = CGSize(width: 100, height: 15)
         self.healthBar = HealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
-        healthBar.position = CGPoint(x: 0, y: 30)
-
-        self.bossLabel = SKLabelNode(text: "BOSS")
-        bossLabel.fontSize = 40
-        bossLabel.fontColor = .red
-        bossLabel.position = CGPoint.zero
-
-        super.init(texture: nil, color: baseColor, size: CGSize(width: 50, height: 50))
+        healthBar.position = CGPoint(x: 0, y: 75)
+        
+        //Set initial texture to facing right
+        super.init(texture: textureRight, color: baseColor, size: textureRight.size())
         self.name = "wizard"
         self.addChild(healthBar)
-        self.addChild(bossLabel)
         
         loadFireballAnimation()
     }
@@ -126,6 +126,7 @@ class ZPWizard: SKSpriteNode {
         
         if currentDirection == .zero {
             currentDirection = CGVector(dx: movementSpeed, dy: 0)
+            self.texture = textureRight // Start moving right
         }
         
         let movement = CGVector(dx: currentDirection.dx * CGFloat(deltaTime), dy: 0)
@@ -134,6 +135,12 @@ class ZPWizard: SKSpriteNode {
         //Reverse direction upon reaching movement boundaries
         if position.x <= minX || position.x >= maxX {
             currentDirection.dx *= -1
+            //Update texture based on direction
+            if currentDirection.dx > 0 {
+                self.texture = textureRight
+            } else {
+                self.texture = textureLeft
+            }
         }
     }
 
