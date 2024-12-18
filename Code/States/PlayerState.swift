@@ -25,6 +25,7 @@ protocol PlayerStateDelegate: AnyObject {
     func playerStateDidActivateSpectralShield(_ state: PlayerState)
     func playerStateDidDeactivateSpectralShield() /// to disable UI effects
     func playerStateDidActivateMightyKnockback(_ state: PlayerState)
+    func playerStateDidDeactivateMightyKnockback()
     func playerStateDidActivateBonusHealth(_ state: PlayerState, restorePercentage: Double)
 }
 
@@ -124,6 +125,7 @@ class PlayerState {
         
         delegate?.playerStateDidDeactivateHelpingHand()
         delegate?.playerStateDidDeactivateSpectralShield()
+        delegate?.playerStateDidDeactivateMightyKnockback()
 
         shieldHitsRemaining = 3
     }

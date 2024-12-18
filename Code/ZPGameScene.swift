@@ -282,9 +282,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //        skillManager.acquireOrUpgradeRegularSkill(freezeSkill!)
 
 //        skillManager.acquireSpecialSkill(.helpingHand)
-        skillManager.acquireSpecialSkill(.spectralShield)
+//        skillManager.acquireSpecialSkill(.spectralShield)
 //        skillManager.acquireSpecialSkill(.reinforcedArrow)
-//        skillManager.acquireSpecialSkill(.mightyKnockback)
+        skillManager.acquireSpecialSkill(.mightyKnockback)
     }
     
     deinit {
@@ -950,8 +950,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func playerStateDidActivateMightyKnockback(_ state: PlayerState) {
-        // Only need this if we add UI effects after activation
         print("Mightyknockback activated!")
+        activateMightyKnockback()
+    }
+    
+    func playerStateDidDeactivateMightyKnockback() {
+        deactivateMightyKnockback()
     }
     
     func playerStateDidActivateBonusHealth(_ state: PlayerState, restorePercentage: Double) {
@@ -1847,6 +1851,77 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         // Run the actions on the enemy
         enemy.run(SKAction.sequence([flashAction, moveAction]), withKey: "knockback")
+    }
+    
+    func performMightyKnockback() {
+        print("KNOCBACK")
+        // Radius of the knockback
+        let knockbackRadius: CGFloat = 100.0
+        let knockbackStrength: CGFloat = 200.0
+        let knockbackDuration: TimeInterval = 0.3
+
+        // Apply knockback to all enemies in range
+        for enemy in enemyManager.enemies {
+            let distance = player.position.distance(to: enemy.position)
+            if distance <= knockbackRadius {
+                applyKnockback(to: enemy, strength: knockbackStrength, duration: knockbackDuration)
+            }
+        }
+
+        // Add visual effect
+        let knockbackEmitter = SKEmitterNode(fileNamed: "SKKnockBack")
+        knockbackEmitter?.position = player.position
+        knockbackEmitter?.zPosition = player.zPosition - 1
+
+        // Add the emitter to the scene
+        addChild(knockbackEmitter!)
+
+        // Remove emitter after its effect ends
+        let removeEmitter = SKAction.sequence([
+            SKAction.wait(forDuration: 0.5),
+            SKAction.removeFromParent()
+        ])
+        knockbackEmitter!.run(removeEmitter)
+    }
+    
+    func createKnockbackEmitter() -> SKEmitterNode {
+        let emitter = SKEmitterNode()
+        emitter.particleTexture = SKTexture(imageNamed: "spark") // Use an appropriate texture for your effect.
+        emitter.particleColor = .red
+        emitter.particleColorBlendFactor = 1.0
+        emitter.particleLifetime = 0.5
+        emitter.particleBirthRate = 200
+        emitter.particleSpeed = 150
+        emitter.particleSpeedRange = 50
+        emitter.emissionAngleRange = CGFloat.pi * 2
+        emitter.particleAlpha = 0.7
+        emitter.particleAlphaRange = 0.2
+        emitter.particleAlphaSpeed = -0.5
+        emitter.particleScale = 0.2
+        emitter.particleScaleRange = 0.1
+        emitter.particleScaleSpeed = -0.2
+        emitter.position = player.position
+        emitter.zPosition = 5
+        return emitter
+    }
+    
+    func activateMightyKnockback() {
+        guard playerState.mightyKnockbackActive else { return }
+        playerState.mightyKnockbackActive = true
+
+        let knockbackAction = SKAction.run { [weak self] in
+            self?.performMightyKnockback()
+        }
+        let waitAction = SKAction.wait(forDuration: 7.0)
+        let knockbackSequence = SKAction.sequence([knockbackAction, waitAction])
+        let repeatKnockback = SKAction.repeatForever(knockbackSequence)
+        
+        run(repeatKnockback, withKey: "mightyKnockback")
+    }
+
+    func deactivateMightyKnockback() {
+        playerState.mightyKnockbackActive = false
+        removeAction(forKey: "mightyKnockback")
     }
     
     func applyContinuousDamage(currentTime: TimeInterval) {
