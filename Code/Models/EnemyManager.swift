@@ -128,9 +128,9 @@ class EnemyManager {
         for (index, enemy) in enemies.enumerated().reversed() {
             // Enemy-type specific update logic:
             if let charger = enemy as? ZPChargerZombieNode {
-                charger.update(deltaTime: currentTime, playerPosition: playerPosition)
+                charger.update(currentTime: currentTime, playerPosition: playerPosition)
             } else if let exploder = enemy as? ZPExploderZombieNode {
-                exploder.update(deltaTime: currentTime, playerPosition: playerPosition)
+                exploder.update(currentTime: currentTime, playerPosition: playerPosition)
             } else {
                 // Regular zombies use their default movement
                 enemy.moveTowards(playerPosition: playerPosition)

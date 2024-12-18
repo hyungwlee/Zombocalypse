@@ -370,7 +370,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             playerLivesLabel = SKLabelNode(fontNamed: "Arial")
             playerLivesLabel.fontSize = 20
             playerLivesLabel.fontColor = .black
-            playerLivesLabel.position = CGPoint(x: -size.width / 2 + 80, y: size.height / 2 - 80)
+            playerLivesLabel.position = CGPoint(x: -size.width / 2 + 80, y: size.height / 2 - 180)
             playerLivesLabel.zPosition = 5
         }
         playerLives = playerState.baseMaxHealth // Reset playerLives  
@@ -544,7 +544,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     func initializeWaves() {
         //Define waves 1 through 7
         waveCycle = [
-            Wave(waveNumber: 1, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 1, exploderEnemies: 1, isHorde: false, isBoss: false, spawnInterval: 3.0, requiresFullClearance: false),
+            Wave(waveNumber: 1, totalEnemies: 1, regularEnemies: 2, chargerEnemies: 0, exploderEnemies: 1, isHorde: false, isBoss: false, spawnInterval: 3.0, requiresFullClearance: false),
             Wave(waveNumber: 2, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.8, requiresFullClearance: false),
             Wave(waveNumber: 3, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: 1.0, requiresFullClearance: false),
             Wave(waveNumber: 4, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.3, requiresFullClearance: false),

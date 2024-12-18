@@ -23,6 +23,7 @@ class ZPExploderZombieNode: ZPZombie {
         self.baseSpeed = exploderMovementSpeed
         self.baseColor = .purple // Unique color for the exploder
         self.color = baseColor
+        configureBlastIndicator()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -31,18 +32,19 @@ class ZPExploderZombieNode: ZPZombie {
     
     // Configure the circular blast indicator with initial settings
     private func configureBlastIndicator() {
-        let circlePath = CGPath(ellipseIn: CGRect(x: -explosionRange, y: -explosionRange, width: explosionRange * 2, height: explosionRange * 2), transform: nil)
-        blastIndicator = SKShapeNode(path: circlePath)
+        // Create a circular shape node with the specified explosion range as radius
+        blastIndicator = SKShapeNode(circleOfRadius: explosionRange * 2)
+        
+        // Configure the appearance of the blast indicator
         blastIndicator?.strokeColor = .red
         blastIndicator?.fillColor = .clear
         blastIndicator?.lineWidth = 2
         blastIndicator?.alpha = 0.3
-        if let blastIndicator = blastIndicator {
-            addChild(blastIndicator)
-        }
+        blastIndicator?.position = .zero // Ensure it's centered on the zombie
+        addChild(blastIndicator!)
     }
     
-    func update(deltaTime: TimeInterval, playerPosition: CGPoint) {
+    func update(currentTime: TimeInterval, playerPosition: CGPoint) {
         if isFrozen || isZombiePaused {
             removeAllActions()
             isPreparingToExplode = false
@@ -53,9 +55,10 @@ class ZPExploderZombieNode: ZPZombie {
         
         let distanceToPlayer = hypot(playerPosition.x - position.x, playerPosition.y - position.y)
         
-        if !isPreparingToExplode && distanceToPlayer < explosionRange && deltaTime - lastExplosionAttemptTime > explosionCooldown {
+        if !isPreparingToExplode && distanceToPlayer < explosionRange && currentTime - lastExplosionAttemptTime > explosionCooldown {
+            print("ex", distanceToPlayer, playerPosition, position)
             prepareToExplode()
-            lastExplosionAttemptTime = deltaTime
+            lastExplosionAttemptTime = currentTime
         } else if !isPreparingToExplode {
             moveTowards(playerPosition: playerPosition, speed: movementSpeed)
         }

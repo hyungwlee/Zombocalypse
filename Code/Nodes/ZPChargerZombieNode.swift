@@ -39,7 +39,7 @@ class ZPChargerZombieNode: ZPZombie {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func update(deltaTime: TimeInterval, playerPosition: CGPoint) {
+    func update(currentTime: TimeInterval, playerPosition: CGPoint) {
         // Freeze grenade interupts and resets
         if isFrozen || isZombiePaused {
             self.removeAllActions()
@@ -52,10 +52,10 @@ class ZPChargerZombieNode: ZPZombie {
         let distanceToPlayer = hypot(playerPosition.x - position.x, playerPosition.y - position.y)
         let chargeRange: CGFloat = 200.0 // Adjust this value as needed
 
-        if !isCharging && distanceToPlayer < chargeRange && deltaTime - lastChargeTime > chargeCooldown {
+        if !isCharging && distanceToPlayer < chargeRange && currentTime - lastChargeTime > chargeCooldown {
             //print("Charger is preparing to charge! Distance: \(distanceToPlayer)")
             isCharging = true
-            lastChargeTime = deltaTime
+            lastChargeTime = currentTime
             
             // Determine charge target point
             let chargeVector = vector(from: position, to: playerPosition)
