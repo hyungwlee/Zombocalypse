@@ -16,6 +16,7 @@ class ZPWizard: SKSpriteNode {
     private let spawnImage: SKSpriteNode
     private var spawnAnimationStarted: Bool = false
     private var hasSpawned: Bool = false
+    private var isFlashing: Bool = false
     
     var lastSpinningBladeDamageTime: TimeInterval = 0
     var lastBarrierDamageTime: TimeInterval = 0
@@ -137,9 +138,33 @@ class ZPWizard: SKSpriteNode {
         // Run the spawn animation
         spawnImage.run(spawnSequence)
     }
+    
+    private func flashRed() {
+        guard !isFlashing else { return }
+        isFlashing = true
+        
+        let flashDuration: TimeInterval = 0.2
+        let originalColor = self.color
+        let flashColor = SKColor.white
+        
+        let colorizeToFlash = SKAction.colorize(with: flashColor, colorBlendFactor: 1.0, duration: 0.05)
+        let colorizeBack = SKAction.colorize(with: originalColor, colorBlendFactor: 1.0, duration: 0.05)
+        
+        let flashSequence = SKAction.sequence([colorizeToFlash, colorizeBack])
+        
+        let repeatFlash = SKAction.repeat(flashSequence, count: 1)
+        
+        let completion = SKAction.run { [weak self] in
+            self?.isFlashing = false
+            self?.colorBlendFactor = 0.0
+        }
+        
+        self.run(SKAction.sequence([repeatFlash, completion]))
+    }
 
     func takeDamage(amount: Double) {
         health -= amount
+        flashRed()
         if health <= 0 {
             die()
         }
