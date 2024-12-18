@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "Group 17173.png",
+      "filename" : "sk_player_left.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "Group 17173@2x.png",
+      "filename" : "sk_player_left@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "Group 17173@3x.png",
+      "filename" : "sk_player_left@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

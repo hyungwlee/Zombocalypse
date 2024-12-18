@@ -9,6 +9,8 @@
 import SpriteKit
 
 class MapManager {
+    weak var scene: SKScene?
+    
     private var mainSections: [SKSpriteNode] = []
     private var topSections: [SKSpriteNode] = []
     private var bottomSections: [SKSpriteNode] = []
@@ -40,10 +42,11 @@ class MapManager {
     
     private var bottomBoundary: SKNode?
     
-    init(sectionWidth: CGFloat, sectionHeight: CGFloat, numSections: Int) {
+    init(sectionWidth: CGFloat, sectionHeight: CGFloat, numSections: Int, scene: ZPGameScene) {
         self.sectionWidth = sectionWidth
         self.sectionHeight = sectionHeight
         self.numSections = numSections
+        self.scene = scene
     }
 
     /// Sets up the background sections and fences
@@ -334,4 +337,40 @@ class MapManager {
         bottomBoundary = nil
     }
 
+    func positionIsClear(position: CGPoint, entitySize: CGSize) -> Bool {
+        guard let scene = self.scene else { return false }
+        
+        let halfWidth = entitySize.width / 2
+        let halfHeight = entitySize.height / 2
+        let entityFrame = CGRect(x: position.x - halfWidth, y: position.y - halfHeight, width: entitySize.width, height: entitySize.height)
+        
+        // Check against all stumps and tombstones
+        let obstacles = topStumps + bottomStumps + topTombstones + bottomTombstones
+        
+        for obstacle in obstacles {
+            let obstacleFrame = obstacleFrameInScene(obstacle: obstacle, scene: scene)
+            if entityFrame.intersects(obstacleFrame) {
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    // Helper to calculate obstacle frame in scene coordinates
+    private func obstacleFrameInScene(obstacle: SKSpriteNode, scene: SKScene) -> CGRect {
+        // Convert obstacle's frame to scene coordinates using convert()
+        let obstacleParent = obstacle.parent ?? scene
+        let obstaclePositionInScene = obstacleParent.convert(obstacle.position, to: scene)
+        
+        // Since obstacle.frame gives local coordinates, let's construct the frame manually
+        let halfWidth = obstacle.size.width / 2
+        let halfHeight = obstacle.size.height / 2
+        return CGRect(x: obstaclePositionInScene.x - halfWidth,
+                      y: obstaclePositionInScene.y - halfHeight,
+                      width: obstacle.size.width,
+                      height: obstacle.size.height)
+    }
+    
 }
+

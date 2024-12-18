@@ -17,13 +17,12 @@ class ZPExploderZombieNode: ZPZombie {
     private var blastIndicator: SKShapeNode?
     
     // Initialize with movement speed, pass health to the superclass
-    init(health: Double, movementSpeed exploderMovementSpeed: CGFloat) {
-        super.init(health: health)
+    init(health: Double, textureName: String, movementSpeed exploderMovementSpeed: CGFloat) {
+        super.init(health: health, textureName: textureName)
         self.movementSpeed = exploderMovementSpeed
         self.baseSpeed = exploderMovementSpeed
         self.baseColor = .purple // Unique color for the exploder
         self.color = baseColor
-        configureBlastIndicator()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -44,7 +43,7 @@ class ZPExploderZombieNode: ZPZombie {
     }
     
     func update(deltaTime: TimeInterval, playerPosition: CGPoint) {
-        if isFrozen {
+        if isFrozen || isZombiePaused {
             removeAllActions()
             isPreparingToExplode = false
             blastIndicator?.alpha = 0.3
