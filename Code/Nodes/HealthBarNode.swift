@@ -96,7 +96,7 @@ class HealthBarNode: SKNode {
     func setHealth(_ health: Double) {
         currentHealth = max(0, min(health, maxHealth)) // Clamp the value between 0 and maxHealth
         let healthPercentage = CGFloat(currentHealth / maxHealth)
-        foregroundBar.size.width = size.width * healthPercentage
+//        foregroundBar.size.width = size.width * healthPercentage
         
         // Animate the change
         let resizeAction = SKAction.resize(toWidth: size.width * healthPercentage, duration: 0.2)
