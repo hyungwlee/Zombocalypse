@@ -284,7 +284,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //        skillManager.acquireSpecialSkill(.helpingHand)
 //        skillManager.acquireSpecialSkill(.spectralShield)
 //        skillManager.acquireSpecialSkill(.reinforcedArrow)
-        skillManager.acquireSpecialSkill(.mightyKnockback)
+ //       skillManager.acquireSpecialSkill(.mightyKnockback)
     }
     
     deinit {
@@ -579,7 +579,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     func initializeWaves() {
         //Define waves 1 through 7
         waveCycle = [
-            Wave(waveNumber: 1, totalEnemies: 1, regularEnemies: 2, chargerEnemies: 0, exploderEnemies: 1, isHorde: false, isBoss: false, spawnInterval: 3.0, requiresFullClearance: false),
+            Wave(waveNumber: 1, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 3.0, requiresFullClearance: false),
             Wave(waveNumber: 2, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.8, requiresFullClearance: false),
             Wave(waveNumber: 3, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: 1.0, requiresFullClearance: false),
             Wave(waveNumber: 4, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.3, requiresFullClearance: false),
@@ -1989,8 +1989,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         spawnXPNode(at: lastHitZombiePosition)
         
         // MARK: Delete later, just for testing purposes
-        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager, overlaySize: size)
-        overlayManager.enqueueOverlay(spinnerOverlay)
+//        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager, overlaySize: size)
+//        overlayManager.enqueueOverlay(spinnerOverlay)
         
         score += 1
         pendingEnemies -= 1
