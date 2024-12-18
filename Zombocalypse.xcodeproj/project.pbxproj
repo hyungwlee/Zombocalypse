@@ -8,6 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		9E381CE32D10F00C00FA8A84 /* MapManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E381CE22D10F00B00FA8A84 /* MapManager.swift */; };
+		9E381D3F2D121F5700FA8A84 /* InknutAntiqua-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9E381D3C2D121F5700FA8A84 /* InknutAntiqua-SemiBold.ttf */; };
+		9E381D402D121F5700FA8A84 /* InknutAntiqua-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9E381D3A2D121F5700FA8A84 /* InknutAntiqua-Medium.ttf */; };
+		9E381D412D121F5700FA8A84 /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9E381D3D2D121F5700FA8A84 /* OFL.txt */; };
+		9E381D422D121F5700FA8A84 /* InknutAntiqua-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9E381D3B2D121F5700FA8A84 /* InknutAntiqua-Regular.ttf */; };
+		9E381D432D121F5700FA8A84 /* InknutAntiqua-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9E381D392D121F5700FA8A84 /* InknutAntiqua-Light.ttf */; };
+		9E381D442D121F5700FA8A84 /* InknutAntiqua-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9E381D362D121F5700FA8A84 /* InknutAntiqua-Black.ttf */; };
+		9E381D452D121F5700FA8A84 /* InknutAntiqua-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9E381D382D121F5700FA8A84 /* InknutAntiqua-ExtraBold.ttf */; };
+		9E381D462D121F5700FA8A84 /* InknutAntiqua-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9E381D372D121F5700FA8A84 /* InknutAntiqua-Bold.ttf */; };
 		9E3B877E2D07B92E00C5110B /* XPBarNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E3B877D2D07B92E00C5110B /* XPBarNode.swift */; };
 		9E7110412D08D67400F441AC /* EnemyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7110402D08D67400F441AC /* EnemyManager.swift */; };
 		9E7110432D08F2D800F441AC /* PhysicsCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7110422D08F2D800F441AC /* PhysicsCategory.swift */; };
@@ -59,6 +67,14 @@
 
 /* Begin PBXFileReference section */
 		9E381CE22D10F00B00FA8A84 /* MapManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapManager.swift; sourceTree = "<group>"; };
+		9E381D362D121F5700FA8A84 /* InknutAntiqua-Black.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "InknutAntiqua-Black.ttf"; sourceTree = "<group>"; };
+		9E381D372D121F5700FA8A84 /* InknutAntiqua-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "InknutAntiqua-Bold.ttf"; sourceTree = "<group>"; };
+		9E381D382D121F5700FA8A84 /* InknutAntiqua-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "InknutAntiqua-ExtraBold.ttf"; sourceTree = "<group>"; };
+		9E381D392D121F5700FA8A84 /* InknutAntiqua-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "InknutAntiqua-Light.ttf"; sourceTree = "<group>"; };
+		9E381D3A2D121F5700FA8A84 /* InknutAntiqua-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "InknutAntiqua-Medium.ttf"; sourceTree = "<group>"; };
+		9E381D3B2D121F5700FA8A84 /* InknutAntiqua-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "InknutAntiqua-Regular.ttf"; sourceTree = "<group>"; };
+		9E381D3C2D121F5700FA8A84 /* InknutAntiqua-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "InknutAntiqua-SemiBold.ttf"; sourceTree = "<group>"; };
+		9E381D3D2D121F5700FA8A84 /* OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
 		9E3B877D2D07B92E00C5110B /* XPBarNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPBarNode.swift; sourceTree = "<group>"; };
 		9E7110402D08D67400F441AC /* EnemyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyManager.swift; sourceTree = "<group>"; };
 		9E7110422D08F2D800F441AC /* PhysicsCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsCategory.swift; sourceTree = "<group>"; };
@@ -94,9 +110,22 @@
 		FCC9B9E82CE961B3006077B4 /* ZPWizardNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPWizardNode.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9E381D482D121FCE00FA8A84 /* Exceptions for "Zombocalypse" folder in "Zombocalypse" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = FC070A542CCAB85600946357 /* Zombocalypse */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		FC070A572CCAB85600946357 /* Zombocalypse */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9E381D482D121FCE00FA8A84 /* Exceptions for "Zombocalypse" folder in "Zombocalypse" target */,
+			);
 			path = Zombocalypse;
 			sourceTree = "<group>";
 		};
@@ -137,6 +166,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9E381D3E2D121F5700FA8A84 /* Inknut_Antiqua */ = {
+			isa = PBXGroup;
+			children = (
+				9E381D362D121F5700FA8A84 /* InknutAntiqua-Black.ttf */,
+				9E381D372D121F5700FA8A84 /* InknutAntiqua-Bold.ttf */,
+				9E381D382D121F5700FA8A84 /* InknutAntiqua-ExtraBold.ttf */,
+				9E381D392D121F5700FA8A84 /* InknutAntiqua-Light.ttf */,
+				9E381D3A2D121F5700FA8A84 /* InknutAntiqua-Medium.ttf */,
+				9E381D3B2D121F5700FA8A84 /* InknutAntiqua-Regular.ttf */,
+				9E381D3C2D121F5700FA8A84 /* InknutAntiqua-SemiBold.ttf */,
+				9E381D3D2D121F5700FA8A84 /* OFL.txt */,
+			);
+			path = Inknut_Antiqua;
+			sourceTree = "<group>";
+		};
 		9EA377BE2D028B1C0000D5DB /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -192,6 +236,7 @@
 		FC070A9E2CCAD36200946357 /* Assets */ = {
 			isa = PBXGroup;
 			children = (
+				9E381D3E2D121F5700FA8A84 /* Inknut_Antiqua */,
 				FC070A842CCAB90300946357 /* Assets.xcassets */,
 			);
 			path = Assets;
@@ -365,6 +410,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				FC070A882CCAB90300946357 /* Assets.xcassets in Resources */,
+				9E381D3F2D121F5700FA8A84 /* InknutAntiqua-SemiBold.ttf in Resources */,
+				9E381D402D121F5700FA8A84 /* InknutAntiqua-Medium.ttf in Resources */,
+				9E381D412D121F5700FA8A84 /* OFL.txt in Resources */,
+				9E381D422D121F5700FA8A84 /* InknutAntiqua-Regular.ttf in Resources */,
+				9E381D432D121F5700FA8A84 /* InknutAntiqua-Light.ttf in Resources */,
+				9E381D442D121F5700FA8A84 /* InknutAntiqua-Black.ttf in Resources */,
+				9E381D452D121F5700FA8A84 /* InknutAntiqua-ExtraBold.ttf in Resources */,
+				9E381D462D121F5700FA8A84 /* InknutAntiqua-Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -582,6 +635,7 @@
 				DEVELOPMENT_TEAM = 54C56N7XB2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Zombocalypse/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -611,6 +665,7 @@
 				DEVELOPMENT_TEAM = 54C56N7XB2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Zombocalypse/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

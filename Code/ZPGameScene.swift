@@ -136,7 +136,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var waveProgressionWorkItem: DispatchWorkItem?
     
     // Zombie Wave Settings
-    private var waveCounter: Int = 0
     private var zombieHealth: Double = 3.0
     private var wizardHealth: Double = 15.0
     private var wizardBoss: ZPWizard?
@@ -144,7 +143,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var beamDamageTimer: Timer?
     
     var arenaBounds: CGRect?
-    var waveLabel: SKLabelNode!
     private let waveMessageLabel = SKLabelNode(fontNamed: "Arial")
     
     //Enemy variation message settings
@@ -153,18 +151,31 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         5: "New Enemy: Exploder!",
         7: "New Boss: Wizard!",
     ]
+    private let newEnemyBannerMapping: [Int: String] = [
+        4: "sk_charger_banner",
+        5: "sk_exploder_banner"
+    ]
     private var displayedEnemyMessages: Set<Int> = []
     
     // Auto-attack variables
     private var lastShootTime: TimeInterval = 0
     
-    //Score Settings
+    var scoreNode: SKSpriteNode!
+    var scoreLabel: SKLabelNode!
+    var waveNode: SKSpriteNode!
+    var waveLabel: SKLabelNode!
+    var topOverlayNode: SKShapeNode!
     var score: Int = 0 {
         didSet {
-            scoreLabel.text = "Score: \(score)"
+            scoreLabel.text = "\(score)"
         }
     }
-    var scoreLabel: SKLabelNode!
+    private var waveCounter: Int = 0 {
+        didSet {
+            // Just show the wave number
+            waveLabel.text = "\(waveCounter)"
+        }
+    }
     
     // Track time since the last frame for smoother movement
     private var lastUpdateTime: TimeInterval = 0
@@ -242,14 +253,15 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         waveMessageLabel.position = CGPoint(x: size.width / 2, y: size.height - 180)
         waveMessageLabel.zPosition = 5
         waveMessageLabel.isHidden = true
-        cameraNode.addChild(waveMessageLabel)
+//        cameraNode.addChild(waveMessageLabel)
         
         //Add camera-related HUD elements
-        cameraNode.addChild(playerLivesLabel)
+//        cameraNode.addChild(playerLivesLabel)
         cameraNode.addChild(playerHealthBar)
-        cameraNode.addChild(scoreLabel)
-        cameraNode.addChild(waveLabel)
-        cameraNode.addChild(progressLabel)
+        cameraNode.addChild(scoreNode)
+        cameraNode.addChild(waveNode)
+        cameraNode.addChild(topOverlayNode)
+//        cameraNode.addChild(progressLabel)
         cameraNode.addChild(joystick)
         cameraNode.addChild(shootJoystick)
         
@@ -352,24 +364,39 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
         playerLives = playerState.baseMaxHealth // Reset playerLives  
         
+        setupTopOverlay()
+        
         // Set up score label at the top
         if scoreLabel == nil {
-            scoreLabel = SKLabelNode(fontNamed: "Arial")
-            scoreLabel.fontSize = 20
+            scoreNode = SKSpriteNode(imageNamed: "sk_score_node")
+            scoreNode.position = CGPoint(x: size.width * -0.45 + scoreNode.size.width / 2, y: size.height * 0.43 - scoreNode.size.height / 2)
+            scoreNode.zPosition = 6 // Above the overlay
+            
+            // This label only shows the number
+            scoreLabel = SKLabelNode(fontNamed: "InknutAntiqua-ExtraBold")
+            scoreLabel.fontSize = 16
             scoreLabel.fontColor = .black
-            scoreLabel.position = CGPoint(x: size.width / 2 - 80, y: size.height / 2 - 80)
-            scoreLabel.zPosition = 5
+            scoreLabel.position = CGPoint(x: 0, y: scoreNode.size.height * -0.35 - scoreLabel.frame.height)
+            scoreLabel.zPosition = 7
+            
+            scoreNode.addChild(scoreLabel)
         }
         score = 0
         
         //Set up wave label at the top
         if waveLabel == nil {
-            waveLabel = SKLabelNode(fontNamed: "Arial")
-            waveLabel.text = "Wave: \(waveCounter)"
-            waveLabel.fontSize = 22
+            waveNode = SKSpriteNode(imageNamed: "sk_wave_node")
+            waveNode.position = CGPoint(x: size.width * 0.45 - waveNode.size.width / 2, y: size.height * 0.43 - waveNode.size.height / 2)
+            waveNode.zPosition = 6 // Above the overlay
+            
+            // This label only shows the wave number
+            waveLabel = SKLabelNode(fontNamed: "InknutAntiqua-ExtraBold")
+            waveLabel.fontSize = 16
             waveLabel.fontColor = .black
-            waveLabel.position = CGPoint(x: 0, y: size.height / 2 - 80)
-            waveLabel.zPosition = 5
+            waveLabel.position = CGPoint(x: 0, y: waveNode.size.height * -0.35 - waveLabel.frame.height)
+            waveLabel.zPosition = 7
+            
+            waveNode.addChild(waveLabel)
         }
         //Set up progress label at the top
         if progressLabel == nil {
@@ -426,11 +453,30 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         updateUpgradeStatsLabel()
         
         let xpBar = XPBarNode(width: 150, height: 20)
-        xpBar.position = CGPoint(x: 0, y: size.height/2 - 230)
-        xpBar.zPosition = 5
+        xpBar.position = CGPoint(x: 0, y: size.height * 0.35)
+        xpBar.zPosition = 6
         camera?.addChild(xpBar)
         self.xpBarNode = xpBar
         startXPSpawnTimer()
+    }
+    
+    func setupTopOverlay() {
+        guard let cameraNode = self.camera else { return }
+        
+        // Create a semi-opaque black rectangle covering the top 1/6 of the screen
+        let overlayHeight = size.height / 5.5
+        let overlayRect = CGRect(
+            x: -size.width / 2,
+            y: size.height/2 - overlayHeight,
+            width: size.width,
+            height: overlayHeight
+        )
+        
+        topOverlayNode = SKShapeNode(rect: overlayRect)
+        topOverlayNode.fillColor = .black
+        topOverlayNode.alpha = 0.4
+        topOverlayNode.strokeColor = .clear
+        topOverlayNode.zPosition = 5
     }
     
     func pauseGame() {
@@ -451,6 +497,30 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         enemyManager.resumeAll()
         waveTransitionTimer?.resume()
         startXPSpawnTimer()
+        
+        // If you have any labels or banners currently showing that should vanish soon after resume,
+        // you can find them and run a fade-out.
+        if let cameraNode = self.camera {
+            if !waveMessageLabel.isHidden {
+                waveMessageLabel.removeAllActions()
+                let fadeOut = SKAction.sequence([
+                    SKAction.wait(forDuration: 2.0),
+                    SKAction.fadeOut(withDuration: 0.5),
+                    SKAction.run { [weak self] in self?.waveMessageLabel.isHidden = true }
+                ])
+                waveMessageLabel.run(fadeOut)
+            }
+
+            for banner in cameraNode.children where banner.name == "banner" {
+                banner.removeAllActions()
+                let fadeOut = SKAction.sequence([
+                    SKAction.wait(forDuration: 2.0),
+                    SKAction.fadeOut(withDuration: 0.5),
+                    SKAction.removeFromParent()
+                ])
+                banner.run(fadeOut)
+            }
+        }
     }
     
     func initializeWaves() {
@@ -474,7 +544,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
         
         waveCounter += 1
-        waveLabel.text = "Wave \(waveCounter)"
         
         let wave = waveCycle[currentWaveIndex]
         pendingEnemies += wave.totalEnemies
@@ -485,27 +554,42 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         //Display wave start message
         if wave.isBoss {
-            waveMessageLabel.text = "Boss Stage"
-            waveMessageLabel.fontSize = 40
-            waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
-            waveMessageLabel.zPosition = 5
+            // Use the boss warning image
+            showBannerNode(imageName: "sk_boss_warning", duration: 3.0)
         } else if wave.isHorde {
-            waveMessageLabel.text = "A horde is approaching.."
-            waveMessageLabel.fontSize = 30
-            waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
-            waveMessageLabel.zPosition = 5
+            // Use the horde incoming image
+            showBannerNode(imageName: "sk_horde_incoming", duration: 3.0)
         } else {
-            waveMessageLabel.text = "Wave \(waveCounter) starting.."
-            waveMessageLabel.fontSize = 30
-            waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
-            waveMessageLabel.zPosition = 5
+            // Normal wave start message can remain text-based or also be replaced.
+            // If you want to keep text-based messages for normal waves:
+//            waveMessageLabel.text = "Wave \(waveCounter) starting.."
+//            waveMessageLabel.fontSize = 30
+//            waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+//            waveMessageLabel.zPosition = 5
+//            waveMessageLabel.isHidden = false
+//
+//            // Hide it after a short delay
+//            let hideAction = SKAction.sequence([
+//                SKAction.wait(forDuration: 3.0),
+//                SKAction.run { [weak self] in self?.waveMessageLabel.isHidden = true }
+//            ])
+//            self.run(hideAction)
         }
-        waveMessageLabel.isHidden = false
-        
+
+        // Check for new enemy messages and show corresponding banners
         if let enemyMessage = newEnemyMessages[wave.waveNumber], !displayedEnemyMessages.contains(wave.waveNumber) {
-            showEnemyIntroductionMessage(enemyMessage)
+            // Instead of using text, we use banner nodes:
+            // Determine if we have a charger or exploder message
+            if enemyMessage.contains("Charger") {
+                // Show charger banner
+                showBannerNode(imageName: "sk_charger_banner", duration: 5.0)
+            } else if enemyMessage.contains("Exploder") {
+                // Show exploder banner
+                showBannerNode(imageName: "sk_exploder_banner", duration: 5.0)
+            }
             displayedEnemyMessages.insert(wave.waveNumber)
         }
+        
         print("-")
         print("wave", wave)
         if wave.isBoss {
@@ -522,6 +606,35 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
         
     }
+    
+    func showBannerNode(imageName: String, duration: TimeInterval = 4.0) {
+        guard let cameraNode = self.camera else { return }
+        let banner = SKSpriteNode(imageNamed: imageName)
+        // Position banner at a suitable place; adjust as needed
+        banner.position = CGPoint(x: 0, y: size.height * 0.22)
+        banner.zPosition = 5
+        banner.alpha = 0.0
+        banner.name = "banner"
+        cameraNode.addChild(banner)
+        
+        let fadeIn = SKAction.fadeIn(withDuration: 0.5)
+        
+        let pulseIn = SKAction.scale(to: 1.03, duration: 1.0)
+        let pulseOut = SKAction.scale(to: 1.0, duration: 1.0)
+        let pulseSequence = SKAction.sequence([pulseOut, pulseIn])
+        let pulse = SKAction.repeat(pulseSequence, count: 2)
+        
+        let sequence = SKAction.sequence([
+            fadeIn,
+            pulse,
+            SKAction.fadeOut(withDuration: 0.5),
+            SKAction.removeFromParent()
+        ])
+        
+        
+        banner.run(sequence)
+    }
+    
     
     func spawnNextEnemy() {
         guard currentWaveIndex < waveCycle.count else { return }
@@ -618,7 +731,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func showUpgradeShopOverlay(with choices: [RegularSkill]) {
-        let upgradeOverlay = UpgradeShopOverlayNode(choices: choices, manager: upgradeShopManager, overlayManager: overlayManager, skillManager: skillManager)
+        let overlaySize = CGSize(width: size.width, height: size.height)
+        let upgradeOverlay = UpgradeShopOverlayNode(choices: choices, manager: upgradeShopManager, overlayManager: overlayManager, skillManager: skillManager, overlaySize: overlaySize)
         overlayManager.enqueueOverlay(upgradeOverlay)
     }
     
@@ -1071,11 +1185,11 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         isTransitioningWave = true
         
         //Start grace period timer
-        waveMessageLabel.text = "Wave Over. Defeat remaining enemies.."
-        waveMessageLabel.fontSize = 20
-        waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
-        waveMessageLabel.zPosition = 5
-        waveMessageLabel.isHidden = false
+//        waveMessageLabel.text = "Wave Over. Defeat remaining enemies.."
+//        waveMessageLabel.fontSize = 20
+//        waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
+//        waveMessageLabel.zPosition = 5
+//        waveMessageLabel.isHidden = false
         
         isGracePeriodActive = true
         remainingGracePeriod = gracePeriod
@@ -1227,7 +1341,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
         
          // Create the special skill spinner overlay
-        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager)
+        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager, overlaySize: size)
         overlayManager.enqueueOverlay(spinnerOverlay)
         
         isBossStage = false
@@ -1770,23 +1884,31 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         playerLives -= 1
     }
     
-    private func showEnemyIntroductionMessage(_ message: String) {
-        guard let cameraNode = self.camera else { return }
-        let enemyMessageLabel = SKLabelNode(text: message)
-        enemyMessageLabel.fontName = "Arial"
-        enemyMessageLabel.fontSize = 40
-        enemyMessageLabel.fontColor = .red
-        enemyMessageLabel.position = CGPoint(x: 0, y: size.height * 0.25)
-        enemyMessageLabel.zPosition = 5
-        cameraNode.addChild(enemyMessageLabel)
-        
-        let fadeOut = SKAction.sequence([
-            SKAction.wait(forDuration: 5.0),
-            SKAction.fadeOut(withDuration: 0.5),
-            SKAction.run { enemyMessageLabel.removeFromParent() }
-        ])
-        enemyMessageLabel.run(fadeOut)
+//    private func showEnemyIntroductionMessage(_ message: String) {
+//        guard let cameraNode = self.camera else { return }
+//        let enemyMessageLabel = SKLabelNode(text: message)
+//        enemyMessageLabel.fontName = "Arial"
+//        enemyMessageLabel.fontSize = 40
+//        enemyMessageLabel.fontColor = .red
+//        enemyMessageLabel.position = CGPoint(x: 0, y: size.height * 0.25)
+//        enemyMessageLabel.zPosition = 5
+//        cameraNode.addChild(enemyMessageLabel)
+//        
+//        let fadeOut = SKAction.sequence([
+//            SKAction.wait(forDuration: 5.0),
+//            SKAction.fadeOut(withDuration: 0.5),
+//            SKAction.run { enemyMessageLabel.removeFromParent() }
+//        ])
+//        enemyMessageLabel.run(fadeOut)
+//    }
+    
+    func showEnemyIntroductionMessage(forWaveNumber waveNumber: Int) {
+        // Map the wave number to the appropriate banner
+        if let bannerName = newEnemyBannerMapping[waveNumber] {
+            showBannerNode(imageName: bannerName, duration: 5.0)
+        }
     }
+
     
     func showGameOverScreen() {
         gameOver = true
@@ -2182,11 +2304,6 @@ extension ZPGameScene: SKPhysicsContactDelegate {
     
     func applyDamageToEnemy(_ enemy: ZPZombie, damage: Double) {
         enemy.takeDamage(amount: damage)
-        if enemy.isDead {
-            let pos = enemy.position
-            enemyManager.removeEnemy(enemy)
-            handleEnemyDefeat(at: pos)
-        }
     }
 
 }
