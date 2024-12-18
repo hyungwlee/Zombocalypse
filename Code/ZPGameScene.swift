@@ -1801,8 +1801,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         spawnXPNode(at: lastHitZombiePosition)
         
         // MARK: Delete later, just for testing purposes
-//        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager)
-//        overlayManager.enqueueOverlay(spinnerOverlay)
+        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager, overlaySize: size)
+        overlayManager.enqueueOverlay(spinnerOverlay)
         
         score += 1
         pendingEnemies -= 1
@@ -1907,7 +1907,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     func spawnRandomXPNode() {
         guard let player = player else { return }
 
-        let spawnBuffer: CGFloat = 30.0
+        let spawnBuffer: CGFloat = 80.0
         let spawnRadius: CGFloat = size.height / 2.0
         let xpSize = CGSize(width: 20, height: 20) // approximate XP size
         
