@@ -21,8 +21,8 @@ class EnemyManager {
     // MARK: - Spawning
 
     func spawnRegularZombie(health: Double) {
-        let zombie = ZPZombie(health: health)
-        zombie.physicsBody = SKPhysicsBody(circleOfRadius: zombie.size.width / 2)
+        let zombie = ZPZombie(health: health, textureName: "sk_skeleton")
+        zombie.physicsBody = SKPhysicsBody(texture: zombie.texture!, size: zombie.size)
         zombie.physicsBody?.categoryBitMask = PhysicsCategory.enemy
         zombie.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
         zombie.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.shield
@@ -37,8 +37,8 @@ class EnemyManager {
     }
     
     func spawnChargerZombie(health: Double, speed: CGFloat) {
-        let charger = ZPChargerZombieNode(health: health, movementSpeed: speed)
-        charger.physicsBody = SKPhysicsBody(circleOfRadius: charger.size.width / 2)
+        let charger = ZPChargerZombieNode(health: health, textureName: "sk_charger", movementSpeed: speed)
+        charger.physicsBody = SKPhysicsBody(texture: charger.texture!, size: charger.size)
         charger.physicsBody?.categoryBitMask = PhysicsCategory.enemy
         charger.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
         charger.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.shield
@@ -53,8 +53,8 @@ class EnemyManager {
     }
     
     func spawnExploderZombie(health: Double, speed: CGFloat) {
-        let exploder = ZPExploderZombieNode(health: health, movementSpeed: speed)
-        exploder.physicsBody = SKPhysicsBody(circleOfRadius: exploder.size.width / 2)
+        let exploder = ZPExploderZombieNode(health: health, textureName: "sk_exploder", movementSpeed: speed)
+        exploder.physicsBody = SKPhysicsBody(texture: exploder.texture!, size: exploder.size)
         exploder.physicsBody?.categoryBitMask = PhysicsCategory.enemy
         exploder.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
         exploder.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.shield
@@ -75,7 +75,7 @@ class EnemyManager {
         
         let wizard = ZPWizard(health: health)
         
-        wizard.physicsBody = SKPhysicsBody(circleOfRadius: wizard.size.width / 2)
+        wizard.physicsBody = SKPhysicsBody(rectangleOf: wizard.size)
         wizard.physicsBody?.categoryBitMask = PhysicsCategory.boss
         wizard.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
         wizard.physicsBody?.collisionBitMask = PhysicsCategory.shield
@@ -224,8 +224,11 @@ class EnemyManager {
                 y: CGFloat.random(in: minY...maxY)
             )
 
-            if position.distance(to: point) >= avoidingRadius &&
-               !enemies.contains(where: { $0.frame.contains(position) }) {
+            let clearOfEnemies = !enemies.contains(where: { $0.frame.contains(position) })
+            let enoughDistance = position.distance(to: point) >= avoidingRadius
+            let clearOfObstacles = scene.mapManager.positionIsClear(position: position, entitySize: size)
+            
+            if enoughDistance && clearOfEnemies && clearOfObstacles {
                 return position
             }
 

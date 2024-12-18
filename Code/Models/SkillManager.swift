@@ -384,10 +384,10 @@ extension SkillManager {
                 type: .magnet,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(coinRadiusIncrement: 25),
-                    SkillLevelEffect(coinRadiusIncrement: 25),
-                    SkillLevelEffect(coinRadiusIncrement: 25),
-                    SkillLevelEffect(coinRadiusIncrement: 25)
+                    SkillLevelEffect(coinRadiusIncrement: 50),
+                    SkillLevelEffect(coinRadiusIncrement: 60),
+                    SkillLevelEffect(coinRadiusIncrement: 70),
+                    SkillLevelEffect(coinRadiusIncrement: 80)
                 ]
             )
         )

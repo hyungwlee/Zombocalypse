@@ -14,7 +14,7 @@ class XPNode: SKSpriteNode {
     init(xpAmount: Int = 5) {
         self.xpAmount = xpAmount
         let texture = SKTexture(imageNamed: "zp_xp")
-        super.init(texture: texture, color: .clear, size: CGSize(width: 15, height: 15))
+        super.init(texture: texture, color: .clear, size: CGSize(width: 11, height: 11))
         self.name = "xpNode"
         self.zPosition = 1
     }

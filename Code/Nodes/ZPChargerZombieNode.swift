@@ -27,8 +27,8 @@ class ZPChargerZombieNode: ZPZombie {
     private var arrowNode: SKSpriteNode?
     
     // Initialize with chargerMovementSpeed, pass it to the super class ZPZombie
-    init(health: Double, movementSpeed chargerMovementSpeed: CGFloat) {
-        super.init(health: health)
+    init(health: Double, textureName: String, movementSpeed chargerMovementSpeed: CGFloat) {
+        super.init(health: health, textureName: textureName)
         self.movementSpeed = chargerMovementSpeed
         self.baseSpeed = chargerMovementSpeed
         self.baseColor = .orange // Set the color to indicate it's a charger zombie
@@ -41,7 +41,7 @@ class ZPChargerZombieNode: ZPZombie {
     
     func update(deltaTime: TimeInterval, playerPosition: CGPoint) {
         // Freeze grenade interupts and resets
-        if isFrozen {
+        if isFrozen || isZombiePaused {
             self.removeAllActions()
             self.isCharging = false
             let cooldown = SKAction.wait(forDuration: self.chargeCooldown)
@@ -67,7 +67,7 @@ class ZPChargerZombieNode: ZPZombie {
             // Display the indicator at the target point
             let targetIndicator = SKSpriteNode(color: .cyan, size: CGSize(width: 20, height: 20))
             targetIndicator.position = targetPoint
-            self.parent?.addChild(targetIndicator)
+//            self.parent?.addChild(targetIndicator)
             targetIndicator.run(SKAction.sequence([
                 SKAction.wait(forDuration: chargePreparationTime),
                 SKAction.fadeOut(withDuration: 0.2),

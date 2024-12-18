@@ -42,7 +42,7 @@ class PlayerState {
     var baseMovementSpeed: Double = 100.0
     var baseRange: Double = 200.0
     var baseMaxHealth: Double = 300.0
-    var baseCoinRadius: Double = 50.0
+    var baseXPRadius: Double = 50.0
 
     // Derived stats after skill application:
     var currentDamage: Double = 0
@@ -50,13 +50,12 @@ class PlayerState {
     var currentMovementSpeed: Double = 0
     var currentRange: Double = 0
     var currentMaxHealth: Double = 0
-    var currentCoinRadius: Double = 0
+    var currentXPRadius: Double = 0
     
     let projectileSpeed: Double = 100.0
     
     // XP
     var currentXP: Int = 0
-    var xpPickupRadius: Double = 30.0
     
     // Spinning blades properties
     var spinningBladesCount: Int = 0
@@ -100,7 +99,7 @@ class PlayerState {
         currentMovementSpeed = baseMovementSpeed
         currentRange = baseRange
         currentMaxHealth = baseMaxHealth
-        currentCoinRadius = baseCoinRadius
+        currentXPRadius = baseXPRadius
         
         // Reset Regular Skill Properties
         spinningBladesCount = 0
@@ -158,7 +157,7 @@ class PlayerState {
     }
 
     func upgradeMagnet(by amount: Double) {
-        currentCoinRadius += amount
+        currentXPRadius += amount
         
         // Calls to logic in GameScene relating to this skill
         delegate?.playerStateDidUpgradeMagnet(self)
@@ -168,7 +167,7 @@ class PlayerState {
         freezeGrenadeCooldownReduction += cooldownReduction
         freezeDuration += durationIncrement
         freezeRadius += radiusIncrement
-        freezeGrenadeActive = false
+        freezeGrenadeActive = true
         
         // Calls to logic in GameScene relating to this skill
         delegate?.playerStateDidUpgradeFreeze(self)

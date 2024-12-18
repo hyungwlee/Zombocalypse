@@ -8,17 +8,23 @@
 import SpriteKit
 
 class ZPZombie: SKSpriteNode {
-    var lastSpinningBladeDamageTime: TimeInterval = 0
-    var lastBarrierDamageTime: TimeInterval = 0
-    var isFrozen: Bool = false
-    var isZombiePaused: Bool = false
-    var freezeEndTime: TimeInterval = 0
     var baseColor: SKColor = .red
+    
     var movementSpeed: CGFloat = 0.4
     var baseSpeed: CGFloat = 0.4
-    var isAttacking: Bool = false
-    private let healthBar: HealthBarNode
     var isSlowedByBarrier = false
+    
+    var isAttacking: Bool = false
+    var hitPlayerCooldown: TimeInterval = 1.0
+    var lastHitPlayerTime: TimeInterval = 0
+    var lastSpinningBladeDamageTime: TimeInterval = 0
+    var lastBarrierDamageTime: TimeInterval = 0
+    
+    var isZombiePaused: Bool = false
+    var isFrozen: Bool = false
+    var freezeEndTime: TimeInterval = 0
+    private let healthBar: HealthBarNode
+    private var iceNode: SKSpriteNode?
     
     var health: Double {
         didSet{
@@ -37,14 +43,18 @@ class ZPZombie: SKSpriteNode {
     //private let healthLabel: SKLabelNode
     
     
-    init(health: Double) {
-        self.health = health
-        let barSize = CGSize(width: 50, height: 10)
-        self.healthBar = HealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
+    init(health: Double, textureName: String) {
+
         //self.healthLabel = SKLabelNode(text: "Enemy | HP: \(health)")
-        let size = CGSize(width: 25, height: 25)
-        super.init(texture: nil, color: .red, size: size)
-        healthBar.position = CGPoint(x: 0, y: self.size.height / 2 + 15)
+        let skeletonTexture = SKTexture(imageNamed: textureName)
+        
+        self.health = health
+        let barSize = CGSize(width: skeletonTexture.size().width * 0.9, height: 10)
+        self.healthBar = HealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
+        super.init(texture: skeletonTexture, color: .red, size: skeletonTexture.size())
+        setScale(0.35)
+        
+        healthBar.position = CGPoint(x: 0, y: skeletonTexture.size().height * 0.6)
 //        healthLabel.fontSize = 20
 //        healthLabel.fontColor = .black
 //        healthLabel.position = CGPoint(x: 0, y: size.height / 2 + 10)
@@ -86,8 +96,7 @@ class ZPZombie: SKSpriteNode {
     func freeze(currentTime: TimeInterval, duration: TimeInterval) {
         isFrozen = true
         freezeEndTime = currentTime + duration
-        color = .cyan
-        colorBlendFactor = 1.0
+        addIceNode()
     }
     
     func updateFreezeState(currentTime: TimeInterval) {
@@ -98,7 +107,7 @@ class ZPZombie: SKSpriteNode {
     
     func unfreeze() {
         isFrozen = false
-        color = baseColor
+        removeIceNode()
     }
     
     func pause() {
@@ -107,5 +116,36 @@ class ZPZombie: SKSpriteNode {
     
     func resume() {
         isZombiePaused = false
+    }
+    
+    private func addIceNode() {
+        if iceNode != nil { return }
+        
+        let ice = SKSpriteNode(imageNamed: "sk_ice")
+        ice.name = "iceNode"
+        ice.setScale(0.0)
+        ice.zPosition = self.zPosition + 1
+        ice.position = CGPoint.zero
+        
+        addChild(ice)
+        self.iceNode = ice
+        
+        let scaleUp = SKAction.scale(to: 1.0, duration: 0.1)
+        let fadeIn = SKAction.fadeAlpha(to: 1.0, duration: 0.1)
+        let spawnGroup = SKAction.group([scaleUp, fadeIn])
+        ice.run(spawnGroup)
+    }
+    
+    private func removeIceNode() {
+        guard let ice = iceNode else { return }
+        
+        let fadeOut = SKAction.fadeAlpha(to: 0.0, duration: 0.1)
+        let scaleDown = SKAction.scale(to: 0.0, duration: 0.1)
+        let remove = SKAction.removeFromParent()
+        let group = SKAction.group([fadeOut, scaleDown])
+        let sequence = SKAction.sequence([group, remove])
+        ice.run(sequence)
+        
+        iceNode = nil
     }
 }
