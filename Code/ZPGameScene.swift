@@ -281,8 +281,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //        let freezeSkill = skillManager.createRegularSkillInstance(for: .freeze)
 //        skillManager.acquireOrUpgradeRegularSkill(freezeSkill!)
 
-        skillManager.acquireSpecialSkill(.helpingHand)
-//        skillManager.acquireSpecialSkill(.spectralShield)
+//        skillManager.acquireSpecialSkill(.helpingHand)
+        skillManager.acquireSpecialSkill(.spectralShield)
 //        skillManager.acquireSpecialSkill(.reinforcedArrow)
 //        skillManager.acquireSpecialSkill(.mightyKnockback)
     }
@@ -1604,19 +1604,19 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
     
-    func updateShieldAppearance() {
-        guard let shield = spectralShield else { return }
-        switch playerState.shieldHitsRemaining {
-        case playerState.shieldMaxHits:
-            shield.strokeColor = UIColor.green.withAlphaComponent(0.7)
-        case playerState.shieldMaxHits - 1:
-            shield.strokeColor = UIColor.orange.withAlphaComponent(0.7)
-        case 1:
-            shield.strokeColor = UIColor.red.withAlphaComponent(0.7)
-        default:
-            shield.strokeColor = UIColor.gray //Default or error color
-        }
-    }
+//    func updateShieldAppearance() {
+//        guard let shield = spectralShield else { return }
+//        switch playerState.shieldHitsRemaining {
+//        case playerState.shieldMaxHits:
+//            shield.strokeColor = UIColor.green.withAlphaComponent(0.7)
+//        case playerState.shieldMaxHits - 1:
+//            shield.strokeColor = UIColor.orange.withAlphaComponent(0.7)
+//        case 1:
+//            shield.strokeColor = UIColor.red.withAlphaComponent(0.7)
+//        default:
+//            shield.strokeColor = UIColor.gray //Default or error color
+//        }
+//    }
 
     
     func fireHelpingHandProjectile() {
@@ -1690,18 +1690,18 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         if spectralShield != nil { return }
         guard let shieldContainer = shieldContainer else { return }
         
-        //Remove existing shield
+        // Remove existing shield
         shieldContainer.removeAllChildren()
         
-        //Create the shield node
-        let shield = SKShapeNode(circleOfRadius: 35)
+        // Create the shield node
+        let shield = SKShapeNode(circleOfRadius: 60)
         shield.alpha = 0.7
         shield.lineWidth = 2
         shield.position = CGPoint.zero
-        shield.zPosition = 2 //  Ontop of player
+        shield.zPosition = 2 // On top of the player
         shield.name = "spectralShield"
         
-        shield.physicsBody = SKPhysicsBody(circleOfRadius: 35)
+        shield.physicsBody = SKPhysicsBody(circleOfRadius: 60)
         shield.physicsBody?.categoryBitMask = PhysicsCategory.shield
         shield.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss | PhysicsCategory.exploder
         shield.physicsBody?.collisionBitMask = PhysicsCategory.none
@@ -1712,9 +1712,87 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         shieldContainer.addChild(shield)
         spectralShield = shield
         
-        //Reset shield durability
+        // Reset shield durability
         playerState.shieldHitsRemaining = playerState.shieldMaxHits
         updateShieldAppearance()
+        
+        // Add shield instance nodes
+        addShieldInstances()
+    }
+
+    private func addShieldInstances() {
+        guard let shield = spectralShield else { return }
+
+        // Remove existing shield instance nodes
+        shield.removeAllChildren()
+
+        let shieldHits = playerState.shieldHitsRemaining
+        let radius: CGFloat = 60.0 // Distance from the center of the shield
+        let angleIncrement = (2 * CGFloat.pi) / CGFloat(shieldHits)
+
+        for i in 0..<shieldHits {
+            let angle = CGFloat(i) * angleIncrement
+            let xPosition = radius * cos(angle)
+            let yPosition = radius * sin(angle)
+
+            let shieldInstance = SKSpriteNode(imageNamed: "sk_shield_instance")
+            shieldInstance.setScale(0.3)
+            shieldInstance.position = CGPoint(x: xPosition, y: yPosition)
+            shieldInstance.zPosition = shield.zPosition + 1 // Ensure they render above the shield
+            shieldInstance.name = "shieldInstance"
+            
+            // Ensure shield instance stays upright
+            shieldInstance.zRotation = 0
+            
+            shield.addChild(shieldInstance)
+        }
+
+        // Animate the rotation
+        animateShieldInstances(shield)
+    }
+
+    private func animateShieldInstances(_ shield: SKShapeNode) {
+        let radius: CGFloat = 60.0 // Same radius as above
+        let duration: TimeInterval = 2.0 // Time for a full rotation
+        let shieldHits = playerState.shieldHitsRemaining
+        let angleIncrement = (2 * CGFloat.pi) / CGFloat(shieldHits)
+
+        // Animation block to update the position of each shield instance
+        let rotateAction = SKAction.customAction(withDuration: duration) { _, elapsedTime in
+            let currentAngle = (2 * CGFloat.pi) * (elapsedTime / CGFloat(duration))
+
+            for (index, child) in shield.children.enumerated() {
+                guard let shieldInstance = child as? SKSpriteNode else { continue }
+                let angle = currentAngle + (CGFloat(index) * angleIncrement)
+                let xPosition = radius * cos(angle)
+                let yPosition = radius * sin(angle)
+
+                shieldInstance.position = CGPoint(x: xPosition, y: yPosition)
+                shieldInstance.zRotation = 0 // Keep upright
+            }
+        }
+
+        let repeatRotation = SKAction.repeatForever(rotateAction)
+        shield.run(repeatRotation, withKey: "rotateShieldInstances")
+    }
+    
+    func updateShieldAppearance() {
+        guard let shield = spectralShield else { return }
+        
+        // Update stroke color based on hits remaining
+        switch playerState.shieldHitsRemaining {
+        case playerState.shieldMaxHits:
+            shield.strokeColor = UIColor.green.withAlphaComponent(0.7)
+        case playerState.shieldMaxHits - 1:
+            shield.strokeColor = UIColor.orange.withAlphaComponent(0.7)
+        case 1:
+            shield.strokeColor = UIColor.red.withAlphaComponent(0.7)
+        default:
+            shield.strokeColor = UIColor.gray // Default or error color
+        }
+        
+        // Update shield instances to match remaining hits
+        addShieldInstances()
     }
     
     func removeSpectralShield() {

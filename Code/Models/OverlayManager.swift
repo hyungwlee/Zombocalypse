@@ -9,7 +9,7 @@ import SpriteKit
 
 // MARK: The purpose of this file is to make sure the special and regular skill overlays work in harmony
 class OverlayManager {
-    private weak var scene: ZPGameScene?
+    weak var scene: ZPGameScene?
     private var overlayQueue: [SKNode] = []
     private var isShowingOverlay: Bool = false
     

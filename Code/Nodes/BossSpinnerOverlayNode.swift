@@ -471,7 +471,11 @@ class BossSpinnerOverlayNode: SKNode {
     // MARK: - Overlay Closing Animation
     private func applyChosenSkillAndClose() {
         if let chosenSkill = chosenSkill {
-            skillManager.acquireSpecialSkill(chosenSkill)
+            if chosenSkill != .bonusHealth {
+                skillManager.acquireSpecialSkill(chosenSkill)
+            } else {
+                overlayManager?.scene?.restoreHealth(1.0)
+            }
         }
         
         // Animate overlay closing
