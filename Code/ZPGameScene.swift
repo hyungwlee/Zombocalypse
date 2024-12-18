@@ -230,22 +230,22 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         playerHealthBar = HealthBarNode(
             size: healthBarSize,
             maxHealth: playerState.baseMaxHealth,
-            foregroundColor: .green,
-            backgroundColor: .darkGray
+            foregroundColor: UIColor(hex: "#00C300") ?? .green,
+            backgroundColor: UIColor(hex: "#004500") ?? .black
         )
         playerHealthBar.position = CGPoint(x: 0, y: 50)
         playerHealthBar.zPosition = 5
         //Initialize shooting progress bar
-        let progressBarSize = CGSize(width: healthBarSize.width, height: 5)
+        let progressBarSize = CGSize(width: healthBarSize.width * 0.9, height: healthBarSize.height / 2)
         playerShootingProgressBar = HealthBarNode(
             size: progressBarSize,
             maxHealth: 1.0, //Represents progress from 0.0 to 1.0
-            foregroundColor: .darkGray, //This changes the color that is behind the shootprogressbar
-            backgroundColor: .darkGray, 
+            foregroundColor: UIColor(hex: "#01403D") ?? .darkGray, //This changes the color that is behind the shootprogressbar
+            backgroundColor: .black,
             showProgressBar: true,
-            progressColor: .blue
+            progressColor: UIColor(hex: "#00DCD1") ?? .blue
         )
-        playerShootingProgressBar.position = CGPoint(x: 0, y: -healthBarSize.height - 5) // Positioned below the health bar
+        playerShootingProgressBar.position = CGPoint(x: 0, y: -healthBarSize.height) // Positioned below the health bar
         playerHealthBar.addChild(playerShootingProgressBar)
         
         setUpGame()

@@ -5,6 +5,7 @@
 //
 //
 
+
 import SpriteKit
 
 class HealthBarNode: SKNode {
@@ -17,10 +18,13 @@ class HealthBarNode: SKNode {
     private let maxHealth: Double
     private var currentHealth: Double
     
+    // Borders for the bars
+    private let backgroundBorder: SKShapeNode
+    
     // Optional progress bar for shooting intervals
     private var progressBar: SKSpriteNode?
     private let progressBarHeight: CGFloat = 5
-    private let progressBarWidthRatio: CGFloat = 1.0 // 80% of health bar width
+    private let progressBarWidthRatio: CGFloat = 1.0 // 100% of health bar width
     
     // MARK: - Initialization
     
@@ -33,6 +37,7 @@ class HealthBarNode: SKNode {
         - foregroundColor: The color representing current health.
         - backgroundColor: The color representing lost health.
         - showProgressBar: A Boolean indicating whether to show a progress bar (used for the player).
+        - progressColor: The color of the progress bar.
      */
     init(size: CGSize, maxHealth: Double, foregroundColor: SKColor, backgroundColor: SKColor, showProgressBar: Bool = false, progressColor: SKColor = .blue) {
         self.size = size
@@ -49,6 +54,15 @@ class HealthBarNode: SKNode {
         foregroundBar.anchorPoint = CGPoint(x: 0, y: 0.5) // Left-center
         foregroundBar.position = CGPoint(x: -size.width / 2, y: 0)
         
+        // Initialize borders
+        backgroundBorder = SKShapeNode(rectOf: size)
+        backgroundBorder.strokeColor = .black
+        backgroundBorder.lineWidth = 2.0
+        backgroundBorder.position = CGPoint(x: backgroundBar.size.width / 2, y: 0)
+        backgroundBorder.zPosition = 3 // Ensure border is above the bar
+        backgroundBar.addChild(backgroundBorder)
+        
+        
         super.init()
         
         addChild(backgroundBar)
@@ -57,9 +71,10 @@ class HealthBarNode: SKNode {
         // If a progress bar is needed (for the player)
         if showProgressBar {
             let progressSize = CGSize(width: size.width * progressBarWidthRatio, height: progressBarHeight)
-            progressBar = SKSpriteNode(color: progressColor, size: size)
+            progressBar = SKSpriteNode(color: progressColor, size: progressSize)
             progressBar?.anchorPoint = CGPoint(x: 0, y: 0.5)
             progressBar?.position = CGPoint(x: -size.width / 2, y: 0)
+            progressBar?.zPosition = 2
             if let progress = progressBar {
                 addChild(progress)
             }
@@ -83,7 +98,7 @@ class HealthBarNode: SKNode {
         let healthPercentage = CGFloat(currentHealth / maxHealth)
         foregroundBar.size.width = size.width * healthPercentage
         
-        // Optional: Animate the change
+        // Animate the change
         let resizeAction = SKAction.resize(toWidth: size.width * healthPercentage, duration: 0.2)
         foregroundBar.run(resizeAction)
     }
@@ -100,7 +115,7 @@ class HealthBarNode: SKNode {
         let newWidth = progressBackgroundWidth * clampedProgress
         progressBar.size.width = newWidth
         
-        // Optional: Animate the change
+        // Animate the change
         let resizeAction = SKAction.resize(toWidth: newWidth, duration: 0.01)
         progressBar.run(resizeAction)
     }
