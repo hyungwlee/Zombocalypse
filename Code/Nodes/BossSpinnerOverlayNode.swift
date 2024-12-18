@@ -166,7 +166,8 @@ class BossSpinnerOverlayNode: SKNode {
             if i < ownedSkills.count {
                 let ownedSkill = ownedSkills[i]
                 let icon = SKSpriteNode(imageNamed: ownedSkill.type.iconName)
-                icon.size = CGSize(width: boxWidth * 0.8, height: boxWidth * 0.8)
+                let scale = boxWidth * 0.8 / icon.size.width
+                icon.setScale(scale)
                 icon.zPosition = 102
                 icon.position = CGPoint.zero
                 icon.alpha = 0 // Initial state for fade-in
@@ -470,7 +471,11 @@ class BossSpinnerOverlayNode: SKNode {
     // MARK: - Overlay Closing Animation
     private func applyChosenSkillAndClose() {
         if let chosenSkill = chosenSkill {
-            skillManager.acquireSpecialSkill(chosenSkill)
+            if chosenSkill != .bonusHealth {
+                skillManager.acquireSpecialSkill(chosenSkill)
+            } else {
+                overlayManager?.scene?.restoreHealth(1.0)
+            }
         }
         
         // Animate overlay closing

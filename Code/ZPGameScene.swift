@@ -284,7 +284,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //        skillManager.acquireSpecialSkill(.helpingHand)
 //        skillManager.acquireSpecialSkill(.spectralShield)
 //        skillManager.acquireSpecialSkill(.reinforcedArrow)
-//        skillManager.acquireSpecialSkill(.mightyKnockback)
+        skillManager.acquireSpecialSkill(.mightyKnockback)
     }
     
     deinit {
@@ -950,8 +950,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func playerStateDidActivateMightyKnockback(_ state: PlayerState) {
-        // Only need this if we add UI effects after activation
         print("Mightyknockback activated!")
+        activateMightyKnockback()
+    }
+    
+    func playerStateDidDeactivateMightyKnockback() {
+        deactivateMightyKnockback()
     }
     
     func playerStateDidActivateBonusHealth(_ state: PlayerState, restorePercentage: Double) {
@@ -1604,19 +1608,19 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
     }
     
-    func updateShieldAppearance() {
-        guard let shield = spectralShield else { return }
-        switch playerState.shieldHitsRemaining {
-        case playerState.shieldMaxHits:
-            shield.strokeColor = UIColor.green.withAlphaComponent(0.7)
-        case playerState.shieldMaxHits - 1:
-            shield.strokeColor = UIColor.orange.withAlphaComponent(0.7)
-        case 1:
-            shield.strokeColor = UIColor.red.withAlphaComponent(0.7)
-        default:
-            shield.strokeColor = UIColor.gray //Default or error color
-        }
-    }
+//    func updateShieldAppearance() {
+//        guard let shield = spectralShield else { return }
+//        switch playerState.shieldHitsRemaining {
+//        case playerState.shieldMaxHits:
+//            shield.strokeColor = UIColor.green.withAlphaComponent(0.7)
+//        case playerState.shieldMaxHits - 1:
+//            shield.strokeColor = UIColor.orange.withAlphaComponent(0.7)
+//        case 1:
+//            shield.strokeColor = UIColor.red.withAlphaComponent(0.7)
+//        default:
+//            shield.strokeColor = UIColor.gray //Default or error color
+//        }
+//    }
 
     
     func fireHelpingHandProjectile() {
@@ -1641,7 +1645,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         // Calculate direction vector towards the target
         let direction = CGVector(dx: target.position.x - player.position.x, dy: target.position.y - player.position.y).normalized
-        projectile.zRotation = atan2(direction.dy, direction.dx) - CGFloat.pi / 6
+        projectile.zRotation = atan2(direction.dy, direction.dx)
         
         // Set up movement action (adjust `playerState.currentRange` as needed)
         let moveDistance: CGFloat = playerState.currentRange * 3.0
@@ -1690,18 +1694,18 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         if spectralShield != nil { return }
         guard let shieldContainer = shieldContainer else { return }
         
-        //Remove existing shield
+        // Remove existing shield
         shieldContainer.removeAllChildren()
         
-        //Create the shield node
-        let shield = SKShapeNode(circleOfRadius: 35)
+        // Create the shield node
+        let shield = SKShapeNode(circleOfRadius: 60)
         shield.alpha = 0.7
         shield.lineWidth = 2
         shield.position = CGPoint.zero
-        shield.zPosition = 2 //  Ontop of player
+        shield.zPosition = 2 // On top of the player
         shield.name = "spectralShield"
         
-        shield.physicsBody = SKPhysicsBody(circleOfRadius: 35)
+        shield.physicsBody = SKPhysicsBody(circleOfRadius: 60)
         shield.physicsBody?.categoryBitMask = PhysicsCategory.shield
         shield.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss | PhysicsCategory.exploder
         shield.physicsBody?.collisionBitMask = PhysicsCategory.none
@@ -1712,9 +1716,87 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         shieldContainer.addChild(shield)
         spectralShield = shield
         
-        //Reset shield durability
+        // Reset shield durability
         playerState.shieldHitsRemaining = playerState.shieldMaxHits
         updateShieldAppearance()
+        
+        // Add shield instance nodes
+        addShieldInstances()
+    }
+
+    private func addShieldInstances() {
+        guard let shield = spectralShield else { return }
+
+        // Remove existing shield instance nodes
+        shield.removeAllChildren()
+
+        let shieldHits = playerState.shieldHitsRemaining
+        let radius: CGFloat = 60.0 // Distance from the center of the shield
+        let angleIncrement = (2 * CGFloat.pi) / CGFloat(shieldHits)
+
+        for i in 0..<shieldHits {
+            let angle = CGFloat(i) * angleIncrement
+            let xPosition = radius * cos(angle)
+            let yPosition = radius * sin(angle)
+
+            let shieldInstance = SKSpriteNode(imageNamed: "sk_shield_instance")
+            shieldInstance.setScale(0.3)
+            shieldInstance.position = CGPoint(x: xPosition, y: yPosition)
+            shieldInstance.zPosition = shield.zPosition + 1 // Ensure they render above the shield
+            shieldInstance.name = "shieldInstance"
+            
+            // Ensure shield instance stays upright
+            shieldInstance.zRotation = 0
+            
+            shield.addChild(shieldInstance)
+        }
+
+        // Animate the rotation
+        animateShieldInstances(shield)
+    }
+
+    private func animateShieldInstances(_ shield: SKShapeNode) {
+        let radius: CGFloat = 60.0 // Same radius as above
+        let duration: TimeInterval = 2.0 // Time for a full rotation
+        let shieldHits = playerState.shieldHitsRemaining
+        let angleIncrement = (2 * CGFloat.pi) / CGFloat(shieldHits)
+
+        // Animation block to update the position of each shield instance
+        let rotateAction = SKAction.customAction(withDuration: duration) { _, elapsedTime in
+            let currentAngle = (2 * CGFloat.pi) * (elapsedTime / CGFloat(duration))
+
+            for (index, child) in shield.children.enumerated() {
+                guard let shieldInstance = child as? SKSpriteNode else { continue }
+                let angle = currentAngle + (CGFloat(index) * angleIncrement)
+                let xPosition = radius * cos(angle)
+                let yPosition = radius * sin(angle)
+
+                shieldInstance.position = CGPoint(x: xPosition, y: yPosition)
+                shieldInstance.zRotation = 0 // Keep upright
+            }
+        }
+
+        let repeatRotation = SKAction.repeatForever(rotateAction)
+        shield.run(repeatRotation, withKey: "rotateShieldInstances")
+    }
+    
+    func updateShieldAppearance() {
+        guard let shield = spectralShield else { return }
+        
+        // Update stroke color based on hits remaining
+        switch playerState.shieldHitsRemaining {
+        case playerState.shieldMaxHits:
+            shield.strokeColor = UIColor.green.withAlphaComponent(0.7)
+        case playerState.shieldMaxHits - 1:
+            shield.strokeColor = UIColor.orange.withAlphaComponent(0.7)
+        case 1:
+            shield.strokeColor = UIColor.red.withAlphaComponent(0.7)
+        default:
+            shield.strokeColor = UIColor.gray // Default or error color
+        }
+        
+        // Update shield instances to match remaining hits
+        addShieldInstances()
     }
     
     func removeSpectralShield() {
@@ -1769,6 +1851,77 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         // Run the actions on the enemy
         enemy.run(SKAction.sequence([flashAction, moveAction]), withKey: "knockback")
+    }
+    
+    func performMightyKnockback() {
+        print("KNOCBACK")
+        // Radius of the knockback
+        let knockbackRadius: CGFloat = 100.0
+        let knockbackStrength: CGFloat = 200.0
+        let knockbackDuration: TimeInterval = 0.3
+
+        // Apply knockback to all enemies in range
+        for enemy in enemyManager.enemies {
+            let distance = player.position.distance(to: enemy.position)
+            if distance <= knockbackRadius {
+                applyKnockback(to: enemy, strength: knockbackStrength, duration: knockbackDuration)
+            }
+        }
+
+        // Add visual effect
+        let knockbackEmitter = SKEmitterNode(fileNamed: "SKKnockBack")
+        knockbackEmitter?.position = player.position
+        knockbackEmitter?.zPosition = player.zPosition - 1
+
+        // Add the emitter to the scene
+        addChild(knockbackEmitter!)
+
+        // Remove emitter after its effect ends
+        let removeEmitter = SKAction.sequence([
+            SKAction.wait(forDuration: 0.5),
+            SKAction.removeFromParent()
+        ])
+        knockbackEmitter!.run(removeEmitter)
+    }
+    
+    func createKnockbackEmitter() -> SKEmitterNode {
+        let emitter = SKEmitterNode()
+        emitter.particleTexture = SKTexture(imageNamed: "spark") // Use an appropriate texture for your effect.
+        emitter.particleColor = .red
+        emitter.particleColorBlendFactor = 1.0
+        emitter.particleLifetime = 0.5
+        emitter.particleBirthRate = 200
+        emitter.particleSpeed = 150
+        emitter.particleSpeedRange = 50
+        emitter.emissionAngleRange = CGFloat.pi * 2
+        emitter.particleAlpha = 0.7
+        emitter.particleAlphaRange = 0.2
+        emitter.particleAlphaSpeed = -0.5
+        emitter.particleScale = 0.2
+        emitter.particleScaleRange = 0.1
+        emitter.particleScaleSpeed = -0.2
+        emitter.position = player.position
+        emitter.zPosition = 5
+        return emitter
+    }
+    
+    func activateMightyKnockback() {
+        guard playerState.mightyKnockbackActive else { return }
+        playerState.mightyKnockbackActive = true
+
+        let knockbackAction = SKAction.run { [weak self] in
+            self?.performMightyKnockback()
+        }
+        let waitAction = SKAction.wait(forDuration: 7.0)
+        let knockbackSequence = SKAction.sequence([knockbackAction, waitAction])
+        let repeatKnockback = SKAction.repeatForever(knockbackSequence)
+        
+        run(repeatKnockback, withKey: "mightyKnockback")
+    }
+
+    func deactivateMightyKnockback() {
+        playerState.mightyKnockbackActive = false
+        removeAction(forKey: "mightyKnockback")
     }
     
     func applyContinuousDamage(currentTime: TimeInterval) {
