@@ -505,6 +505,7 @@ class BossSpinnerOverlayNode: SKNode {
         
         // Remove nodes after fade-out
         let removeNodes = SKAction.group([
+            SKAction.run { self.overlayManager?.closeCurrentOverlay(self) },
             SKAction.removeFromParent(),
             SKAction.run {
                 self.shineNode = nil // Clean up the reference

@@ -87,6 +87,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var joystick: ZPJoystick!
     var shootJoystick: ZPJoystick!
     var player: SKSpriteNode!
+    private var isPlayerFlashing: Bool = false
     var crossbowNode: SKSpriteNode!
     var playerHealthBar: HealthBarNode!
     var playerShootingProgressBar: HealthBarNode!
@@ -230,22 +231,22 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         playerHealthBar = HealthBarNode(
             size: healthBarSize,
             maxHealth: playerState.baseMaxHealth,
-            foregroundColor: .green,
-            backgroundColor: .darkGray
+            foregroundColor: UIColor(hex: "#00C300") ?? .green,
+            backgroundColor: UIColor(hex: "#004500") ?? .black
         )
         playerHealthBar.position = CGPoint(x: 0, y: 50)
         playerHealthBar.zPosition = 5
         //Initialize shooting progress bar
-        let progressBarSize = CGSize(width: healthBarSize.width, height: 5)
+        let progressBarSize = CGSize(width: healthBarSize.width * 0.9, height: healthBarSize.height / 2)
         playerShootingProgressBar = HealthBarNode(
             size: progressBarSize,
             maxHealth: 1.0, //Represents progress from 0.0 to 1.0
-            foregroundColor: .darkGray, //This changes the color that is behind the shootprogressbar
-            backgroundColor: .darkGray, 
+            foregroundColor: UIColor(hex: "#01403D") ?? .darkGray, //This changes the color that is behind the shootprogressbar
+            backgroundColor: .black,
             showProgressBar: true,
-            progressColor: .blue
+            progressColor: UIColor(hex: "#00DCD1") ?? .blue
         )
-        playerShootingProgressBar.position = CGPoint(x: 0, y: -healthBarSize.height - 5) // Positioned below the health bar
+        playerShootingProgressBar.position = CGPoint(x: 0, y: -healthBarSize.height) // Positioned below the health bar
         playerHealthBar.addChild(playerShootingProgressBar)
         
         setUpGame()
@@ -300,6 +301,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             player = SKSpriteNode(imageNamed: "sk_player_right")
             player.setScale(0.5)
             player.position = centerPosition
+            player.color = .white // Default color
+            player.colorBlendFactor = 0.0
             
             // MARK: Physics
             player.physicsBody = SKPhysicsBody(texture: player.texture!, size: player.size)
@@ -370,7 +373,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             playerLivesLabel = SKLabelNode(fontNamed: "Arial")
             playerLivesLabel.fontSize = 20
             playerLivesLabel.fontColor = .black
-            playerLivesLabel.position = CGPoint(x: -size.width / 2 + 80, y: size.height / 2 - 80)
+            playerLivesLabel.position = CGPoint(x: -size.width / 2 + 80, y: size.height / 2 - 180)
             playerLivesLabel.zPosition = 5
         }
         playerLives = playerState.baseMaxHealth // Reset playerLives  
@@ -490,6 +493,38 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         topOverlayNode.zPosition = 5
     }
     
+    // MARK: - Player Flash Effect
+
+    /// Triggers a flashing red effect to indicate the player has taken damage.
+    public func flashPlayer() {
+        // Prevent overlapping flash animations
+        guard !isPlayerFlashing else { return }
+        isPlayerFlashing = true
+        
+        // Define the flash color and duration
+        let flashColor = SKColor.red
+        let flashDuration: TimeInterval = 0.2
+        
+        // Create color change actions
+        let colorizeToFlash = SKAction.colorize(with: flashColor, colorBlendFactor: 1.0, duration: 0.05)
+        let colorizeBack = SKAction.colorize(with: .white, colorBlendFactor: 0.0, duration: 0.05)
+        
+        // Sequence of flashing
+        let flashSequence = SKAction.sequence([colorizeToFlash, colorizeBack])
+        
+        // Repeat the flash sequence a few times for a more noticeable effect
+        let repeatFlash = SKAction.repeat(flashSequence, count: 1)
+        
+        // Completion action to reset the flashing flag
+        let completion = SKAction.run { [weak self] in
+            self?.isPlayerFlashing = false
+            self?.player.colorBlendFactor = 0.0
+        }
+        
+        // Run the flash sequence followed by the completion
+        player.run(SKAction.sequence([repeatFlash, completion]))
+    }
+    
     func pauseGame() {
         guard !isGamePaused else { return }
         isGamePaused = true
@@ -544,7 +579,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     func initializeWaves() {
         //Define waves 1 through 7
         waveCycle = [
-            Wave(waveNumber: 1, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 1, exploderEnemies: 1, isHorde: false, isBoss: false, spawnInterval: 3.0, requiresFullClearance: false),
+            Wave(waveNumber: 1, totalEnemies: 1, regularEnemies: 2, chargerEnemies: 0, exploderEnemies: 1, isHorde: false, isBoss: false, spawnInterval: 3.0, requiresFullClearance: false),
             Wave(waveNumber: 2, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.8, requiresFullClearance: false),
             Wave(waveNumber: 3, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: 1.0, requiresFullClearance: false),
             Wave(waveNumber: 4, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.3, requiresFullClearance: false),
@@ -785,7 +820,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             
             blade.physicsBody = SKPhysicsBody(rectangleOf: bladeSize)
             blade.physicsBody?.categoryBitMask = PhysicsCategory.blade
-            blade.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss
+            blade.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss | PhysicsCategory.exploder
             blade.physicsBody?.collisionBitMask = PhysicsCategory.none
             blade.physicsBody?.affectedByGravity = false
             blade.physicsBody?.allowsRotation = false
@@ -834,7 +869,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         barrier.physicsBody = SKPhysicsBody(circleOfRadius: barrierRadius)
         barrier.physicsBody?.categoryBitMask = PhysicsCategory.protectiveBarrier
-        barrier.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss
+        barrier.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss | PhysicsCategory.exploder
         barrier.physicsBody?.collisionBitMask = PhysicsCategory.none
         barrier.physicsBody?.affectedByGravity = false
         barrier.physicsBody?.allowsRotation = false
@@ -1468,7 +1503,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         projectile.physicsBody = SKPhysicsBody(texture: projectile.texture!, size: projectile.size)
         projectile.physicsBody?.categoryBitMask = PhysicsCategory.projectile
-        projectile.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss | PhysicsCategory.border
+        projectile.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss | PhysicsCategory.border | PhysicsCategory.exploder
         projectile.physicsBody?.collisionBitMask = PhysicsCategory.none
         projectile.physicsBody?.affectedByGravity = false
         projectile.physicsBody?.allowsRotation = false
@@ -1540,7 +1575,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         freezeExplosion.physicsBody = SKPhysicsBody(circleOfRadius: explosionRadius)
         freezeExplosion.physicsBody?.categoryBitMask = PhysicsCategory.freeze
-        freezeExplosion.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss
+        freezeExplosion.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss | PhysicsCategory.exploder
         freezeExplosion.physicsBody?.collisionBitMask = PhysicsCategory.none
         freezeExplosion.physicsBody?.affectedByGravity = false
         freezeExplosion.physicsBody?.allowsRotation = false
@@ -1590,14 +1625,14 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
         
         let projectile = SKSpriteNode(imageNamed: "sk_helping_hand")
-        projectile.setScale(0.4)
+        projectile.setScale(0.2)
         projectile.position = player.position
         projectile.name = "helpingHandProjectile"
 
         // MARK: Physics
         projectile.physicsBody = SKPhysicsBody(texture: projectile.texture!, size: projectile.size)
         projectile.physicsBody?.categoryBitMask = PhysicsCategory.projectile
-        projectile.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss | PhysicsCategory.border
+        projectile.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss | PhysicsCategory.border | PhysicsCategory.exploder
         projectile.physicsBody?.collisionBitMask = PhysicsCategory.none // Let's make helping hand not collide, just pass through
         projectile.physicsBody?.affectedByGravity = false
         projectile.physicsBody?.allowsRotation = false
@@ -1606,7 +1641,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         // Calculate direction vector towards the target
         let direction = CGVector(dx: target.position.x - player.position.x, dy: target.position.y - player.position.y).normalized
-        projectile.zRotation = atan2(direction.dy, direction.dx) - CGFloat.pi / 2
+        projectile.zRotation = atan2(direction.dy, direction.dx) - CGFloat.pi / 6
         
         // Set up movement action (adjust `playerState.currentRange` as needed)
         let moveDistance: CGFloat = playerState.currentRange * 3.0
@@ -1668,7 +1703,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         shield.physicsBody = SKPhysicsBody(circleOfRadius: 35)
         shield.physicsBody?.categoryBitMask = PhysicsCategory.shield
-        shield.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss
+        shield.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.boss | PhysicsCategory.exploder
         shield.physicsBody?.collisionBitMask = PhysicsCategory.none
         shield.physicsBody?.affectedByGravity = false
         shield.physicsBody?.allowsRotation = false
@@ -1801,8 +1836,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         spawnXPNode(at: lastHitZombiePosition)
         
         // MARK: Delete later, just for testing purposes
-//        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager)
-//        overlayManager.enqueueOverlay(spinnerOverlay)
+        let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager, overlaySize: size)
+        overlayManager.enqueueOverlay(spinnerOverlay)
         
         score += 1
         pendingEnemies -= 1
@@ -1907,7 +1942,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     func spawnRandomXPNode() {
         guard let player = player else { return }
 
-        let spawnBuffer: CGFloat = 30.0
+        let spawnBuffer: CGFloat = 80.0
         let spawnRadius: CGFloat = size.height / 2.0
         let xpSize = CGSize(width: 20, height: 20) // approximate XP size
         
@@ -1952,6 +1987,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func bossHitPlayer() {
+        flashPlayer()
         playerLives -= 1
     }
     
@@ -1985,41 +2021,92 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         gameOver = true
         guard let cameraNode = self.camera else { return }
         
+        // 1. Create and fade in the red opaque rectangle
+        let redOverlay = SKSpriteNode(color: UIColor(hex: "#200000") ?? .red, size: self.size)
+        redOverlay.position = CGPoint(x: 0, y: 0)
+        redOverlay.zPosition = 10 // Ensure it's above other nodes
+        redOverlay.alpha = 0.0
+        redOverlay.name = "redOverlay"
+        cameraNode.addChild(redOverlay)
+        
+        let fadeInRed = SKAction.fadeAlpha(to: 0.7, duration: 0.5) // Adjust alpha as needed
+        redOverlay.run(fadeInRed)
+        
+        // 2. Create and fade in the "sk_game_over" image
+        let gameOverImage = SKSpriteNode(imageNamed: "sk_game_over")
+        gameOverImage.position = CGPoint(x: 0, y: 50) // Adjust position as needed
+        gameOverImage.zPosition = 11 // Above redOverlay
+        gameOverImage.alpha = 0.0
+        gameOverImage.name = "gameOverImage"
+        cameraNode.addChild(gameOverImage)
+        
+        let fadeInGameOverImage = SKAction.fadeAlpha(to: 1.0, duration: 1.0)
+        gameOverImage.run(fadeInGameOverImage)
+        
+        // 3. After 4 seconds, show the game over flow
+        let wait = SKAction.wait(forDuration: 4.0)
+        let showGameOverFlow = SKAction.run { [weak self] in
+            self?.presentGameOverFlow()
+        }
+        let sequence = SKAction.sequence([wait, showGameOverFlow])
+        cameraNode.run(sequence)
+    }
+    
+    func presentGameOverFlow() {
+        guard let cameraNode = self.camera else { return }
+        
+        // 4. Create the game over node with buttons
         let gameOverNode = SKShapeNode(rect: CGRect(x: -size.width * 0.4, y: -size.height * 0.2, width: size.width * 0.8, height: size.height * 0.4), cornerRadius: 20)
         gameOverNode.fillColor = .black.withAlphaComponent(0.8)
         gameOverNode.name = "gameOverScreen"
-        gameOverNode.zPosition = 5
+        gameOverNode.zPosition = 12 // Above everything else
+        gameOverNode.alpha = 0.0 // Start invisible
         cameraNode.addChild(gameOverNode)
         
+        // Fade in the game over node
+        let fadeInGameOverNode = SKAction.fadeAlpha(to: 1.0, duration: 1.0)
+        gameOverNode.run(fadeInGameOverNode)
+        
+        // Add "Game Over" label with a slight delay
         let gameOverLabel = SKLabelNode(text: "Game Over")
+        gameOverLabel.fontName = "Arial"
         gameOverLabel.fontSize = 40
         gameOverLabel.fontColor = .white
-        gameOverLabel.position = CGPoint(x: 0, y: size.height * 0.1)
-        gameOverLabel.zPosition = 5
+        gameOverLabel.position = CGPoint(x: 0, y: gameOverNode.frame.height * 0.3)
+        gameOverLabel.zPosition = 13
+        gameOverLabel.alpha = 0.0
         gameOverNode.addChild(gameOverLabel)
         
+        let fadeInLabel = SKAction.fadeAlpha(to: 1.0, duration: 1.0)
+        let moveUp = SKAction.moveBy(x: 0, y: 10, duration: 1.0)
+        let labelAction = SKAction.group([fadeInLabel, moveUp])
+        gameOverLabel.run(labelAction)
+        
+        // Add Score label
         let scoreLabel = SKLabelNode(text: "Score: \(score)")
+        scoreLabel.fontName = "Arial"
         scoreLabel.fontSize = 30
         scoreLabel.fontColor = .white
-        scoreLabel.position = CGPoint(x: 0, y: size.height * 0.05)
-        scoreLabel.zPosition = 5
+        scoreLabel.position = CGPoint(x: 0, y: gameOverNode.frame.height * 0.1)
+        scoreLabel.zPosition = 13
+        scoreLabel.alpha = 0.0
         gameOverNode.addChild(scoreLabel)
         
-        let retryButton = createButton(withText: "Retry", atPosition: CGPoint(x: 0, y: 0))
+        let fadeInScoreLabel = SKAction.fadeAlpha(to: 1.0, duration: 1.0)
+        scoreLabel.run(fadeInScoreLabel)
+        
+        // Add Retry button with animation
+        let retryButton = createButton(withText: "Retry", atPosition: CGPoint(x: 0, y: -gameOverNode.frame.height * 0.1))
         retryButton.name = "retryButton"
-        retryButton.zPosition = 5
+        retryButton.alpha = 0.0
         gameOverNode.addChild(retryButton)
         
-        let leaderboardButton = createButton(withText: "Leaderboards", atPosition: CGPoint(x: 0, y: -size.height * 0.05))
-        leaderboardButton.name = "leaderboardButton"
-        leaderboardButton.zPosition = 5
-        gameOverNode.addChild(leaderboardButton)
-        
-        let mainMenuButton = createButton(withText: "Main Menu", atPosition: CGPoint(x: 0, y: -size.height * 0.1))
-        mainMenuButton.name = "mainMenuButton"
-        leaderboardButton.zPosition = 5
-        gameOverNode.addChild(mainMenuButton)
-        
+        let fadeInRetry = SKAction.fadeAlpha(to: 1.0, duration: 1.0)
+        let scaleUpRetry = SKAction.scale(to: 1.2, duration: 0.5)
+        let scaleDownRetry = SKAction.scale(to: 1.0, duration: 0.5)
+        let pulseRetry = SKAction.sequence([scaleUpRetry, scaleDownRetry])
+        let retryAction = SKAction.group([fadeInRetry, pulseRetry])
+        retryButton.run(retryAction)
     }
     
     func createButton(withText text: String, atPosition position: CGPoint) -> SKLabelNode {
@@ -2124,7 +2211,7 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         }
 
         // Projectile & Enemy/Boss collision
-        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss) && secondBody.categoryBitMask == PhysicsCategory.projectile) {
+        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss || firstBody.categoryBitMask == PhysicsCategory.exploder) && secondBody.categoryBitMask == PhysicsCategory.projectile) {
             if let projectileNode = secondBody.node as? SKSpriteNode {
                 if let enemyNode = firstBody.node as? ZPZombie {
                     handleProjectileCollision(with: enemyNode)
@@ -2156,7 +2243,7 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         }
         
         // Freeze Explosion & Enemy/Boss collision
-        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss) && secondBody.categoryBitMask == PhysicsCategory.freeze) {
+        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss || firstBody.categoryBitMask == PhysicsCategory.exploder) && secondBody.categoryBitMask == PhysicsCategory.freeze) {
             let currentTime = CACurrentMediaTime()
             if let enemyNode = firstBody.node as? ZPZombie {
                 enemyNode.freeze(currentTime: currentTime, duration: playerState.freezeDuration)
@@ -2166,7 +2253,7 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         }
 
         // Blade & Enemy/Boss collision
-        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss) && secondBody.categoryBitMask == PhysicsCategory.blade) {
+        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss || firstBody.categoryBitMask == PhysicsCategory.exploder) && secondBody.categoryBitMask == PhysicsCategory.blade) {
             if let enemyNode = firstBody.node as? ZPZombie {
                 handleBladeCollision(with: enemyNode)
             } else if let bossNode = firstBody.node as? ZPWizard {
@@ -2175,7 +2262,7 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         }
         
         // Barrier & Enemy/Boss collision
-        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss) && secondBody.categoryBitMask == PhysicsCategory.protectiveBarrier) {
+        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss || firstBody.categoryBitMask == PhysicsCategory.exploder) && secondBody.categoryBitMask == PhysicsCategory.protectiveBarrier) {
             if let enemyNode = firstBody.node as? ZPZombie {
                 handleBarrierCollision(withEnemy: enemyNode)
             } else if let bossNode = firstBody.node as? ZPWizard {
@@ -2184,7 +2271,7 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         }
         
         // Shield & Enemy/Boss collision
-        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss) && secondBody.categoryBitMask == PhysicsCategory.shield) {
+        if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss || firstBody.categoryBitMask == PhysicsCategory.exploder) && secondBody.categoryBitMask == PhysicsCategory.shield) {
             if let enemyNode = firstBody.node as? ZPZombie {
                 handleShieldCollision(withEnemy: enemyNode)
             } else if let bossNode = firstBody.node as? ZPWizard {
@@ -2357,6 +2444,7 @@ extension ZPGameScene: SKPhysicsContactDelegate {
     }
     
     func applyDamageToPlayer(from enemy: ZPZombie) {
+        flashPlayer()
         playerLives -= 1
         updateProgressLabel()
         

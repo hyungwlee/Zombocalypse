@@ -55,8 +55,8 @@ class EnemyManager {
     func spawnExploderZombie(health: Double, speed: CGFloat) {
         let exploder = ZPExploderZombieNode(health: health, textureName: "sk_exploder", movementSpeed: speed)
         exploder.physicsBody = SKPhysicsBody(texture: exploder.texture!, size: exploder.size)
-        exploder.physicsBody?.categoryBitMask = PhysicsCategory.enemy
-        exploder.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
+        exploder.physicsBody?.categoryBitMask = PhysicsCategory.exploder
+        exploder.physicsBody?.contactTestBitMask = PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
         exploder.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.shield
         exploder.physicsBody?.affectedByGravity = false
         exploder.physicsBody?.allowsRotation = false
@@ -128,9 +128,9 @@ class EnemyManager {
         for (index, enemy) in enemies.enumerated().reversed() {
             // Enemy-type specific update logic:
             if let charger = enemy as? ZPChargerZombieNode {
-                charger.update(deltaTime: currentTime, playerPosition: playerPosition)
+                charger.update(currentTime: currentTime, playerPosition: playerPosition)
             } else if let exploder = enemy as? ZPExploderZombieNode {
-                exploder.update(deltaTime: currentTime, playerPosition: playerPosition)
+                exploder.update(currentTime: currentTime, playerPosition: playerPosition)
             } else {
                 // Regular zombies use their default movement
                 enemy.moveTowards(playerPosition: playerPosition)
