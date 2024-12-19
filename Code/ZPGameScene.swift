@@ -643,8 +643,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             displayedEnemyMessages.insert(wave.waveNumber)
         }
         
-        print("-")
-        print("wave", wave)
+//        print("-")
+//        print("wave", wave)
         if wave.isBoss {
             clearAllEnemies() //Clear existing enemies only for boss waves
             startBossStage()

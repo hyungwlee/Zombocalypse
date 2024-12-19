@@ -39,7 +39,7 @@ class UpgradeShopManager {
         if skill.definition.type == .healthUpgrade || skill.definition.type == .bonusHealth {
             scene?.restoreHealth(1.0)
         }
-//        XPToNextLevel += 1
+        XPToNextLevel += 1
         nextShopXPThreshold = XPCount + XPToNextLevel
     }
 }
