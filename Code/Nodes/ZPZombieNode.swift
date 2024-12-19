@@ -19,6 +19,7 @@ class ZPZombie: SKSpriteNode {
     var lastHitPlayerTime: TimeInterval = 0
     var lastSpinningBladeDamageTime: TimeInterval = 0
     var lastBarrierDamageTime: TimeInterval = 0
+    var lastShieldHitTime: TimeInterval = 0.0
     
     var isZombiePaused: Bool = false
     var isFrozen: Bool = false

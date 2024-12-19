@@ -1604,7 +1604,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         if playerState.shieldHitsRemaining <= 0 {
             removeSpectralShield()
-            playerState.spectralShieldActive = false
         }
     }
     
@@ -1805,11 +1804,14 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             shield.removeFromParent()
             spectralShield = nil
         }
+
+        playerState.spectralShieldActive = false
         
         //Start cooldown timer to reactivate the shield after 'shieldCooldown'
         DispatchQueue.main.asyncAfter(deadline: .now() + playerState.shieldCooldown) { [weak self] in
             guard let self = self else { return }
-            if playerState.spectralShieldActive {
+            let ownsSpectralShield = self.skillManager.ownedSpecialSkills.contains { $0.type == .spectralShield }
+            if ownsSpectralShield {
                 self.playerState.activateSpectralShield()
             }
         }
@@ -2547,14 +2549,13 @@ extension ZPGameScene: SKPhysicsContactDelegate {
     
     /// Handles collision between the shield and a regular enemy
     func handleShieldCollision(withEnemy enemy: ZPZombie) {
-        absorbShieldHit()
-        
         let currentTime = CACurrentMediaTime()
-        let damageCooldown: TimeInterval = max(0.3, 1.0 - playerState.barrierPulseFrequency)
+        let shieldHitCooldown: TimeInterval = 1.0
         
-        if currentTime - enemy.lastBarrierDamageTime > damageCooldown {
-            enemy.lastBarrierDamageTime = currentTime
-            applyDamageToEnemy(enemy, damage: enemy.health * playerState.spectralShieldDamageFactor)
+        if currentTime - enemy.lastShieldHitTime > shieldHitCooldown {
+            enemy.lastShieldHitTime = currentTime
+            absorbShieldHit()
+            applyKnockback(to: enemy, strength: 50, duration: 0.3)
         }
     }
 
