@@ -2367,9 +2367,13 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss || firstBody.categoryBitMask == PhysicsCategory.exploder) && secondBody.categoryBitMask == PhysicsCategory.projectile) {
             if let projectileNode = secondBody.node as? SKSpriteNode {
                 if let enemyNode = firstBody.node as? ZPZombie {
-                    handleProjectileCollision(with: enemyNode)
+                    if shouldDamageEnemy(projectile: projectileNode, enemy: enemyNode) {
+                        handleProjectileCollision(with: enemyNode)
+                    }
                 } else if let bossNode = firstBody.node as? ZPWizard {
-                    handleProjectileCollision(with: bossNode)
+                    if shouldDamageEnemy(projectile: projectileNode, enemy: bossNode) {
+                        handleProjectileCollision(with: bossNode)
+                    }
                 }
                 if !playerState.projectilesPierce {
                     projectileNode.removeFromParent()
@@ -2594,6 +2598,24 @@ extension ZPGameScene: SKPhysicsContactDelegate {
         }
         //Stop the damage action
         beamNode.removeAction(forKey: "damagePlayerWithBeam")
+    }
+    
+    // Used to checking if piercing arrow should keep damaging same enemy or not
+    func shouldDamageEnemy(projectile: SKSpriteNode, enemy: SKNode) -> Bool {
+        guard let damagedEnemies = projectile.userData?.object(forKey: "damagedEnemies") as? NSMutableSet else {
+            // Create a new set if it doesn't exist
+            let newSet = NSMutableSet()
+            projectile.userData?.setValue(newSet, forKey: "damagedEnemies")
+            newSet.add(enemy)
+            return true
+        }
+        
+        if damagedEnemies.contains(enemy) {
+            return false // Already damaged this enemy
+        } else {
+            damagedEnemies.add(enemy)
+            return true // Enemy not yet damaged by this projectile
+        }
     }
     
     func applyDamageToPlayer(from enemy: ZPZombie) {
