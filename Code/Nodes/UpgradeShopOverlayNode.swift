@@ -22,9 +22,10 @@ class UpgradeShopOverlayNode: SKNode {
     private var bgWidth: CGFloat = 0
     private var bgHeight: CGFloat = 0
     private var listStartY: CGFloat = 0
-    private let rowSpacing: CGFloat = 30     // Vertical distance between rows of statuses
-    private let iconXOffset: CGFloat = -50   // Icon offset inside status node
-    private let starScale: CGFloat = 1.0
+    private let rowSpacing: CGFloat   // Vertical distance between rows of statuses
+    private let iconXOffset: CGFloat // Icon offset inside status node
+    private let starScale: CGFloat
+    private let scaleFactor: CGFloat
     
     // After statuses, we place the skill_bg for choices
     private let skillBgPaddingTop: CGFloat = 0   // Vertical gap between last status row and skill_bg
@@ -35,14 +36,23 @@ class UpgradeShopOverlayNode: SKNode {
     private var skillBg: SKSpriteNode!
     
     
-    init(choices: [RegularSkill], manager: UpgradeShopManager, overlayManager: OverlayManager, skillManager: SkillManager, overlaySize: CGSize) {
+    init(choices: [RegularSkill], manager: UpgradeShopManager, overlayManager: OverlayManager, skillManager: SkillManager, overlaySize: CGSize,
+    scaleFactor: CGFloat) {
         self.manager = manager
         self.choices = choices
         self.overlayManager = overlayManager
         self.skillManager = skillManager
         self.bgWidth = overlaySize.width
         self.bgHeight = overlaySize.height
+        
+        self.rowSpacing = 30 * scaleFactor
+        self.iconXOffset = -50 * scaleFactor
+        self.starScale = scaleFactor
+        self.scaleFactor = scaleFactor
+        
         super.init()
+
+        
         setupOverlay()
     }
     
@@ -68,16 +78,16 @@ class UpgradeShopOverlayNode: SKNode {
         titleNode.zPosition = 101
         titleNode.position = CGPoint(x: 0, y: bgHeight * 0.35 - titleNode.size.height / 2)
         titleNode.alpha = 0.0  // Start invisible
-        titleNode.setScale(0.5) // Start scaled down
+        titleNode.setScale(0.5 * scaleFactor) // Start scaled down
         addChild(titleNode)
         
         // Animate title scaling up and fading in
-        let scaleUp = SKAction.scale(to: 1.0, duration: 0.5)
+        let scaleUp = SKAction.scale(to: scaleFactor, duration: 0.5)
         let fadeInTitle = SKAction.fadeAlpha(to: 1.0, duration: 0.5)
         let group = SKAction.group([scaleUp, fadeInTitle])
         titleNode.run(group) {
-            let pulseIn = SKAction.scale(to: 1.05, duration: 2.0)
-            let pulseOut = SKAction.scale(to: 1.0, duration: 2.0)
+            let pulseIn = SKAction.scale(to: self.scaleFactor * 1.05, duration: 2.0)
+            let pulseOut = SKAction.scale(to: self.scaleFactor, duration: 2.0)
             let pulseSequence = SKAction.sequence([pulseOut, pulseIn])
             let pulseForever = SKAction.repeatForever(pulseSequence)
             titleNode.run(pulseForever)
@@ -129,6 +139,7 @@ class UpgradeShopOverlayNode: SKNode {
                 let currentLevel = skillManager.ownedRegularSkills.first(where: { $0.definition.type == def.type })?.currentLevel ?? 0
                 
                 let skillStatusBg = SKSpriteNode(imageNamed: "sk_skill_status")
+                skillStatusBg.setScale(scaleFactor)
                 skillStatusBg.zPosition = 101
                 skillStatusBg.position = CGPoint(x: columnXOffsets[col], y: yPos)
                 addChild(skillStatusBg)
@@ -139,7 +150,7 @@ class UpgradeShopOverlayNode: SKNode {
                 let skillIcon: SKSpriteNode
                 if !iconName.isEmpty {
                     skillIcon = SKSpriteNode(imageNamed: iconName)
-                    skillIcon.setScale(0.38)
+                    skillIcon.setScale(scaleFactor * 0.38)
                 } else {
                     skillIcon = SKSpriteNode(color: UIColor(hex: "#0000FF") ?? .blue, size: CGSize(width: 20, height: 20)) // Blue color with hex
                 }
@@ -149,16 +160,15 @@ class UpgradeShopOverlayNode: SKNode {
                 skillStatusBg.addChild(skillIcon)
                 
                 // Add the stars to represent current level
-                let starSpacing: CGFloat = 14
+                let starSpacing: CGFloat = 14 * scaleFactor
                 let startX: CGFloat = -skillStatusBg.size.width * 0.05
                 for i in 0..<maxStars {
                     let starImageName = (i < currentLevel) ? "sk_status_star_full" : "sk_status_star_empty"
                     let starNode = SKSpriteNode(imageNamed: starImageName)
+                    starNode.setScale(starScale)
                     starNode.zPosition = 102
                     let starX = startX + CGFloat(i) * starSpacing
                     starNode.position = CGPoint(x: starX, y: 0)
-                    // Optional: Adjust the scale if needed
-                    // starNode.setScale(starScale)
                     skillStatusBg.addChild(starNode)
                 }
             }
@@ -175,6 +185,7 @@ class UpgradeShopOverlayNode: SKNode {
     private func displaySkillChoicesContainer(startY: CGFloat) {
         // sk_shop_bg that houses the three choices
         skillBg = SKSpriteNode(imageNamed: "sk_shop_bg")
+        skillBg.setScale(scaleFactor)
         skillBg.zPosition = 101
         skillBg.position = CGPoint(x: 0, y: startY - skillBg.size.height / 2)
         addChild(skillBg)
@@ -184,6 +195,7 @@ class UpgradeShopOverlayNode: SKNode {
         var yPos = choiceStartY
         for (index, skill) in choices.enumerated() {
             let choiceBg = SKSpriteNode(imageNamed: "sk_skill_option")
+            choiceBg.setScale(scaleFactor)
             choiceBg.zPosition = 102
             choiceBg.position = CGPoint(x: 0, y: yPos - choiceBg.size.height / 2)
             choiceBg.name = "skillButton_\(index)"
@@ -191,34 +203,36 @@ class UpgradeShopOverlayNode: SKNode {
             choiceNodes.append(choiceBg)
             
             // Skill Icon
-            let iconSize: CGFloat = 40
+            let iconSize: CGFloat = 40 * scaleFactor
             let icon: SKSpriteNode
             if !skill.definition.type.iconName.isEmpty {
                 icon = SKSpriteNode(imageNamed: skill.definition.type.iconName)
             } else {
                 icon = SKSpriteNode(color: UIColor(hex: "#0000FF") ?? .blue, size: CGSize(width: iconSize, height: iconSize)) // Blue color with hex
             }
+            icon.setScale(scaleFactor)
             icon.zPosition = 103
             icon.position = CGPoint(x: -choiceBg.size.width * 0.2 /*+ (icon.size.width / 2)*/, y: -choiceBg.size.height * 0.16)
             choiceBg.addChild(icon)
             
             // Skill Name Label with Block Stroke
             let skillNameLabel = SKLabelNode(fontNamed: "InknutAntiqua-ExtraBold")
-            skillNameLabel.fontSize = 13.4
+            let skillFontSize = 13.4 * scaleFactor
+            skillNameLabel.fontSize = skillFontSize
             skillNameLabel.zPosition = 103
             skillNameLabel.horizontalAlignmentMode = .center
             skillNameLabel.verticalAlignmentMode = .center
             
             // Create an attributed string with stroke
             let strokeColor = UIColor.black
-            let strokeWidth: CGFloat = -4.0  // Negative for both fill and stroke
+            let strokeWidth: CGFloat = CGFloat(Int(-4.0 * scaleFactor))  // Negative for both fill and stroke
             let textColor = UIColor(hex: "#614519") ?? .brown  // SaddleBrown color
             
             let attributes: [NSAttributedString.Key: Any] = [
                 .strokeColor: strokeColor,
                 .foregroundColor: textColor,
                 .strokeWidth: strokeWidth,
-                .font: UIFont(name: "InknutAntiqua-ExtraBold", size: 13.4) ?? UIFont.systemFont(ofSize: 13.4)
+                .font: UIFont(name: "InknutAntiqua-ExtraBold", size: skillFontSize) ?? UIFont.systemFont(ofSize: skillFontSize)
             ]
             
             let attributedText = NSAttributedString(string: skill.displayName, attributes: attributes)
@@ -227,7 +241,8 @@ class UpgradeShopOverlayNode: SKNode {
             choiceBg.addChild(skillNameLabel)
             
             // Description Labels with Text Wrapping
-            let descriptionFont = UIFont(name: "InknutAntiqua-Regular", size: 12) ?? UIFont.systemFont(ofSize: 12)
+            let descriptionFontSize = 12 * scaleFactor
+            let descriptionFont = UIFont(name: "InknutAntiqua-Regular", size: descriptionFontSize) ?? UIFont.systemFont(ofSize: descriptionFontSize)
             let descriptionColor = UIColor(hex: "#D3D3D3") ?? .lightGray  // LightGray color
             let descriptionText = skill.definition.type.skillDescription
             
@@ -235,12 +250,12 @@ class UpgradeShopOverlayNode: SKNode {
             let descriptionLines = splitText(descriptionText, maxWidth: descriptionMaxWidth, font: descriptionFont)
             for (lineIndex, line) in descriptionLines.enumerated() {
                 let descriptionLabel = SKLabelNode(fontNamed: "InknutAntiqua-Regular")
-                descriptionLabel.fontSize = 8
+                descriptionLabel.fontSize = 8 * scaleFactor
                 descriptionLabel.fontColor = descriptionColor
                 descriptionLabel.zPosition = 103
                 descriptionLabel.horizontalAlignmentMode = .left
                 descriptionLabel.verticalAlignmentMode = .center
-                descriptionLabel.position = CGPoint(x: 0, y:  (choiceBg.size.height * 0.05) - CGFloat(lineIndex) * 16) // Adjust vertical spacing as needed
+                descriptionLabel.position = CGPoint(x: 0, y:  (choiceBg.size.height * 0.05) - CGFloat(lineIndex) * 16 * scaleFactor) // Adjust vertical spacing as needed
                 descriptionLabel.text = line
                 choiceBg.addChild(descriptionLabel)
             }
@@ -248,17 +263,17 @@ class UpgradeShopOverlayNode: SKNode {
             // Replace Next Level Label with Star System
             let currentLevel = skill.currentLevel
             let maxLevel = skill.definition.maxLevel
-            let starSpacing: CGFloat = 22
+            let starSpacing: CGFloat = 22 * scaleFactor
             let startX: CGFloat = choiceBg.size.width * 0.05
             let maxStars = 4 // Assuming maxLevel is 4
             
             for i in 0..<maxStars {
                 let starImageName = (i < currentLevel) ? "sk_select_star_full" : "sk_select_star_empty"
                 let starNode = SKSpriteNode(imageNamed: starImageName)
+                starNode.setScale(starScale)
                 starNode.zPosition = 103
                 let starX = startX + CGFloat(i) * starSpacing
                 starNode.position = CGPoint(x: starX, y: -choiceBg.size.height * 0.35) // Position stars near the description
-                starNode.setScale(starScale)
                 choiceBg.addChild(starNode)
             }
             
@@ -328,8 +343,8 @@ extension UpgradeShopOverlayNode {
                     
                     // Animate the pressed choice
                     if let choiceNode = node as? SKSpriteNode {
-                        let scaleDown = SKAction.scale(to: 0.9, duration: 0.1)
-                        let scaleUp = SKAction.scale(to: 1.0, duration: 0.1)
+                        let scaleDown = SKAction.scale(to: 0.9 * scaleFactor, duration: 0.1)
+                        let scaleUp = SKAction.scale(to: 1.0 * scaleFactor, duration: 0.1)
                         let sequence = SKAction.sequence([scaleDown, scaleUp])
                         
                         choiceNode.run(sequence) { [weak self] in

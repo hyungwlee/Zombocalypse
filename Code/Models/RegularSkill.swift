@@ -46,7 +46,7 @@ class RegularSkill {
 
         case .protectiveBarrier:
             player.upgradeBarrier(
-                sizeIncrement: effect.barrierSizeIncrement,
+                sizeIncrement: effect.barrierScaleIncrement,
                 damageIncrement: effect.barrierDamageFactor,
                 pulseFrequencyIncrement: effect.barrierPulseFrequencyIncrement,
                 slowAmountIncrement: effect.barrierSlowAmountIncrement

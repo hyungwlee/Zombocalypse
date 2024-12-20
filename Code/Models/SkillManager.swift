@@ -140,7 +140,7 @@ struct SkillLevelEffect {
     var bladeDamageIncrement: Double = 0.0
     var bladeSpeedIncrement: Double = 0.0
 
-    var barrierSizeIncrement: Double = 0.0
+    var barrierScaleIncrement: Double = 0.0
     var barrierDamageFactor: Double = 0.0
     var barrierPulseFrequencyIncrement: Double = 0.0
     var barrierSlowAmountIncrement: Double = 0.0
@@ -354,10 +354,10 @@ extension SkillManager {
                 type: .protectiveBarrier,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(barrierSizeIncrement: 40, barrierDamageFactor: 0.2, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.05),
-                    SkillLevelEffect(barrierSizeIncrement: 15, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.1),
-                    SkillLevelEffect(barrierSizeIncrement: 20, barrierDamageFactor: 0.8, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.15),
-                    SkillLevelEffect(barrierSizeIncrement: 30, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.2)
+                    SkillLevelEffect(barrierScaleIncrement: 1.0, barrierDamageFactor: 0.2, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.05),
+                    SkillLevelEffect(barrierScaleIncrement: 1.3, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.1),
+                    SkillLevelEffect(barrierScaleIncrement: 1.6, barrierDamageFactor: 0.8, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.15),
+                    SkillLevelEffect(barrierScaleIncrement: 2.0, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.2)
                 ]
             )
         )

@@ -12,13 +12,17 @@ class ZPExploderZombieNode: ZPZombie {
     private var isPreparingToExplode = false
     private var explosionPreparationTime: TimeInterval = 2.0 // 2 seconds to charge before exploding
     private var lastExplosionAttemptTime: TimeInterval = 0
-    private var explosionRange: CGFloat = 100.0 // Radius for area-of-effect damage
+    private var explosionRange: CGFloat// Radius for area-of-effect damage
     private var explosionCooldown: TimeInterval = 1.0 // 1-second cooldown after exploding
     private var blastIndicator: SKShapeNode?
     
+    private let scaleFactor: CGFloat
+    
     // Initialize with movement speed, pass health to the superclass
-    init(health: Double, textureName: String, movementSpeed exploderMovementSpeed: CGFloat) {
-        super.init(health: health, textureName: textureName)
+    init(health: Double, textureName: String, movementSpeed exploderMovementSpeed: CGFloat, desiredHeight: CGFloat, scaleFactor: CGFloat) {
+        self.scaleFactor = scaleFactor
+        self.explosionRange = scaleFactor * 100
+        super.init(health: health, textureName: textureName, speed: exploderMovementSpeed, desiredHeight: desiredHeight)
         self.movementSpeed = exploderMovementSpeed
         self.baseSpeed = exploderMovementSpeed
 //        self.baseColor = .purple // Unique color for the exploder
@@ -38,7 +42,7 @@ class ZPExploderZombieNode: ZPZombie {
         // Configure the appearance of the blast indicator
         blastIndicator?.strokeColor = .red
         blastIndicator?.fillColor = .clear
-        blastIndicator?.lineWidth = 2
+        blastIndicator?.lineWidth = explosionRange * 0.02
         blastIndicator?.alpha = 0.3
         blastIndicator?.position = .zero // Ensure it's centered on the zombie
         addChild(blastIndicator!)
@@ -77,9 +81,9 @@ class ZPExploderZombieNode: ZPZombie {
         
         // Vibration effect before exploding
         let vibrationAction = SKAction.sequence([
-            SKAction.moveBy(x: -5, y: 0, duration: 0.05),
-            SKAction.moveBy(x: 10, y: 0, duration: 0.1),
-            SKAction.moveBy(x: -5, y: 0, duration: 0.05)
+            SKAction.moveBy(x: -5 * scaleFactor, y: 0, duration: 0.05),
+            SKAction.moveBy(x: 10 * scaleFactor, y: 0, duration: 0.1),
+            SKAction.moveBy(x: -5 * scaleFactor, y: 0, duration: 0.05)
         ])
         let vibrationLoop = SKAction.repeat(vibrationAction, count: Int(explosionPreparationTime / 0.2))
         

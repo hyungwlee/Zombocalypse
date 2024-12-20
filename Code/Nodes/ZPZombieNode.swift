@@ -10,8 +10,8 @@ import SpriteKit
 class ZPZombie: SKSpriteNode {
     var baseColor: SKColor = .red
     
-    var movementSpeed: CGFloat = 0.4
-    var baseSpeed: CGFloat = 0.4
+    var movementSpeed: CGFloat
+    var baseSpeed: CGFloat
     var isSlowedByBarrier = false
     
     var isAttacking: Bool = false
@@ -47,16 +47,23 @@ class ZPZombie: SKSpriteNode {
     //private let healthLabel: SKLabelNode
     
     
-    init(health: Double, textureName: String) {
+    init(health: Double, textureName: String, speed: CGFloat, desiredHeight: CGFloat) {
 
         //self.healthLabel = SKLabelNode(text: "Enemy | HP: \(health)")
         let skeletonTexture = SKTexture(imageNamed: textureName)
-        
+        let scale = desiredHeight / skeletonTexture.size().height
+
         self.health = health
-        let barSize = CGSize(width: skeletonTexture.size().width * 0.9, height: 10)
+        self.movementSpeed = speed
+        self.baseSpeed = speed
+        
+        let barSize = CGSize(width: skeletonTexture.size().width * scale * 0.9, height: skeletonTexture.size().width * scale * 0.1)
         self.healthBar = HealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
+
         super.init(texture: skeletonTexture, color: .red, size: skeletonTexture.size())
-        setScale(0.35)
+        
+        setScale(scale)
+        print(size)
         
         healthBar.position = CGPoint(x: 0, y: skeletonTexture.size().height * 0.6)
 //        healthLabel.fontSize = 20
@@ -141,14 +148,15 @@ class ZPZombie: SKSpriteNode {
     
     func takeDamage(amount: Double) {
         health -= amount
-        flashRed() // Trigger the flash effect when taking damage
-        if isDead {
-            if let gameScene = self.scene as? ZPGameScene {
-                gameScene.handleEnemyDefeat(at: self.position)
-                gameScene.enemyManager.removeEnemy(self)
-//                self.die()
+        flashRed() {// Trigger the flash effect when taking damage
+            if self.isDead {
+                if let gameScene = self.scene as? ZPGameScene {
+                    gameScene.handleEnemyDefeat(at: self.position)
+                    gameScene.enemyManager.removeEnemy(self)
+                    //                self.die()
+                }
+                //            removeFromParent()
             }
-//            removeFromParent()
         }
     }
     
@@ -181,6 +189,7 @@ class ZPZombie: SKSpriteNode {
         if iceNode != nil { return }
         
         let ice = SKSpriteNode(imageNamed: "sk_ice")
+        let iceScale = (self.size.height * 3.9) / ice.size.height
         ice.name = "iceNode"
         ice.setScale(0.0)
         ice.zPosition = self.zPosition + 1
@@ -189,7 +198,7 @@ class ZPZombie: SKSpriteNode {
         addChild(ice)
         self.iceNode = ice
         
-        let scaleUp = SKAction.scale(to: 1.0, duration: 0.1)
+        let scaleUp = SKAction.scale(to: iceScale, duration: 0.1)
         let fadeIn = SKAction.fadeAlpha(to: 1.0, duration: 0.1)
         let spawnGroup = SKAction.group([scaleUp, fadeIn])
         ice.run(spawnGroup)
@@ -208,7 +217,7 @@ class ZPZombie: SKSpriteNode {
         iceNode = nil
     }
     
-    private func flashRed() {
+    private func flashRed(completion: @escaping () -> Void) {
         guard !isFlashing else { return }
         isFlashing = true
         
@@ -224,6 +233,7 @@ class ZPZombie: SKSpriteNode {
         let repeatFlash = SKAction.repeat(flashSequence, count: 1)
         
         let completion = SKAction.run { [weak self] in
+            completion()
             self?.isFlashing = false
             self?.colorBlendFactor = 0.0
         }

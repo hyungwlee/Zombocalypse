@@ -62,6 +62,7 @@ class BossSpinnerOverlayNode: SKNode {
     private var bgHeight: CGFloat = 0
     
     private var state: State = .idle
+    private let scaleFactor: CGFloat
     
     enum State {
         case idle
@@ -72,11 +73,13 @@ class BossSpinnerOverlayNode: SKNode {
     // Reference to the shine node for spinning animation
     private var shineNode: SKSpriteNode?
     
-    init(skillManager: SkillManager, overlayManager: OverlayManager, overlaySize: CGSize) {
+    init(skillManager: SkillManager, overlayManager: OverlayManager, overlaySize: CGSize,
+         scaleFactor: CGFloat) {
         self.skillManager = skillManager
         self.overlayManager = overlayManager
         self.bgWidth = overlaySize.width
         self.bgHeight = overlaySize.height
+        self.scaleFactor = scaleFactor
         super.init()
         
         specialSkills = skillManager.getAvailableSpecialSkills()
@@ -99,6 +102,7 @@ class BossSpinnerOverlayNode: SKNode {
         
         // Use sk_lucky_draw sprite as title
         let titleNode = SKSpriteNode(imageNamed: "sk_lucky_draw")
+        titleNode.setScale(scaleFactor)
         titleNode.zPosition = 101
         titleNode.position = CGPoint(x: 0, y: bgHeight * 0.35 - titleNode.size.height / 2)
         titleNode.alpha = 0 // Initial state for fade-in
@@ -110,6 +114,7 @@ class BossSpinnerOverlayNode: SKNode {
         
         // Add spinner background
         let spinnerBg = SKSpriteNode(imageNamed: "sk_boss_spinner")
+        spinnerBg.setScale(scaleFactor)
         spinnerBg.zPosition = 101
         spinnerBg.position = CGPoint(x: 0, y: bgHeight * -0.05)
         spinnerBg.alpha = 0 // Initial state for fade-in
@@ -121,6 +126,7 @@ class BossSpinnerOverlayNode: SKNode {
         
         // Add spin button initially
         let spinButton = SKSpriteNode(imageNamed: "sk_spin_button")
+        spinButton.setScale(scaleFactor)
         spinButton.zPosition = 101
         spinButton.position = CGPoint(x: 0, y: spinnerBg.position.y - (spinnerBg.size.height / 2) - 100)
         spinButton.name = "spinButton"
@@ -138,7 +144,7 @@ class BossSpinnerOverlayNode: SKNode {
         // Change title to "OWNED:"
         let ownedTitle = SKLabelNode(text: "OWNED:")
         ownedTitle.fontName = "InknutAntiqua-ExtraBold"
-        ownedTitle.fontSize = 12
+        ownedTitle.fontSize = 12 * scaleFactor
         ownedTitle.fontColor = .white
         ownedTitle.position = CGPoint(x: 0, y: screenSize.height * 0.22)
         ownedTitle.zPosition = 101
@@ -147,13 +153,14 @@ class BossSpinnerOverlayNode: SKNode {
         addChild(ownedTitle)
         
         // Calculate spacing based on total special skills
-        let boxWidth: CGFloat = 40
-        let spacing: CGFloat = 10
+        let boxWidth: CGFloat = 40 * scaleFactor
+        let spacing: CGFloat = 10 * scaleFactor
         let totalWidth = CGFloat(totalSpecialSkills) * boxWidth + CGFloat(totalSpecialSkills - 1) * spacing
         let startX = -totalWidth / 2 + boxWidth / 2
         
         for i in 0..<totalSpecialSkills {
             let box = SKSpriteNode(imageNamed: "sk_selected_box")
+            box.setScale(scaleFactor)
             box.size = CGSize(width: boxWidth, height: boxWidth)
             box.zPosition = 101
             box.position = CGPoint(x: startX + CGFloat(i) * (boxWidth + spacing), y: ownedTitle.position.y - 30)
@@ -167,7 +174,7 @@ class BossSpinnerOverlayNode: SKNode {
                 let ownedSkill = ownedSkills[i]
                 let icon = SKSpriteNode(imageNamed: ownedSkill.type.iconName)
                 let scale = boxWidth * 0.8 / icon.size.width
-                icon.setScale(scale)
+                icon.setScale(scale * scaleFactor)
                 icon.zPosition = 102
                 icon.position = CGPoint.zero
                 icon.alpha = 0 // Initial state for fade-in
@@ -189,6 +196,7 @@ class BossSpinnerOverlayNode: SKNode {
             let y = radius * sin(angle)
             
             let skillBox = SKSpriteNode(imageNamed: "sk_unselected_box")
+            skillBox.setScale(scaleFactor)
             skillBox.zPosition = 102
             skillBox.position = CGPoint(x: x, y: y)
             skillBox.alpha = 0 // Initial state for fade-in
@@ -197,7 +205,7 @@ class BossSpinnerOverlayNode: SKNode {
             
             // Skill Icon
             let icon = SKSpriteNode(imageNamed: skillType.iconName)
-            icon.setScale(0.65)
+            icon.setScale(0.65 * scaleFactor)
             icon.position = CGPoint.zero
             icon.zPosition = 103
             icon.alpha = 0 // Initial state for fade-in
@@ -341,45 +349,46 @@ class BossSpinnerOverlayNode: SKNode {
         
         // Popup container to hold all popup elements
         let popupContainer = SKSpriteNode(imageNamed: "sk_spinner_select_scroll")
+        popupContainer.setScale(scaleFactor * 0.5)
         popupContainer.zPosition = 500 // Above the opaque background and all other nodes
         popupContainer.position = CGPoint.zero
-        popupContainer.setScale(0.5) // Initial scale for animation
         popupContainer.alpha = 0 // Initial state for fade-in
         popupContainer.name = "popupContainer" // Assign a unique name
         addChild(popupContainer)
         
         // Animate the popup container scaling and fading in
-        let scaleUp = SKAction.scale(to: 1.0, duration: 0.3)
+        let scaleUp = SKAction.scale(to: scaleFactor * 1.0, duration: 0.3)
         let fadeInPopup = SKAction.fadeAlpha(to: 1.0, duration: 0.3)
         let popupGroup = SKAction.group([scaleUp, fadeInPopup])
         popupContainer.run(popupGroup)
         
         // Skill Icon below the name
         let icon = SKSpriteNode(imageNamed: chosenSkill.iconName)
+        icon.setScale(scaleFactor * 1.2)
+
         icon.zPosition = 502 // Above popupContainer and skillNameLabel
         icon.position = CGPoint(x: 0, y: popupContainer.size.height * 0.1)
-        icon.setScale(1.2)
         icon.alpha = 0 // Initial state for fade-in
         popupContainer.addChild(icon)
         
         // Animate the skill icon fade-in
-        let fadeInIcon = SKAction.fadeAlpha(to: 1.0, duration: 0.3)
+        let fadeInIcon = SKAction.fadeAlpha(to: scaleFactor, duration: 0.3)
         icon.run(SKAction.sequence([SKAction.wait(forDuration: 0.2), fadeInIcon]))
         
         // Define maximum width for the skill name label
         let maxSkillNameWidth: CGFloat = popupContainer.size.width * 0.8
         
         // Skill Name Label with Multi-Line Support
-        let skillNameFont = UIFont(name: "InknutAntiqua-ExtraBold", size: 25.6) ?? UIFont.systemFont(ofSize: 25.6)
+        let skillNameFont = UIFont(name: "InknutAntiqua-ExtraBold", size: 25.6 * scaleFactor) ?? UIFont.systemFont(ofSize: 25.6 * scaleFactor)
         let skillNameLines = chosenSkill.displayName.splitIntoLines(font: skillNameFont, maxWidth: maxSkillNameWidth)
         
-        let lineHeight: CGFloat = 24 // Adjust based on font size and desired spacing
+        let lineHeight: CGFloat = 24 * scaleFactor // Adjust based on font size and desired spacing
         let totalSkillNameHeight = CGFloat(skillNameLines.count) * lineHeight
         let startY = icon.position.y + icon.size.height / 2 + popupContainer.size.height * 0.2 + totalSkillNameHeight / 2
         
         for (index, line) in skillNameLines.enumerated() {
             let skillNameLabel = SKLabelNode(fontNamed: "InknutAntiqua-ExtraBold")
-            skillNameLabel.fontSize = 25.6
+            skillNameLabel.fontSize = 25.6 * scaleFactor
             skillNameLabel.zPosition = 501 // Above popupContainer
             skillNameLabel.horizontalAlignmentMode = .center
             skillNameLabel.verticalAlignmentMode = .center
@@ -387,7 +396,7 @@ class BossSpinnerOverlayNode: SKNode {
             
             // Create an attributed string with stroke
             let strokeColor = UIColor.black
-            let strokeWidth: CGFloat = -4.0
+            let strokeWidth: CGFloat = CGFloat(Int(-4.0 * scaleFactor))
             let textColor = UIColor(hex: "#614519") ?? .brown
             
             let attributes: [NSAttributedString.Key: Any] = [
@@ -412,6 +421,7 @@ class BossSpinnerOverlayNode: SKNode {
         
         // Shine Node - Adjusted zPosition and parent
         let shine = SKSpriteNode(imageNamed: "sk_shine")
+        shine.setScale(scaleFactor)
         shine.zPosition = 499 // Below popupContainer's children
         shine.position = icon.position
         shine.alpha = 0 // Initial state for fade-in
@@ -428,7 +438,7 @@ class BossSpinnerOverlayNode: SKNode {
         // Skill Description below the icon
         let descriptionLabel = SKLabelNode(fontNamed: "InknutAntiqua-Regular")
         descriptionLabel.text = chosenSkill.skillDescription
-        descriptionLabel.fontSize = 14
+        descriptionLabel.fontSize = 14 * scaleFactor
         descriptionLabel.fontColor = UIColor(hex: "#614519")
         descriptionLabel.position = CGPoint(x: 0, y: icon.position.y - icon.size.height / 2 - 50)
         descriptionLabel.horizontalAlignmentMode = .center
@@ -447,9 +457,9 @@ class BossSpinnerOverlayNode: SKNode {
         // Smaller, flashing "Tap to continue" at the bottom
         let continueLabel = SKLabelNode(fontNamed: "InknutAntiqua-Regular")
         continueLabel.text = "TAP TO CONTINUE"
-        continueLabel.fontSize = 8
+        continueLabel.fontSize = 8 * scaleFactor
         continueLabel.fontColor = .yellow
-        continueLabel.position = CGPoint(x: 0, y: descriptionLabel.position.y - descriptionLabel.frame.height / 2 - 30)
+        continueLabel.position = CGPoint(x: 0, y: descriptionLabel.position.y - descriptionLabel.frame.height / 2 - 30 * scaleFactor)
         continueLabel.horizontalAlignmentMode = .center
         continueLabel.verticalAlignmentMode = .center
         continueLabel.alpha = 0 // Initial state for fade-in
@@ -495,7 +505,7 @@ class BossSpinnerOverlayNode: SKNode {
         
         // Create fade-out actions
         let fadeOutPopup = SKAction.fadeAlpha(to: 0.0, duration: 0.3)
-        let scaleDownPopup = SKAction.scale(to: 0.5, duration: 0.3)
+        let scaleDownPopup = SKAction.scale(to: 0.5 * scaleFactor, duration: 0.3)
         let popupGroup = SKAction.group([fadeOutPopup, scaleDownPopup])
         
         // Fade out the popupContainer
