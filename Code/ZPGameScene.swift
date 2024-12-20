@@ -1530,8 +1530,11 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
                                                     dy: normalizedDirection.dy * moveDistance),
                                        duration: duration)
 
+        let fadeOut = SKAction.fadeOut(withDuration: 0.1)
         let removeAction = SKAction.removeFromParent()
-        projectile.run(SKAction.sequence([moveAction, removeAction]))
+        let fadeOutAndRemove = SKAction.sequence([fadeOut, removeAction])
+
+        projectile.run(SKAction.sequence([moveAction, fadeOutAndRemove]))
     }
     
     func shootGrenade(in direction: CGPoint) {
@@ -1561,8 +1564,11 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         let explodeAction = SKAction.run {
             self.explodeGrenade(grenade)
         }
+        let fadeOut = SKAction.fadeOut(withDuration: 0.1)
         let removeAction = SKAction.removeFromParent()
-        let sequence = SKAction.sequence([moveAction, waitAction, explodeAction, removeAction])
+        let fadeOutAndRemove = SKAction.sequence([fadeOut, removeAction])
+        
+        let sequence = SKAction.sequence([moveAction, waitAction, explodeAction, fadeOutAndRemove])
         grenade.run(sequence)
             
     }
@@ -1663,7 +1669,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         let repeatCollisionCheck = SKAction.repeat(collisionCheckSequence, count: Int(2.0 / 0.05)) // Runs for duration of moveAction
         
         let combinedAction = SKAction.group([moveAction, repeatCollisionCheck])
-        helpingHandProjectile.run(SKAction.sequence([combinedAction, SKAction.removeFromParent()]))
+        
+        let fadeOut = SKAction.fadeOut(withDuration: 0.1)
+        let removeAction = SKAction.removeFromParent()
+        let fadeOutAndRemove = SKAction.sequence([fadeOut, removeAction])
+        
+        helpingHandProjectile.run(SKAction.sequence([combinedAction, fadeOutAndRemove]))
         
     }
 
