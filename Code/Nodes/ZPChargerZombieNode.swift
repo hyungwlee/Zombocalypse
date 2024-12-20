@@ -21,12 +21,15 @@ extension CGVector {
 
 class ZPChargerZombieNode: ZPZombie {
     private var isCharging = false
-    private var chargeCooldown: TimeInterval = 1.0 // 1-second cooldown after charge
+    private var chargeCooldown: TimeInterval = 3.0 // 1-second cooldown after charge
     private var chargePreparationTime: TimeInterval = 2.0 // 2-second delay before charge
     private var lastChargeTime: TimeInterval = 0
     private var arrowNode: SKSpriteNode?
     
     private let scaleFactor: CGFloat
+    
+    private var swordNode: SKSpriteNode?
+    private var chargeTargetPoint: CGPoint?
     
     // Initialize with chargerMovementSpeed, pass it to the super class ZPZombie
     init(health: Double, textureName: String, movementSpeed chargerMovementSpeed: CGFloat, desiredHeight: CGFloat, scaleFactor: CGFloat) {
@@ -34,12 +37,25 @@ class ZPChargerZombieNode: ZPZombie {
         super.init(health: health, textureName: textureName, speed: chargerMovementSpeed, desiredHeight: desiredHeight)
         self.movementSpeed = chargerMovementSpeed
         self.baseSpeed = chargerMovementSpeed
-//        self.baseColor = .orange // Set the color to indicate it's a charger zombie
-//        self.color = baseColor
+
+        setupSwordNode()
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupSwordNode() {
+        let swordTexture = SKTexture(imageNamed: "sl_sword")
+        swordNode = SKSpriteNode(texture: swordTexture)
+        guard let swordNode = swordNode else { return }
+
+        swordNode.setScale(scaleFactor)
+        
+        swordNode.anchorPoint = CGPoint(x: 0.5, y: 0.25)
+        swordNode.position = CGPoint(x: size.width * 0.9, y: size.height * -0.5)
+                
+        self.addChild(swordNode)
     }
     
     func update(currentTime: TimeInterval, playerPosition: CGPoint) {
@@ -50,6 +66,8 @@ class ZPChargerZombieNode: ZPZombie {
             let cooldown = SKAction.wait(forDuration: self.chargeCooldown)
             self.run(cooldown)
         }
+        
+        updateSwordOrientation(playerPosition: playerPosition)
 
         // Check if the zombie is close enough to prepare for a charge
         let distanceToPlayer = hypot(playerPosition.x - position.x, playerPosition.y - position.y)
@@ -66,6 +84,8 @@ class ZPChargerZombieNode: ZPZombie {
             let normalizedVector = chargeVector.normalizedCZ
             let targetPoint = CGPoint(x: position.x + normalizedVector.dx * chargeDistance,
                                       y: position.y + normalizedVector.dy * chargeDistance)
+            
+            chargeTargetPoint = targetPoint
 
             // Display the indicator at the target point
             let targetIndicator = SKSpriteNode(color: .cyan, size: CGSize(width: 20 * scaleFactor, height: 20 * scaleFactor))
@@ -97,13 +117,38 @@ class ZPChargerZombieNode: ZPZombie {
         } else if !isCharging {
             // Regular zombie movement if not in charging mode
             moveTowards(playerPosition: playerPosition, speed: movementSpeed)
+        } else {
+//            print(distanceToPlayer, chargeRange, lastChargeTime, currentTime)
         }
+    }
+    
+    private func updateSwordOrientation(playerPosition: CGPoint) {
+        guard let swordNode = swordNode else { return }
+        
+        var targetPosition: CGPoint
+
+        if isCharging, let chargeTarget = chargeTargetPoint {
+            targetPosition = chargeTarget
+        } else {
+            targetPosition = playerPosition
+        }
+        
+        let dx = targetPosition.x - position.x
+        let dy = targetPosition.y - position.y
+        
+        let angle = atan2(dy, dx)
+        
+        let rotationOffset = -CGFloat.pi / 2 // -90 degrees
+        
+        swordNode.zRotation = angle + rotationOffset
     }
         
     private func moveToChargeTarget(targetPoint: CGPoint) {
         let moveToTarget = SKAction.move(to: targetPoint, duration: 0.5)
-        self.run(moveToTarget) {
+        self.run(moveToTarget)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.isCharging = false
+            print("False")
             let cooldown = SKAction.wait(forDuration: self.chargeCooldown)
             self.run(cooldown)
         }

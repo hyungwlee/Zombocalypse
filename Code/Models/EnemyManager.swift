@@ -47,7 +47,7 @@ class EnemyManager {
     func spawnChargerZombie(health: Double, speed: CGFloat) {
         guard let scene else { return }
 
-        let charger = ZPChargerZombieNode(health: health, textureName: "sk_charger", movementSpeed: speed, desiredHeight: scene.layoutInfo.chargerHeight, scaleFactor: scene.layoutInfo.screenScaleFactor)
+        let charger = ZPChargerZombieNode(health: health, textureName: "sl_charger", movementSpeed: speed, desiredHeight: scene.layoutInfo.chargerHeight, scaleFactor: scene.layoutInfo.screenScaleFactor)
         charger.physicsBody = SKPhysicsBody(texture: charger.texture!, size: charger.size)
         charger.physicsBody?.categoryBitMask = PhysicsCategory.enemy
         charger.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
