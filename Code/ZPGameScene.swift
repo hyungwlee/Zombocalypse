@@ -127,6 +127,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var progressLabel: SKLabelNode!
     var miniWaveInterval: TimeInterval = 3.0
     var isTransitioningWave: Bool = false
+    var hordeSpawnInterval: TimeInterval = 1.0
+    var normalSpawnInterval: TimeInterval = 3.0
+    
+    var maxRegularZombies: Int = 3
+    var maxChargerZombies: Int = 0
+    var maxExploderZombies: Int = 0
     var isBossStage: Bool = false
     
     private var displayedEnemyMessages: Set<Int> = []
@@ -551,12 +557,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     func initializeWaves() {
         //Define waves 1 through 7
         waveCycle = [
-            Wave(waveNumber: 1, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: true, spawnInterval: 3.0, requiresFullClearance: false),
-            Wave(waveNumber: 2, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.8, requiresFullClearance: false),
-            Wave(waveNumber: 3, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: 1.0, requiresFullClearance: false),
-            Wave(waveNumber: 4, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.3, requiresFullClearance: false),
-            Wave(waveNumber: 5, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.1, requiresFullClearance: false),
-            Wave(waveNumber: 6, totalEnemies: 1, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: 1.0, requiresFullClearance: true),
+            Wave(waveNumber: 1, totalEnemies: 10, regularEnemies: 10, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+            Wave(waveNumber: 2, totalEnemies: 15, regularEnemies: 15, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.8, requiresFullClearance: false),
+            Wave(waveNumber: 3, totalEnemies: 25, regularEnemies: 25, chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: 1.0, requiresFullClearance: false),
+            Wave(waveNumber: 4, totalEnemies: 20, regularEnemies: 15, chargerEnemies: 5, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.3, requiresFullClearance: false),
+            Wave(waveNumber: 5, totalEnemies: 20, regularEnemies: 15, chargerEnemies: 0, exploderEnemies: 5, isHorde: false, isBoss: false, spawnInterval: 2.1, requiresFullClearance: false),
+            Wave(waveNumber: 6, totalEnemies: 35, regularEnemies: 20, chargerEnemies: 8, exploderEnemies: 7, isHorde: true, isBoss: false, spawnInterval: 1.0, requiresFullClearance: true),
             Wave(waveNumber: 7, totalEnemies: 1, regularEnemies: 0, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: true, spawnInterval: 0.0, requiresFullClearance: false)
         ]
     }
@@ -569,6 +575,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
         
         waveCounter += 1
+        normalSpawnInterval = max(0.1, normalSpawnInterval - 0.2)
+        gracePeriod = max(1.0, gracePeriod - 1.0) // Decrease grace period, minimum 1 seconds
+        zombieHealth += 2
         
         let wave = waveCycle[gameInfo.currentWaveIndex]
         gameInfo.incrementPendingEnemies(by: wave.totalEnemies)
@@ -1402,6 +1411,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         if let outline = childNode(withName: "arenaOutline") as? SKShapeNode {
             outline.removeFromParent()
         }
+        if let arenaBarrier = self.childNode(withName: "arenaBarrier") {
+            arenaBarrier.removeFromParent()
+        }
         
          // Create the special skill spinner overlay
         let spinnerOverlay = BossSpinnerOverlayNode(skillManager: skillManager, overlayManager: overlayManager, overlaySize: size, scaleFactor: layoutInfo.screenScaleFactor)
@@ -1447,7 +1459,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         //Define increased difficulty waves
         //For simplicity, we'll increase the number of enemies and adjust spawn intervals
         //Can further customize here based on game's balance needs later on
-        
+        hordeSpawnInterval = max(0.1, hordeSpawnInterval - 0.5)
         let cycleMultiplier = 2
         //*******************************************************************************************
         //*******************************************************************************************
@@ -1457,17 +1469,17 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         for waveNumber in 1...7 {
             switch waveNumber {
             case 1:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 10 * Int(cycleMultiplier), regularEnemies: 10 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 3.0 - 1.0, requiresFullClearance: false))
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 10 * Int(cycleMultiplier), regularEnemies: 10 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false))
             case 2:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 15 * Int(cycleMultiplier), regularEnemies: 15 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.8 - 1.0, requiresFullClearance: false))
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 15 * Int(cycleMultiplier), regularEnemies: 15 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false))
             case 3:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 30 * Int(cycleMultiplier), regularEnemies: 30 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: 0.5, requiresFullClearance: false))
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 25 * Int(cycleMultiplier), regularEnemies: 25 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: false))
             case 4:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 35 * Int(cycleMultiplier), regularEnemies: 30 * Int(cycleMultiplier), chargerEnemies: 5 * Int(cycleMultiplier), exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.3 - 1.0, requiresFullClearance: false))
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 20 * Int(cycleMultiplier), regularEnemies: 15 * Int(cycleMultiplier), chargerEnemies: 5 * Int(cycleMultiplier), exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false))
             case 5:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 40 * Int(cycleMultiplier), regularEnemies: 30 * Int(cycleMultiplier), chargerEnemies: 5 * Int(cycleMultiplier), exploderEnemies: 5 * Int(cycleMultiplier), isHorde: false, isBoss: false, spawnInterval: 2.1 - 1.0, requiresFullClearance: false))
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 20 * Int(cycleMultiplier), regularEnemies: 15 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 5 * Int(cycleMultiplier), isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false))
             case 6:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 46 * Int(cycleMultiplier), regularEnemies: 30 * Int(cycleMultiplier), chargerEnemies: 8 * Int(cycleMultiplier), exploderEnemies: 8 * Int(cycleMultiplier), isHorde: true, isBoss: false, spawnInterval: 0.5, requiresFullClearance: true))
+                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 35 * Int(cycleMultiplier), regularEnemies: 20 * Int(cycleMultiplier), chargerEnemies: 8 * Int(cycleMultiplier), exploderEnemies: 7 * Int(cycleMultiplier), isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: true))
             case 7:
                 waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 1, regularEnemies: 0, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: true, spawnInterval: 0.0, requiresFullClearance: false))
             default:
@@ -2238,9 +2250,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             gameOverScreen.removeFromParent()
         }
         player.position = layoutInfo.playerStartingPosition
+            }
+        player.position = layoutInfo.playerStartingPosition
         joystick.endTouch()
-        shootJoystick.endTouch()
-        waveCounter = 0
         gameInfo.reset()
 //        currentWaveIndex = 0
 //        xombieSpeed = 0.3
@@ -2251,9 +2263,16 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //        enemiesToSpawn = 0
 
 
+
+
         miniWaveInterval = 3.0
         isBossStage = false
         arenaBounds = nil
+        gracePeriod = 7.0
+        pendingEnemies = 0
+        enemiesToSpawn = 0
+        hordeSpawnInterval = 1.0
+        normalSpawnInterval = 3.0
         
         playerState.currentXP = 0
         playerState.resetToBaseStats()
