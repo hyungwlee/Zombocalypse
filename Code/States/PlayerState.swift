@@ -42,8 +42,8 @@ class PlayerState {
     var baseAttackSpeed: Double = 1.0
     var baseMovementSpeed: Double = 100.0
     var baseRange: Double = 200.0
-    var baseMaxHealth: Double = 3.0
-    var baseXPRadius: Double = 30.0
+    var baseMaxHealth: Double = 300.0
+    var baseXPRadius: Double = 40.0
 
     // Derived stats after skill application:
     var currentDamage: Double = 0
@@ -65,7 +65,7 @@ class PlayerState {
     let spinningBladesDamageCooldown: TimeInterval = 1.0
     
     // Protective Barrier
-    var barrierSize: Double = 0.0
+    var barrierScale: Double = 0.0
     var barrierDamageFactor: Double = 0.0
     var barrierPulseFrequency: Double = 0.0
     var barrierSlowAmount: Double = 0.0
@@ -86,7 +86,7 @@ class PlayerState {
     let spectralShieldDamageFactor: Double = 0.5
     let spectralShieldBossDamageFactor: Double = 0.1
     let shieldMaxHits: Int = 3
-    let shieldCooldown: TimeInterval = 10.0
+    let shieldCooldown: TimeInterval = 15.0
     var shieldHitsRemaining: Int = 3
 
     // This is called every time a new skill is added.
@@ -107,7 +107,7 @@ class PlayerState {
         spinningBladesDamage = 0
         spinningBladesSpeed = 0.0
         
-        barrierSize = 0.0
+        barrierScale = 0.0
         barrierDamageFactor = 0
         barrierPulseFrequency = 0.0
         barrierSlowAmount = 0.0
@@ -142,7 +142,7 @@ class PlayerState {
     }
     
     func upgradeBarrier(sizeIncrement: Double, damageIncrement: Double, pulseFrequencyIncrement: Double, slowAmountIncrement: Double) {
-        barrierSize += sizeIncrement
+        barrierScale += sizeIncrement
         barrierDamageFactor += damageIncrement
         barrierPulseFrequency += pulseFrequencyIncrement
         barrierSlowAmount += slowAmountIncrement

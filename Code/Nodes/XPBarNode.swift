@@ -25,17 +25,21 @@ class XPBarNode: SKNode {
     private var xpThreshold: Int = 1
     private var currentLevel: Int = 0
     
+    private var previousFraction: CGFloat = 0.0
+    private let animationDuration: TimeInterval = 0.3
+    
     // Initialize the bar with a given width and height
-    init(width: CGFloat = 100, height: CGFloat = 20) {
+    init(width: CGFloat) {
         self.xpBarTexture = SKTexture(imageNamed: "sk_xp_bar")
-        self.barWidth = xpBarTexture.size().width
-        self.barHeight = xpBarTexture.size().height
-        
-        // Create the background of the XP bar
         backgroundNode = SKSpriteNode(texture: xpBarTexture)
-        backgroundNode.size = CGSize(width: barWidth, height: barHeight)
+
+        let scale = width / backgroundNode.size.width
+        backgroundNode.setScale(scale)
+        self.barWidth = backgroundNode.size.width
+        self.barHeight = backgroundNode.size.height
+        print(barWidth, barHeight)
         backgroundNode.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        
+        print(backgroundNode.size)
         //Initialize the fill node with green color
         fillNode = SKShapeNode(rectOf: CGSize(width: 0, height: barHeight), cornerRadius: barHeight / 2)
         fillNode.fillColor = .green
@@ -55,29 +59,53 @@ class XPBarNode: SKNode {
         cropNode.addChild(fillNode)
         
         xpLabel = SKLabelNode(fontNamed: "Arial")
-        xpLabel.fontSize = 14
+        let xpLabelFontSize = barWidth * 0.04545454545
+        xpLabel.fontSize = xpLabelFontSize
         xpLabel.fontColor = .white
         xpLabel.verticalAlignmentMode = .center
         xpLabel.horizontalAlignmentMode = .left
         // Position the XP label to the left of the bar
-        xpLabel.position = CGPoint(x: -barWidth/2 - 10, y: 0)
+        xpLabel.position = CGPoint(x: -barWidth / 2 - 10, y: 0)
         
         // Create labels
         thresholdLabel = SKLabelNode(fontNamed: "Arial")
-        thresholdLabel.fontSize = 14
+        
+        let thresholdLabelFontSize = barWidth * 14 / 100
+        thresholdLabel.fontSize = thresholdLabelFontSize
         thresholdLabel.fontColor = .white
         thresholdLabel.verticalAlignmentMode = .center
         thresholdLabel.horizontalAlignmentMode = .right
         // Position the threshold label to the right of the bar
         thresholdLabel.position = CGPoint(x: barWidth/2 + 10, y: 0)
         
+//        levelLabel = SKLabelNode(fontNamed: "InknutAntiqua-ExtraBold")
+//        levelLabel.fontSize = 28
+//        levelLabel.fontColor = .systemGreen
+//        levelLabel.verticalAlignmentMode = .center
+//        levelLabel.horizontalAlignmentMode = .center
+//        // Position the level label above the middle of the bar
+//        levelLabel.position = CGPoint(x: 0, y: barHeight / 2 + 15)
         levelLabel = SKLabelNode(fontNamed: "InknutAntiqua-ExtraBold")
-        levelLabel.fontSize = 28
-        levelLabel.fontColor = .systemGreen
-        levelLabel.verticalAlignmentMode = .center
+        let levelLabelFontSize = barWidth * 0.090909090909
+        levelLabel.fontSize = levelLabelFontSize
         levelLabel.horizontalAlignmentMode = .center
-        // Position the level label above the middle of the bar
+        levelLabel.verticalAlignmentMode = .center
+        
+        let strokeColor = UIColor.black
+        let strokeWidth: Int = -Int(barWidth * 0.0194805195)
+        let textColor = UIColor(hex: "#21EF16") ?? .systemGreen
+        
+        let attributes: [NSAttributedString.Key: Any] = [
+            .strokeColor: strokeColor,
+            .foregroundColor: textColor,
+            .strokeWidth: strokeWidth,
+            .font: UIFont(name: "InknutAntiqua-ExtraBold", size: levelLabelFontSize) ?? UIFont.systemFont(ofSize: levelLabelFontSize)
+        ]
+        
+        let attributedText = NSAttributedString(string: "0", attributes: attributes)
+        levelLabel.attributedText = attributedText
         levelLabel.position = CGPoint(x: 0, y: barHeight / 2 + 15)
+        
         
         super.init()
         
@@ -89,7 +117,7 @@ class XPBarNode: SKNode {
         addChild(levelLabel)
         
         // Start at 0% progress
-        updateBar()
+        updateBar(animated: false)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -108,25 +136,52 @@ class XPBarNode: SKNode {
         self.xpToNextLevel = xpToNextLevel
         self.xpThreshold = max(xpThreshold, 1) // Avoid division by zero
         checkLevelUp()
-        updateBar()
+        updateBar(animated: true)
     }
     
-    private func updateBar() {
+    private func updateBar(animated: Bool) {
 //        let fraction = CGFloat(currentXP) / CGFloat(xpThreshold)
         let fraction = CGFloat(currentXP - (xpThreshold - xpToNextLevel)) / CGFloat(xpToNextLevel)
         let clampedFraction = min(max(fraction, 0), 1.0)
         
         let newWidth = barWidth * clampedFraction
           
-        //Update the fill node path
         let newSize = CGSize(width: newWidth, height: barHeight)
         let newPath = CGPath(roundedRect: CGRect(origin: .zero, size: newSize), cornerWidth: barHeight / 4, cornerHeight: barHeight / 4, transform: nil)
-        fillNode.path = newPath
+//        fillNode.path = newPath
+        
+        if animated {
+            let duration = animationDuration
+            // Animate the path change
+            let animation = SKAction.customAction(withDuration: duration) { [weak self] node, elapsedTime in
+                guard let self = self else { return }
+                let progress = elapsedTime / CGFloat(duration)
+                let currentFraction = previousFraction + (clampedFraction - previousFraction) * progress
+                let currentWidth = self.barWidth * currentFraction
+                let currentPath = CGPath(roundedRect: CGRect(origin: CGPoint.zero, size: CGSize(width: currentWidth, height: self.barHeight)), cornerWidth: self.barHeight / 2, cornerHeight: self.barHeight / 2, transform: nil)
+                self.fillNode.path = currentPath
+            }
+            fillNode.run(animation)
+        } else {
+            fillNode.path = newPath
+        }
         
         
         // Update labels
         //thresholdLabel.text = "\(xpThreshold)"
         //xpLabel.text = "\(currentXP)"
-        levelLabel.text="\(currentLevel)"
+//        levelLabel.text="\(currentLevel)"
+        let levelLabelFontSize = barWidth * 0.090909090909
+        let strokeColor = UIColor.black
+        let strokeWidth: Int = -Int(barWidth * 0.0194805195)
+        let textColor = UIColor(hex: "#21EF16") ?? .systemGreen
+        
+        let attributes: [NSAttributedString.Key: Any] = [
+            .strokeColor: strokeColor,
+            .foregroundColor: textColor,
+            .strokeWidth: strokeWidth,
+            .font: UIFont(name: "InknutAntiqua-ExtraBold", size: levelLabelFontSize) ?? UIFont.systemFont(ofSize: levelLabelFontSize)
+        ]
+        levelLabel.attributedText = NSAttributedString(string: "\(currentLevel)", attributes: attributes)
     }
 }

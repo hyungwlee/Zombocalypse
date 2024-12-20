@@ -20,8 +20,10 @@ class EnemyManager {
     
     // MARK: - Spawning
 
-    func spawnRegularZombie(health: Double) {
-        let zombie = ZPZombie(health: health, textureName: "sk_skeleton")
+    func spawnRegularZombie(health: Double, speed: CGFloat) {
+        guard let scene else { return }
+        
+        let zombie = ZPZombie(health: health, textureName: "sk_skeleton", speed: speed, desiredHeight: scene.layoutInfo.skeletonHeight)
         zombie.physicsBody = SKPhysicsBody(texture: zombie.texture!, size: zombie.size)
         zombie.physicsBody?.categoryBitMask = PhysicsCategory.enemy
         zombie.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
@@ -29,15 +31,17 @@ class EnemyManager {
         zombie.physicsBody?.affectedByGravity = false
         zombie.physicsBody?.allowsRotation = false
         
-        if let spawnPosition = randomSpawnPosition(avoidingRadius: 200, around: playerPosition, size: zombie.size) {
+        if let spawnPosition = randomSpawnPosition(avoidingRadius: scene.layoutInfo.enemySpawnSafeRadius, around: playerPosition, size: zombie.size) {
             zombie.position = spawnPosition
-            scene?.addChild(zombie)
+            scene.addChild(zombie)
             enemies.append(zombie)
         }
     }
     
     func spawnChargerZombie(health: Double, speed: CGFloat) {
-        let charger = ZPChargerZombieNode(health: health, textureName: "sk_charger", movementSpeed: speed)
+        guard let scene else { return }
+
+        let charger = ZPChargerZombieNode(health: health, textureName: "sk_charger", movementSpeed: speed, desiredHeight: scene.layoutInfo.chargerHeight, scaleFactor: scene.layoutInfo.screenScaleFactor)
         charger.physicsBody = SKPhysicsBody(texture: charger.texture!, size: charger.size)
         charger.physicsBody?.categoryBitMask = PhysicsCategory.enemy
         charger.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
@@ -45,15 +49,17 @@ class EnemyManager {
         charger.physicsBody?.affectedByGravity = false
         charger.physicsBody?.allowsRotation = false
         
-        if let spawnPosition = randomSpawnPosition(avoidingRadius: 250, around: playerPosition, size: charger.size) {
+        if let spawnPosition = randomSpawnPosition(avoidingRadius: scene.layoutInfo.enemySpawnSafeRadius * 1.6, around: playerPosition, size: charger.size) {
             charger.position = spawnPosition
-            scene?.addChild(charger)
+            scene.addChild(charger)
             enemies.append(charger)
         }
     }
     
     func spawnExploderZombie(health: Double, speed: CGFloat) {
-        let exploder = ZPExploderZombieNode(health: health, textureName: "sk_exploder", movementSpeed: speed)
+        guard let scene else { return }
+
+        let exploder = ZPExploderZombieNode(health: health, textureName: "sk_exploder", movementSpeed: speed, desiredHeight: scene.layoutInfo.exploderHeight, scaleFactor: scene.layoutInfo.screenScaleFactor)
         exploder.physicsBody = SKPhysicsBody(texture: exploder.texture!, size: exploder.size)
         exploder.physicsBody?.categoryBitMask = PhysicsCategory.exploder
         exploder.physicsBody?.contactTestBitMask = PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
@@ -61,9 +67,9 @@ class EnemyManager {
         exploder.physicsBody?.affectedByGravity = false
         exploder.physicsBody?.allowsRotation = false
         
-        if let spawnPosition = randomSpawnPosition(avoidingRadius: 250, around: playerPosition, size: exploder.size) {
+        if let spawnPosition = randomSpawnPosition(avoidingRadius: scene.layoutInfo.enemySpawnSafeRadius * 1.6, around: playerPosition, size: exploder.size){
             exploder.position = spawnPosition
-            scene?.addChild(exploder)
+            scene.addChild(exploder)
             enemies.append(exploder)
         }
     }
@@ -73,7 +79,7 @@ class EnemyManager {
 
         wizardBoss?.removeFromParent()
         
-        let wizard = ZPWizard(health: health)
+        let wizard = ZPWizard(health: health, desiredHeight: scene.layoutInfo.bossHeight, spawnLocation: spawnLocation, screenScaleFactor: scene.layoutInfo.screenScaleFactor)
         
         wizard.physicsBody = SKPhysicsBody(rectangleOf: wizard.size)
         wizard.physicsBody?.categoryBitMask = PhysicsCategory.boss
@@ -100,26 +106,6 @@ class EnemyManager {
         }
         wizardBoss?.resume()
     }
-
-//    func pauseAll() {
-//        guard !isPaused else { return }
-//        isPaused = true
-//        for enemy in enemies {
-//            enemy.speed = 0
-//            enemy.removeAllActions()
-//        }
-//    }
-//    
-//    func resumeAll() {
-//        guard isPaused else { return }
-//        isPaused = false
-//        for enemy in enemies {
-//            enemy.speed = 1
-//            if !enemy.isDead {
-//                enemy.moveTowards(playerPosition: playerPosition)
-//            }
-//        }
-//    }
     
     // MARK: - Update
 
@@ -153,10 +139,22 @@ class EnemyManager {
     // MARK: - Collision and Removal
 
     func removeEnemy(_ enemy: ZPZombie) {
-        if let index = enemies.firstIndex(where: { $0 === enemy }) {
-            enemies.remove(at: index)
+        enemy.physicsBody?.categoryBitMask = PhysicsCategory.none
+        enemy.physicsBody?.collisionBitMask = PhysicsCategory.none
+        enemy.physicsBody?.contactTestBitMask = PhysicsCategory.none
+        
+        let fadeOut = SKAction.fadeOut(withDuration: 0.1)
+        let scale = enemy.xScale
+        let scaleDown = SKAction.scale(to: scale * 0.5, duration: 0.1)
+        let group = SKAction.group([fadeOut, scaleDown])
+        
+        enemy.run(group) {
+            
+            if let index = self.enemies.firstIndex(where: { $0 === enemy }) {
+                self.enemies.remove(at: index)
+            }
+            enemy.removeFromParent()
         }
-        enemy.removeFromParent()
         
         //Notify the scene to stop damaging if necessary
         scene?.damagingEnemies.remove(enemy)

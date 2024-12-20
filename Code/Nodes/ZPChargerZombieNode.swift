@@ -26,9 +26,12 @@ class ZPChargerZombieNode: ZPZombie {
     private var lastChargeTime: TimeInterval = 0
     private var arrowNode: SKSpriteNode?
     
+    private let scaleFactor: CGFloat
+    
     // Initialize with chargerMovementSpeed, pass it to the super class ZPZombie
-    init(health: Double, textureName: String, movementSpeed chargerMovementSpeed: CGFloat) {
-        super.init(health: health, textureName: textureName)
+    init(health: Double, textureName: String, movementSpeed chargerMovementSpeed: CGFloat, desiredHeight: CGFloat, scaleFactor: CGFloat) {
+        self.scaleFactor = scaleFactor
+        super.init(health: health, textureName: textureName, speed: chargerMovementSpeed, desiredHeight: desiredHeight)
         self.movementSpeed = chargerMovementSpeed
         self.baseSpeed = chargerMovementSpeed
 //        self.baseColor = .orange // Set the color to indicate it's a charger zombie
@@ -50,7 +53,7 @@ class ZPChargerZombieNode: ZPZombie {
 
         // Check if the zombie is close enough to prepare for a charge
         let distanceToPlayer = hypot(playerPosition.x - position.x, playerPosition.y - position.y)
-        let chargeRange: CGFloat = 200.0 // Adjust this value as needed
+        let chargeRange: CGFloat = 200.0 * scaleFactor
 
         if !isCharging && distanceToPlayer < chargeRange && currentTime - lastChargeTime > chargeCooldown {
             //print("Charger is preparing to charge! Distance: \(distanceToPlayer)")
@@ -59,13 +62,13 @@ class ZPChargerZombieNode: ZPZombie {
             
             // Determine charge target point
             let chargeVector = vector(from: position, to: playerPosition)
-            let chargeDistance: CGFloat = 200.0 // Adjust charge distance as needed
+            let chargeDistance: CGFloat = 200.0 * scaleFactor
             let normalizedVector = chargeVector.normalizedCZ
             let targetPoint = CGPoint(x: position.x + normalizedVector.dx * chargeDistance,
                                       y: position.y + normalizedVector.dy * chargeDistance)
 
             // Display the indicator at the target point
-            let targetIndicator = SKSpriteNode(color: .cyan, size: CGSize(width: 20, height: 20))
+            let targetIndicator = SKSpriteNode(color: .cyan, size: CGSize(width: 20 * scaleFactor, height: 20 * scaleFactor))
             targetIndicator.position = targetPoint
 //            self.parent?.addChild(targetIndicator)
             targetIndicator.run(SKAction.sequence([
@@ -76,9 +79,9 @@ class ZPChargerZombieNode: ZPZombie {
 
             // Vibration effect during charge preparation
             let vibrationAction = SKAction.sequence([
-                SKAction.moveBy(x: -5, y: 0, duration: 0.05),
-                SKAction.moveBy(x: 10, y: 0, duration: 0.1),
-                SKAction.moveBy(x: -5, y: 0, duration: 0.05)
+                SKAction.moveBy(x: -5 * scaleFactor, y: 0, duration: 0.05),
+                SKAction.moveBy(x: 10 * scaleFactor, y: 0, duration: 0.1),
+                SKAction.moveBy(x: -5 * scaleFactor, y: 0, duration: 0.05)
             ])
             let vibrationLoop = SKAction.repeat(vibrationAction, count: Int(chargePreparationTime / 0.2))
             self.run(vibrationLoop)

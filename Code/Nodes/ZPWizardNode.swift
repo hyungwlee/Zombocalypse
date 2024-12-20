@@ -18,6 +18,9 @@ class ZPWizard: SKSpriteNode {
     private var hasSpawned: Bool = false
     private var isFlashing: Bool = false
     
+    private var iceNode: SKSpriteNode?
+
+    
     var lastSpinningBladeDamageTime: TimeInterval = 0
     var lastBarrierDamageTime: TimeInterval = 0
     var isFrozen: Bool = false
@@ -28,7 +31,7 @@ class ZPWizard: SKSpriteNode {
     private let meteorInterval: TimeInterval = 5.0
     private let beamInterval: TimeInterval = 8.0
     public var movementSpeed: CGFloat = 150.0
-    public let baseSpeed: CGFloat = 150.0
+    public let baseSpeed: CGFloat
     private var currentDirection: CGVector = .zero
     var health: Double {
         didSet {
@@ -42,8 +45,12 @@ class ZPWizard: SKSpriteNode {
     var baseColor: SKColor = .clear
     var isSlowedByBarrier: Bool = false
     private var fireballFrames: [SKTexture] = []
+    
+    private let bossScale: CGFloat
+    private let screenScaleFactor: CGFloat
+    private let spawnLocation: CGPoint
 
-    init(health: Double) {
+    init(health: Double, desiredHeight: CGFloat, spawnLocation: CGPoint, screenScaleFactor: CGFloat) {
         self.health = health
         self.textureLeft = SKTexture(imageNamed: "sk_wizard_left")
         self.textureRight = SKTexture(imageNamed: "sk_wizard_right")
@@ -52,12 +59,23 @@ class ZPWizard: SKSpriteNode {
         self.spawnImage.position = CGPoint(x: 0, y: 0)
         self.spawnImage.zPosition = 11
         
-        let barSize = CGSize(width: 100, height: 15)
+        let barSize = CGSize(width: textureRight.size().width * 0.885, height: textureRight.size().width * 0.133)
+        
         self.healthBar = HealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
-        healthBar.position = CGPoint(x: 0, y: 75)
+        healthBar.position = CGPoint(x: 0, y: textureRight.size().height * 0.6)
+        
+        self.movementSpeed *= screenScaleFactor
+        self.baseSpeed = movementSpeed
+        self.bossScale = desiredHeight / textureRight.size().height
+        self.screenScaleFactor = screenScaleFactor
+        self.spawnLocation = spawnLocation
+
         
         //Set initial texture to facing right
         super.init(texture: textureRight, color: baseColor, size: textureRight.size())
+        
+        self.setScale(bossScale)
+        
         self.name = "wizard"
         self.addChild(healthBar)
         
@@ -115,7 +133,7 @@ class ZPWizard: SKSpriteNode {
         
         
         // Define Grow Action
-        let growAction = SKAction.scale(to: 1.5, duration: 2.0)
+        let growAction = SKAction.scale(to: bossScale * 1.5, duration: 2.0)
         
         // Define Shrink Action
         let shrinkAction = SKAction.scale(to: 0.0, duration: 1.0)
@@ -180,6 +198,7 @@ class ZPWizard: SKSpriteNode {
     private func die() {
         isAlive = false
         let explosion = SKEmitterNode(fileNamed: "Explosion")
+        explosion?.setScale(screenScaleFactor)
         explosion?.position = self.position
         scene?.addChild(explosion ?? SKNode())
         self.removeFromParent()
@@ -196,7 +215,7 @@ class ZPWizard: SKSpriteNode {
         let maxX = arenaBounds.maxX
         
         //Fixed Y-position
-        let spawnY = arenaBounds.maxY + 100.0 // MUST MATCH SPAWN POSITION IN ZPGAMESCENE
+        let spawnY = spawnLocation.y
         position.y = spawnY
         
         if currentDirection == .zero {
@@ -234,6 +253,7 @@ class ZPWizard: SKSpriteNode {
     private func animateFireball(at targetPosition: CGPoint) {
         //Create the fireball sprite node
         let fireball = SKSpriteNode(texture: fireballFrames.first)
+        fireball.setScale(screenScaleFactor)
         fireball.position = targetPosition
         fireball.zPosition = 10
         fireball.name = "fireball"
@@ -318,8 +338,9 @@ class ZPWizard: SKSpriteNode {
         path.move(to: position)
         path.addLine(to: extendedBeamEnd(from: position, to: targetPosition))
         warning.path = path
+        print("size", self.size)
         warning.strokeColor = .red
-        warning.lineWidth = 2
+        warning.lineWidth = size.width * 0.0177
         warning.alpha = 0.5
         scene?.addChild(warning)
 
@@ -353,7 +374,7 @@ class ZPWizard: SKSpriteNode {
         
         //Create the beam as a thin rectanlge for physics detection
         let beamLength = hypot(beamEnd.x - position.x, beamEnd.y - position.y)
-        let beamWidth: CGFloat = 10.0 // Adjust thickness as needed
+        let beamWidth: CGFloat = size.width * 0.0885 // Adjust thickness as needed
         
         let beam = SKSpriteNode(color: .yellow, size: CGSize(width: beamLength, height: beamWidth))
         beam.position = CGPoint(x: (position.x + beamEnd.x) / 2, y: (position.y + beamEnd.y) / 2)
@@ -412,12 +433,20 @@ class ZPWizard: SKSpriteNode {
         self.run(SKAction.sequence([delay, resume]))
     }
     
+    
+    func pause() {
+        isBossPaused = true
+    }
+    
+    func resume() {
+        isBossPaused = false
+    }
+    
+    
     func freeze(currentTime: TimeInterval, duration: TimeInterval) {
         isFrozen = true
         freezeEndTime = currentTime + duration
-        color = .cyan
-        colorBlendFactor = 1.0
-        print("Wizard has been fronzen until \(freezeEndTime)")
+        addIceNode()
     }
     
     func updateFreezeState(currentTime: TimeInterval) {
@@ -428,15 +457,38 @@ class ZPWizard: SKSpriteNode {
     
     func unfreeze() {
         isFrozen = false
-        color = baseColor
-        print("Wizard has been unfrozen.")
+        removeIceNode()
     }
     
-    func pause() {
-        isBossPaused = true
+    private func addIceNode() {
+        if iceNode != nil { return }
+        
+        let ice = SKSpriteNode(imageNamed: "sk_ice")
+        let iceScale = (self.size.height * 2.3) / ice.size.height
+        ice.name = "iceNode"
+        ice.setScale(0.0)
+        ice.zPosition = self.zPosition + 1
+        ice.position = CGPoint.zero
+        
+        addChild(ice)
+        self.iceNode = ice
+        
+        let scaleUp = SKAction.scale(to: iceScale, duration: 0.1)
+        let fadeIn = SKAction.fadeAlpha(to: 1.0, duration: 0.1)
+        let spawnGroup = SKAction.group([scaleUp, fadeIn])
+        ice.run(spawnGroup)
     }
     
-    func resume() {
-        isBossPaused = false
+    private func removeIceNode() {
+        guard let ice = iceNode else { return }
+        
+        let fadeOut = SKAction.fadeAlpha(to: 0.0, duration: 0.1)
+        let scaleDown = SKAction.scale(to: 0.0, duration: 0.1)
+        let remove = SKAction.removeFromParent()
+        let group = SKAction.group([fadeOut, scaleDown])
+        let sequence = SKAction.sequence([group, remove])
+        ice.run(sequence)
+        
+        iceNode = nil
     }
 }
