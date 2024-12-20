@@ -167,11 +167,20 @@ class EnemyManager {
         let group = SKAction.group([fadeOut, scaleDown])
         
         enemy.run(group) {
-            
             if let index = self.enemies.firstIndex(where: { $0 === enemy }) {
                 self.enemies.remove(at: index)
             }
             enemy.removeFromParent()
+        }
+        
+        let animationTimeout: TimeInterval = 0.2
+        DispatchQueue.main.asyncAfter(deadline: .now() + animationTimeout) {
+            if self.enemies.contains(where: { $0 === enemy }) {
+                if let index = self.enemies.firstIndex(where: { $0 === enemy }) {
+                    self.enemies.remove(at: index)
+                }
+                enemy.removeFromParent()
+            }
         }
         
         //Notify the scene to stop damaging if necessary

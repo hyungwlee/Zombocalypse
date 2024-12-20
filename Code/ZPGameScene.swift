@@ -111,11 +111,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var gameOver: Bool = false
     var isGamePaused: Bool = false
     
-    private var lastShootTime: TimeInterval = 0
-    var currentGameTime: TimeInterval = 0
+    private var lastShootTime: TimeInterval = 0.0
+    var currentGameTime: TimeInterval = 0.0
     var lastDamageTime: TimeInterval = 0.0
-    var lastGrenadeTime: TimeInterval = 0
-    private var lastUpdateTime: TimeInterval = 0
+    var lastGrenadeTime: TimeInterval = 0.0
+    var lastFreezeSound: TimeInterval = 0.0
+    private var lastUpdateTime: TimeInterval = 0.0
 
         
     var waveCycle: [Wave] = []
@@ -261,6 +262,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func setUpGame() {
+        SLSoundManager.shared.playBackgroundMusic(named: "sl_bg_music")
+        SLSoundManager.shared.setBackgroundMusicVolume(0.1)
+        
         backgroundColor = .white
         gameOver = false
         playerState.resetToBaseStats()
@@ -591,9 +595,14 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         //Display wave start message
         if wave.isBoss {
             // Use the boss warning image
+            SLSoundManager.shared.playSoundEffect(.bossAlarm)
+            SLSoundManager.shared.setSoundEffectVolume(.bossAlarm, volume: 0.1)
             showBannerNode(imageName: "sk_boss_warning", duration: 3.0)
         } else if wave.isHorde {
             // Use the horde incoming image
+            SLSoundManager.shared.playSoundEffect(.horn)
+            SLSoundManager.shared.setSoundEffectVolume(.horn, volume: 0.2)
+            
             showBannerNode(imageName: "sk_horde_incoming", duration: 3.0)
         } else {
             // Normal wave start message can remain text-based or also be replaced.
@@ -644,6 +653,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func showBannerNode(imageName: String, duration: TimeInterval = 4.0) {
+        
         guard let cameraNode = self.camera else { return }
         let banner = SKSpriteNode(imageNamed: imageName)
         let bannerScale = layoutInfo.bannerWidth / banner.size.width
@@ -1535,6 +1545,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         let fadeOutAndRemove = SKAction.sequence([fadeOut, removeAction])
 
         projectile.run(SKAction.sequence([moveAction, fadeOutAndRemove]))
+        SLSoundManager.shared.playSoundEffect(.arrowShot)
+        SLSoundManager.shared.setSoundEffectVolume(.arrowShot, volume: 0.2)
     }
     
     func shootGrenade(in direction: CGPoint) {
@@ -1570,6 +1582,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         let sequence = SKAction.sequence([moveAction, waitAction, explodeAction, fadeOutAndRemove])
         grenade.run(sequence)
+        
+        SLSoundManager.shared.playSoundEffect(.grenadeToss)
+        SLSoundManager.shared.setSoundEffectVolume(.grenadeToss, volume: 0.2)
             
     }
         
@@ -1609,6 +1624,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
         
     func absorbShieldHit() {
+        SLSoundManager.shared.playSoundEffect(.shieldBreak)
+        SLSoundManager.shared.setSoundEffectVolume(.shieldBreak, volume: 0.2)
+        
         playerState.shieldHitsRemaining -= 1
         updateShieldAppearance()
         
@@ -1676,6 +1694,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         helpingHandProjectile.run(SKAction.sequence([combinedAction, fadeOutAndRemove]))
         
+        SLSoundManager.shared.playSoundEffect(.helpingHand)
+        SLSoundManager.shared.setSoundEffectVolume(.helpingHand, volume: 0.2)
     }
 
     /// Finds the nearest enemy (zombie or wizard) within a specified radius.
@@ -1868,7 +1888,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func performMightyKnockback() {
-        print("KNOCBACK")
+        SLSoundManager.shared.playSoundEffect(.knockback)
+        SLSoundManager.shared.setSoundEffectVolume(.knockback, volume: 0.2)
         // Radius of the knockback
         let knockbackRadius: CGFloat = layoutInfo.knockbackRadius
         let knockbackStrength: CGFloat = layoutInfo.knockbackStrength
@@ -2155,6 +2176,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     func showEnemyIntroductionMessage(forWaveNumber waveNumber: Int) {
         // Map the wave number to the appropriate banner
         if let bannerName = newEnemyBannerMapping[waveNumber] {
+            SLSoundManager.shared.playSoundEffect(.horn)
+            SLSoundManager.shared.setSoundEffectVolume(.horn, volume: 0.2)
             showBannerNode(imageName: bannerName, duration: 5.0)
         }
     }
@@ -2164,6 +2187,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         gameOver = true
         guard let cameraNode = self.camera else { return }
         
+        SLHapticManager.shared.triggerExplosionHaptic()
+        SLSoundManager.shared.playSoundEffect(.gameOver)
+        SLSoundManager.shared.setSoundEffectVolume(.gameOver, volume: 0.2)
+        
         let redOverlay = SKSpriteNode(color: UIColor(hex: "#200000") ?? .red, size: self.size)
         redOverlay.position = CGPoint(x: 0, y: 0)
         redOverlay.zPosition = 10
@@ -2171,7 +2198,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         redOverlay.name = "redOverlay"
         cameraNode.addChild(redOverlay)
         
-        let fadeInRed = SKAction.fadeAlpha(to: 0.7, duration: 0.5) // Adjust alpha as needed
+        let fadeInRed = SKAction.fadeAlpha(to: 0.7, duration: 0.5)
         redOverlay.run(fadeInRed)
         
         let gameOverTitle = SKSpriteNode(imageNamed: "sk_game_over")
@@ -2187,7 +2214,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         let fadeInGameOverImage = SKAction.fadeAlpha(to: 1.0, duration: 1.0)
         gameOverTitle.run(fadeInGameOverImage)
         
-        let wait = SKAction.wait(forDuration: 4.0)
+        let wait = SKAction.wait(forDuration: 2.5)
         let showGameOverFlow = SKAction.run { [weak self] in
             self?.presentGameOverFlow()
         }
@@ -2293,6 +2320,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             existingWizard.removeFromParent()
             wizardBoss = nil
         }
+        
+        SLSoundManager.shared.stopBackgroundMusic()
         setUpGame()
     }
     
@@ -2392,9 +2421,17 @@ extension ZPGameScene: SKPhysicsContactDelegate {
             }
         }
         
+        let freezeSoundCoolDown = playerState.freezeDuration + playerState.freezeDuration
         // Freeze Explosion & Enemy/Boss collision
         if ((firstBody.categoryBitMask == PhysicsCategory.enemy || firstBody.categoryBitMask == PhysicsCategory.boss || firstBody.categoryBitMask == PhysicsCategory.exploder) && secondBody.categoryBitMask == PhysicsCategory.freeze) {
             let currentTime = CACurrentMediaTime()
+            
+            if currentTime > lastFreezeSound + freezeSoundCoolDown  {
+                lastFreezeSound = currentTime
+                SLSoundManager.shared.playSoundEffect(.freezeSound)
+                SLSoundManager.shared.setSoundEffectVolume(.freezeSound, volume: 0.2)
+            }
+            
             if let enemyNode = firstBody.node as? ZPZombie {
                 enemyNode.freeze(currentTime: currentTime, duration: playerState.freezeDuration)
             } else if let bossNode = firstBody.node as? ZPWizard {
@@ -2611,6 +2648,10 @@ extension ZPGameScene: SKPhysicsContactDelegate {
     }
     
     func applyDamageToPlayer(from enemy: ZPZombie) {
+        SLHapticManager.shared.triggerImpact(style: .heavy)
+        SLSoundManager.shared.playSoundEffect(.playerDamage)
+        SLSoundManager.shared.setSoundEffectVolume(.playerDamage, volume: 0.1)
+        
         flashPlayer()
         playerLives -= 1
         updateProgressLabel()

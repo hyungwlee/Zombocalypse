@@ -19,6 +19,9 @@ class ZPGameContext: GameContext {
     private(set) var stateMachine: GKStateMachine?
     
     init(dependencies: Dependencies, gameMode: GameModeType) {
+        _ = SLHapticManager.shared // preload
+        _ = SLSoundManager.shared // preload
+        
         self.gameMode = gameMode
         self.gameInfo = ZPGameInfo()
         self.layoutInfo = ZPLayoutInfo(screenSize: UIScreen.main.bounds.size)

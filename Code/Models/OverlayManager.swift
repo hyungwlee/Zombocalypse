@@ -24,6 +24,7 @@ class OverlayManager {
     
     func showNextOverlayIfPossible() {
         guard !isShowingOverlay, !overlayQueue.isEmpty, let scene = scene, let cameraNode = scene.camera else { return }
+        SLHapticManager.shared.triggerNotification(type: .success)
         isShowingOverlay = true
         let nextOverlay = overlayQueue.removeFirst()
         cameraNode.addChild(nextOverlay)

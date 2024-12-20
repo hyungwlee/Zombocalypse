@@ -51,8 +51,9 @@ class UpgradeShopOverlayNode: SKNode {
         self.scaleFactor = scaleFactor
         
         super.init()
-
         
+        SLSoundManager.shared.playSoundEffect(.openShop)
+
         setupOverlay()
     }
     
@@ -349,6 +350,8 @@ extension UpgradeShopOverlayNode {
                         
                         choiceNode.run(sequence) { [weak self] in
                             // After animation completes, perform selection
+                            SLHapticManager.shared.triggerImpact(style: .medium)
+                            SLSoundManager.shared.playSoundEffect(.buttonPress)
                             self?.manager?.playerDidSelectSkill(chosenSkill)
                             self?.overlayManager?.closeCurrentOverlay(self!)
                             self?.removeFromParent()
