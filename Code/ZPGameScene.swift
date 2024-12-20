@@ -2,7 +2,7 @@
 //  ZPGameScene.swift
 //  Zombocalypse
 //
-//  
+//
 //
 
 import SpriteKit
@@ -127,12 +127,6 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var progressLabel: SKLabelNode!
     var miniWaveInterval: TimeInterval = 3.0
     var isTransitioningWave: Bool = false
-    var hordeSpawnInterval: TimeInterval = 1.0
-    var normalSpawnInterval: TimeInterval = 3.0
-    
-    var maxRegularZombies: Int = 3
-    var maxChargerZombies: Int = 0
-    var maxExploderZombies: Int = 0
     var isBossStage: Bool = false
     
     private var displayedEnemyMessages: Set<Int> = []
@@ -168,6 +162,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     var xpNodesToRemove: [XPNode] = []
     var xpSpawnTimer: Timer?
     let xpSpawnInterval: TimeInterval = 1.0
+    
+    var hordeSpawnInterval: TimeInterval = 1.0
+    var normalSpawnInterval: TimeInterval = 3.0
     
     // -----
 
@@ -350,7 +347,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             playerLivesLabel.position = CGPoint(x: -size.width / 2 + 80, y: size.height / 2 - 180)
             playerLivesLabel.zPosition = 5
         }
-        playerLives = playerState.baseMaxHealth // Reset playerLives  
+        playerLives = playerState.baseMaxHealth // Reset playerLives
         
         setupTopOverlay()
         
@@ -575,13 +572,18 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         }
         
         waveCounter += 1
+        
         normalSpawnInterval = max(0.1, normalSpawnInterval - 0.2)
-        gracePeriod = max(1.0, gracePeriod - 1.0) // Decrease grace period, minimum 1 seconds
-        zombieHealth += 2
+        
+        let newGracePeriod = max(1.0, gameInfo.waveGracePeriod - 1.0) // Decrease grace period, minimum 1 seconds
+        gameInfo.updateWaveGracePeriod(to: newGracePeriod)
         
         let wave = waveCycle[gameInfo.currentWaveIndex]
         gameInfo.incrementPendingEnemies(by: wave.totalEnemies)
         gameInfo.incrementEnemiesToSpawn(by: wave.totalEnemies)
+        gameInfo.incrementZombieHealth(by: 2.0)
+//        zombieHealth += 2
+
         updateProgressLabel()
         
         isTransitioningWave = true
@@ -1432,10 +1434,10 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         //Increase difficulty variables
         gameInfo.incrementZombieSpeed(by: 0.1)
-        gameInfo.incrementZombieHealth(by: 3.0)
-        gameInfo.incrementWizardHealth(by: 15.0)
+        gameInfo.incrementZombieHealth(by: 2.0)
+        gameInfo.incrementWizardHealth(by: 2.0)
         
-        gameInfo.updateWaveGravityPeriod(to: max(1.0, gameInfo.waveGracePeriod - 2.0)) // Decrease grace period, minimum 5 seconds
+        gameInfo.updateWaveGracePeriod(to: max(1.0, gameInfo.waveGracePeriod - 2.0)) // Decrease grace period, minimum 5 seconds
         miniWaveInterval = max(1.0, miniWaveInterval - 0.1)
         
         //Show post boss message
@@ -1460,6 +1462,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         //For simplicity, we'll increase the number of enemies and adjust spawn intervals
         //Can further customize here based on game's balance needs later on
         hordeSpawnInterval = max(0.1, hordeSpawnInterval - 0.5)
+
+        
         let cycleMultiplier = 2
         //*******************************************************************************************
         //*******************************************************************************************
@@ -2128,7 +2132,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //        enemyMessageLabel.position = CGPoint(x: 0, y: size.height * 0.25)
 //        enemyMessageLabel.zPosition = 5
 //        cameraNode.addChild(enemyMessageLabel)
-//        
+//
 //        let fadeOut = SKAction.sequence([
 //            SKAction.wait(forDuration: 5.0),
 //            SKAction.fadeOut(withDuration: 0.5),
@@ -2246,13 +2250,16 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func restartGame() {
-        if let cameraNode = self.camera, let gameOverScreen = cameraNode.childNode(withName: "gameOverScreen") {
-            gameOverScreen.removeFromParent()
+        if let cameraNode = self.camera {
+            cameraNode.childNode(withName: "gameOverScreen")?.removeFromParent()
+            cameraNode.childNode(withName: "redOverlay")?.removeFromParent()
+            cameraNode.childNode(withName: "gameOverImage")?.removeFromParent()
         }
         player.position = layoutInfo.playerStartingPosition
-            }
-        player.position = layoutInfo.playerStartingPosition
         joystick.endTouch()
+        shootJoystick.endTouch()
+        waveCounter = 0
+        
         gameInfo.reset()
 //        currentWaveIndex = 0
 //        xombieSpeed = 0.3
@@ -2261,18 +2268,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //        gracePeriod = 7.0
 //        pendingEnemies = 0
 //        enemiesToSpawn = 0
-
-
-
+        hordeSpawnInterval = 1.0
+        normalSpawnInterval = 3.0
 
         miniWaveInterval = 3.0
         isBossStage = false
         arenaBounds = nil
-        gracePeriod = 7.0
-        pendingEnemies = 0
-        enemiesToSpawn = 0
-        hordeSpawnInterval = 1.0
-        normalSpawnInterval = 3.0
         
         playerState.currentXP = 0
         playerState.resetToBaseStats()

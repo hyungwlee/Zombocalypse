@@ -59,7 +59,7 @@ class ZPGameInfo {
         wizardHealth += health
     }
     
-    func updateWaveGravityPeriod(to period: CGFloat) {
+    func updateWaveGracePeriod(to period: CGFloat) {
         waveGracePeriod = period
     }
     
