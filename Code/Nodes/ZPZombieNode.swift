@@ -57,13 +57,12 @@ class ZPZombie: SKSpriteNode {
         self.movementSpeed = speed
         self.baseSpeed = speed
         
-        let barSize = CGSize(width: skeletonTexture.size().width * scale * 0.9, height: skeletonTexture.size().width * scale * 0.1)
+        let barSize = CGSize(width: skeletonTexture.size().width * 0.9, height: skeletonTexture.size().width * 0.1)
         self.healthBar = HealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
 
         super.init(texture: skeletonTexture, color: .red, size: skeletonTexture.size())
         
         setScale(scale)
-        print(size)
         
         healthBar.position = CGPoint(x: 0, y: skeletonTexture.size().height * 0.6)
 //        healthLabel.fontSize = 20

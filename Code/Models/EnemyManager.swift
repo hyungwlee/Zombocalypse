@@ -33,8 +33,14 @@ class EnemyManager {
         
         if let spawnPosition = randomSpawnPosition(avoidingRadius: scene.layoutInfo.enemySpawnSafeRadius, around: playerPosition, size: zombie.size) {
             zombie.position = spawnPosition
+            zombie.alpha = 0.0
+            
             scene.addChild(zombie)
             enemies.append(zombie)
+            
+            let fadeInDuration: TimeInterval = 0.3
+            let fadeIn = SKAction.fadeIn(withDuration: fadeInDuration)
+            zombie.run(fadeIn)
         }
     }
     
@@ -51,8 +57,14 @@ class EnemyManager {
         
         if let spawnPosition = randomSpawnPosition(avoidingRadius: scene.layoutInfo.enemySpawnSafeRadius * 1.6, around: playerPosition, size: charger.size) {
             charger.position = spawnPosition
+            charger.alpha = 0.0
+            
             scene.addChild(charger)
             enemies.append(charger)
+            
+            let fadeInDuration: TimeInterval = 0.3
+            let fadeIn = SKAction.fadeIn(withDuration: fadeInDuration)
+            charger.run(fadeIn)
         }
     }
     
@@ -69,8 +81,14 @@ class EnemyManager {
         
         if let spawnPosition = randomSpawnPosition(avoidingRadius: scene.layoutInfo.enemySpawnSafeRadius * 1.6, around: playerPosition, size: exploder.size){
             exploder.position = spawnPosition
+            exploder.alpha = 0.0
+            
             scene.addChild(exploder)
             enemies.append(exploder)
+            
+            let fadeInDuration: TimeInterval = 0.3
+            let fadeIn = SKAction.fadeIn(withDuration: fadeInDuration)
+            exploder.run(fadeIn)
         }
     }
     
