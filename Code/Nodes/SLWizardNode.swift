@@ -1,5 +1,5 @@
 //
-//  ZPWizardNode.swift
+//  SLWizardNode.swift
 //  Zombocalypse
 //
 //
@@ -9,7 +9,7 @@
 import SpriteKit
 import Foundation
 
-class ZPWizard: SKSpriteNode {
+class SLWizard: SKSpriteNode {
     //Texture settings
     private let textureLeft: SKTexture
     private let textureRight: SKTexture
@@ -38,7 +38,7 @@ class ZPWizard: SKSpriteNode {
             healthBar.setHealth(health)
         }
     }
-    private let healthBar: HealthBarNode
+    private let healthBar: SLHealthBarNode
     private var isChargingBeam: Bool = false
     private var playerHitByBeam: Bool = false
     public var isAlive: Bool = true
@@ -52,16 +52,16 @@ class ZPWizard: SKSpriteNode {
 
     init(health: Double, desiredHeight: CGFloat, spawnLocation: CGPoint, screenScaleFactor: CGFloat) {
         self.health = health
-        self.textureLeft = SKTexture(imageNamed: "sk_wizard_left")
-        self.textureRight = SKTexture(imageNamed: "sk_wizard_right")
-        self.spawnImage = SKSpriteNode(imageNamed: "sk_wizard_spawn")
+        self.textureLeft = SKTexture(imageNamed: "sl_wizard_left")
+        self.textureRight = SKTexture(imageNamed: "sl_wizard_right")
+        self.spawnImage = SKSpriteNode(imageNamed: "sl_wizard_spawn")
         self.spawnImage.size = CGSize(width: spawnImage.size.width, height: spawnImage.size.height)
         self.spawnImage.position = CGPoint(x: 0, y: 0)
         self.spawnImage.zPosition = 11
         
         let barSize = CGSize(width: textureRight.size().width * 0.885, height: textureRight.size().width * 0.133)
         
-        self.healthBar = HealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
+        self.healthBar = SLHealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
         healthBar.position = CGPoint(x: 0, y: textureRight.size().height * 0.6)
         
         self.movementSpeed *= screenScaleFactor
@@ -194,7 +194,7 @@ class ZPWizard: SKSpriteNode {
     private func loadFireballAnimation() {
         let frameCount = 15
         fireballFrames = (1...frameCount).map { frameNumber in
-            SKTexture(imageNamed: "fireball_\(frameNumber)")
+            SKTexture(imageNamed: "sl_fireball_\(frameNumber)")
         }
     }
 
@@ -208,7 +208,7 @@ class ZPWizard: SKSpriteNode {
     }
     
     private func moveSideToSide(deltaTime: TimeInterval) {
-        guard let scene = scene as? ZPGameScene,
+        guard let scene = scene as? SLGameScene,
               let arenaBounds = scene.arenaBounds else { return }
         
         if isFrozen || isBossPaused { return }
@@ -242,7 +242,7 @@ class ZPWizard: SKSpriteNode {
     }
 
     private func spawnRandomMeteors() {
-        guard let scene = scene as? ZPGameScene,
+        guard let scene = scene as? SLGameScene,
               let arenaBounds = scene.arenaBounds else { return }
         for _ in 0..<3 {
             let randomX = CGFloat.random(in: arenaBounds.minX...arenaBounds.maxX)
@@ -266,7 +266,7 @@ class ZPWizard: SKSpriteNode {
         let animate = SKAction.animate(with: fireballFrames, timePerFrame: animationDuration / Double(fireballFrames.count))
         
         let checkCollision = SKAction.run { [weak self, weak fireball] in
-            guard let self = self, let fireball = fireball, let scene = scene as? ZPGameScene else { return }
+            guard let self = self, let fireball = fireball, let scene = scene as? SLGameScene else { return }
             if fireball.frame.intersects(scene.player.frame) {
                 scene.bossHitPlayer()
             }
@@ -304,7 +304,7 @@ class ZPWizard: SKSpriteNode {
     }
 
     private func spawnMeteor(at position: CGPoint) {
-        guard let scene = scene as? ZPGameScene else { return }
+        guard let scene = scene as? SLGameScene else { return }
         
         let meteor = SKShapeNode(circleOfRadius: 80) // Larger meteor size
         meteor.position = position
@@ -355,8 +355,8 @@ class ZPWizard: SKSpriteNode {
 
         // After telegraphing, spawn the actual beam
         let spawnBeam = SKAction.run { [weak self] in
-            SLSoundManager.shared.playSoundEffect(.laserFiring)
-            SLSoundManager.shared.setSoundEffectVolume(.laserFiring, volume: 0.2)
+            let shootSoundAction = SKAction.playSoundFileNamed("sl_laser_firing.mp3", waitForCompletion: false)
+            self?.run(shootSoundAction)
             self?.spawnBeam(towards: targetPosition)
         }
 
@@ -370,7 +370,7 @@ class ZPWizard: SKSpriteNode {
     }
 
     private func spawnBeam(towards targetPosition: CGPoint) {
-        guard let scene = scene as? ZPGameScene else { return }
+        guard let scene = scene as? SLGameScene else { return }
         
         if isFrozen || isBossPaused { return }
         
@@ -391,9 +391,9 @@ class ZPWizard: SKSpriteNode {
         //Configure physics body
         beam.physicsBody = SKPhysicsBody(rectangleOf: beam.size)
         beam.physicsBody?.isDynamic = true
-        beam.physicsBody?.categoryBitMask = PhysicsCategory.bossBeam
-        beam.physicsBody?.contactTestBitMask = PhysicsCategory.player
-        beam.physicsBody?.collisionBitMask = PhysicsCategory.none
+        beam.physicsBody?.categoryBitMask = SLPhysicsCategory.bossBeam
+        beam.physicsBody?.contactTestBitMask = SLPhysicsCategory.player
+        beam.physicsBody?.collisionBitMask = SLPhysicsCategory.none
         beam.physicsBody?.affectedByGravity = false
         beam.physicsBody?.allowsRotation = false
         beam.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
@@ -468,7 +468,7 @@ class ZPWizard: SKSpriteNode {
     private func addIceNode() {
         if iceNode != nil { return }
         
-        let ice = SKSpriteNode(imageNamed: "sk_ice")
+        let ice = SKSpriteNode(imageNamed: "sl_ice")
         let iceScale = (self.size.height * 2.3) / ice.size.height
         ice.name = "iceNode"
         ice.setScale(0.0)

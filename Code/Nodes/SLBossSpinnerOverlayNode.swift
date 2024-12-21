@@ -1,5 +1,5 @@
 //
-//  BossSpinnerOverlayNode.swift
+//  SLBossSpinnerOverlayNode.swift
 //  Zombocalypse
 //
 //  Created by Sam Richard on 12/7/24.
@@ -45,10 +45,10 @@ extension String {
 }
 
 // MARK: - BossSpinnerOverlayNode Class
-class BossSpinnerOverlayNode: SKNode {
-    private weak var overlayManager: OverlayManager?
-    private var skillManager: SkillManager
-    private var specialSkills: [SkillType] = []
+class SLBossSpinnerOverlayNode: SKNode {
+    private weak var overlayManager: SLOverlayManager?
+    private var skillManager: SLSkillManager
+    private var specialSkills: [SLSkillType] = []
     
     private var background: SKSpriteNode!
     private var skillNodes: [SKSpriteNode] = []
@@ -56,7 +56,7 @@ class BossSpinnerOverlayNode: SKNode {
     private var ownedSkillBoxes: [SKSpriteNode] = []
     private var ownedSkillIcons: [SKSpriteNode] = []
     private var currentHighlightedIndex = 0
-    private var chosenSkill: SkillType?
+    private var chosenSkill: SLSkillType?
     
     private var bgWidth: CGFloat = 0
     private var bgHeight: CGFloat = 0
@@ -73,7 +73,7 @@ class BossSpinnerOverlayNode: SKNode {
     // Reference to the shine node for spinning animation
     private var shineNode: SKSpriteNode?
     
-    init(skillManager: SkillManager, overlayManager: OverlayManager, overlaySize: CGSize,
+    init(skillManager: SLSkillManager, overlayManager: SLOverlayManager, overlaySize: CGSize,
          scaleFactor: CGFloat) {
         self.skillManager = skillManager
         self.overlayManager = overlayManager
@@ -102,20 +102,20 @@ class BossSpinnerOverlayNode: SKNode {
         background.alpha = 0 // Initial state for fade-in
         addChild(background)
         
-        // Use sk_lucky_draw sprite as title
-        let titleNode = SKSpriteNode(imageNamed: "sk_lucky_draw")
+        // Use sl_lucky_draw sprite as title
+        let titleNode = SKSpriteNode(imageNamed: "sl_lucky_draw")
         titleNode.setScale(scaleFactor)
         titleNode.zPosition = 101
         titleNode.position = CGPoint(x: 0, y: bgHeight * 0.35 - titleNode.size.height / 2)
         titleNode.alpha = 0 // Initial state for fade-in
-        titleNode.name = "sk_lucky_draw" // Assign a unique name for access
+        titleNode.name = "sl_lucky_draw" // Assign a unique name for access
         addChild(titleNode)
         
         // Display owned skills
         displayOwnedSkills(in: screenSize)
         
         // Add spinner background
-        let spinnerBg = SKSpriteNode(imageNamed: "sk_boss_spinner")
+        let spinnerBg = SKSpriteNode(imageNamed: "sl_boss_spinner")
         spinnerBg.setScale(scaleFactor)
         spinnerBg.zPosition = 101
         spinnerBg.position = CGPoint(x: 0, y: bgHeight * -0.05)
@@ -127,7 +127,7 @@ class BossSpinnerOverlayNode: SKNode {
         arrangeSkillsInCircle(on: spinnerBg)
         
         // Add spin button initially
-        let spinButton = SKSpriteNode(imageNamed: "sk_spin_button")
+        let spinButton = SKSpriteNode(imageNamed: "sl_spin_button")
         spinButton.setScale(scaleFactor)
         spinButton.zPosition = 101
         spinButton.position = CGPoint(x: 0, y: spinnerBg.position.y - (spinnerBg.size.height / 2) - 100)
@@ -161,7 +161,7 @@ class BossSpinnerOverlayNode: SKNode {
         let startX = -totalWidth / 2 + boxWidth / 2
         
         for i in 0..<totalSpecialSkills {
-            let box = SKSpriteNode(imageNamed: "sk_selected_box")
+            let box = SKSpriteNode(imageNamed: "sl_selected_box")
             box.setScale(scaleFactor)
             box.size = CGSize(width: boxWidth, height: boxWidth)
             box.zPosition = 101
@@ -197,7 +197,7 @@ class BossSpinnerOverlayNode: SKNode {
             let x = radius * cos(angle)
             let y = radius * sin(angle)
             
-            let skillBox = SKSpriteNode(imageNamed: "sk_unselected_box")
+            let skillBox = SKSpriteNode(imageNamed: "sl_unselected_box")
             skillBox.setScale(scaleFactor)
             skillBox.zPosition = 102
             skillBox.position = CGPoint(x: x, y: y)
@@ -221,7 +221,7 @@ class BossSpinnerOverlayNode: SKNode {
     private func highlightSkill(at index: Int) {
         for (i, node) in skillNodes.enumerated() {
             if let sprite = node as? SKSpriteNode {
-                sprite.texture = SKTexture(imageNamed: (i == index) ? "sk_selected_box" : "sk_unselected_box")
+                sprite.texture = SKTexture(imageNamed: (i == index) ? "sl_selected_box" : "sl_unselected_box")
             }
         }
         currentHighlightedIndex = index
@@ -246,7 +246,7 @@ class BossSpinnerOverlayNode: SKNode {
         // Fade in all main elements
         let mainFadeIn = SKAction.group([
             SKAction.run { self.background.run(fadeInAction) },
-            SKAction.run { self.childNode(withName: "sk_lucky_draw")?.run(fadeInAction) },
+            SKAction.run { self.childNode(withName: "sl_lucky_draw")?.run(fadeInAction) },
             SKAction.run { self.childNode(withName: "spinnerBg")?.run(fadeInAction) },
             SKAction.run { self.childNode(withName: "spinButton")?.run(fadeInAction) },
             ownedSkillsFadeIn,
@@ -356,7 +356,7 @@ class BossSpinnerOverlayNode: SKNode {
         popupOpaqueBackground.run(fadeInOpaque)
         
         // Popup container to hold all popup elements
-        let popupContainer = SKSpriteNode(imageNamed: "sk_spinner_select_scroll")
+        let popupContainer = SKSpriteNode(imageNamed: "sl_spinner_select_scroll")
         popupContainer.setScale(scaleFactor * 0.5)
         popupContainer.zPosition = 500 // Above the opaque background and all other nodes
         popupContainer.position = CGPoint.zero
@@ -428,7 +428,7 @@ class BossSpinnerOverlayNode: SKNode {
         }
         
         // Shine Node - Adjusted zPosition and parent
-        let shine = SKSpriteNode(imageNamed: "sk_shine")
+        let shine = SKSpriteNode(imageNamed: "sl_shine")
         shine.setScale(scaleFactor)
         shine.zPosition = 499 // Below popupContainer's children
         shine.position = icon.position

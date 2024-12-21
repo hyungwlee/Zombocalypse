@@ -1,11 +1,11 @@
 //
-//  SkillManager.swift
+//  SLSkillManager.swift
 //  Zombocalypse
 //
 //  Created by Sam Richard on 12/5/24.
 //
 
-enum SkillType {
+enum SLSkillType {
     // Base Stat Upgrade Regular Skills
     case attackDamage          // Increases player's damage output
     case attackSpeed           // Increases the rate of attack
@@ -64,33 +64,33 @@ enum SkillType {
     var iconName: String {
         switch self {
         case .attackDamage:
-            return "sk_attack_damage"
+            return "sl_attack_damage"
         case .attackSpeed:
-            return "sk_attack_speed"
+            return "sl_attack_speed"
         case .movementSpeed:
-            return "sk_movement_speed"
+            return "sl_movement_speed"
         case .attackRange:
-            return "sk_attack_range"
+            return "sl_attack_range"
         case .spinningBlades:
-            return "sk_spinning_blades"
+            return "sl_spinning_blades"
         case .protectiveBarrier:
-            return "sk_protective_barrier"
+            return "sl_protective_barrier"
         case .healthUpgrade:
-            return "sk_health_up"
+            return "sl_health_up"
         case .magnet:
-            return "sk_xp_magnet"
+            return "sl_xp_magnet"
         case .freeze:
-            return "sk_freeze_grenade"
+            return "sl_freeze_grenade"
         case .helpingHand:
-            return "sk_helping_hand"
+            return "sl_helping_hand"
         case .reinforcedArrow:
-            return "sk_reinforced_arrow"
+            return "sl_reinforced_arrow"
         case .spectralShield:
-            return "sk_spectral_shield"
+            return "sl_spectral_shield"
         case .mightyKnockback:
-            return "sk_mighty_knockback"
+            return "sl_mighty_knockback"
         case .bonusHealth:
-            return "sk_bonus_health"
+            return "sl_bonus_health"
         }
     }
     
@@ -129,7 +129,7 @@ enum SkillType {
 }
 
 /// This should be all fields adjusted by upgrading regular skills
-struct SkillLevelEffect {
+struct SLSkillLevelEffect {
     var damageIncrement: Double = 0.0
     var attackSpeedIncrement: Double = 0.0
     var movementSpeedIncrement: Double = 0.0
@@ -153,44 +153,44 @@ struct SkillLevelEffect {
     var freezeRadiusIncrement: Double = 0.0
 }
 
-struct SkillDefinition {
-    let type: SkillType
+struct SLSkillDefinition {
+    let type: SLSkillType
     let maxLevel: Int
-    let levelEffects: [SkillLevelEffect]
+    let levelEffects: [SLSkillLevelEffect]
     
     // For special skills, maxLevel = 1 and levelEffects[0] can represent the base effect.
     // If you have no incremental stats, you could store minimal data here and handle logic directly in the skill’s apply method.
 }
 
-class SkillManager {
-    var player: PlayerState
-    var allRegularDefinitions: [SkillDefinition] = []
-    var allSpecialTypes: [SkillType] = [.helpingHand, .reinforcedArrow, .spectralShield, .mightyKnockback]
+class SLSkillManager {
+    var player: SLPlayerState
+    var allRegularDefinitions: [SLSkillDefinition] = []
+    var allSpecialTypes: [SLSkillType] = [.helpingHand, .reinforcedArrow, .spectralShield, .mightyKnockback]
 
-    var ownedRegularSkills: [RegularSkill] = []
-    var ownedSpecialSkills: [SpecialSkill] = []
+    var ownedRegularSkills: [SLRegularSkill] = []
+    var ownedSpecialSkills: [SLSpecialSkill] = []
 
-    init(player: PlayerState) {
+    init(player: SLPlayerState) {
         self.player = player
         setupSkillDefinitions()
     }
 
     /// Called when opening the shop
     /// Returns 3 random regular choices
-    func getRandomRegularChoices() -> [RegularSkill] {
+    func getRandomRegularChoices() -> [SLRegularSkill] {
         // find definition of regular skill in allRegularDefinitions
-        var available = allRegularDefinitions.compactMap { def -> RegularSkill? in
+        var available = allRegularDefinitions.compactMap { def -> SLRegularSkill? in
             // Check if we already own this skill
             if let owned = ownedRegularSkills.first(where: { $0.definition.type == def.type }) {
                 return owned.isMaxed ? nil : owned
             } else {
                 // Not owned yet, create a new instance of the skill at level 0
-                return RegularSkill(definition: def)
+                return SLRegularSkill(definition: def)
             }
         }
         if available.count < 3 {
             for _ in available.count ..< 3 {
-                available.append(RegularSkill(definition: SkillDefinition(type: .bonusHealth, maxLevel: 1, levelEffects: [SkillLevelEffect(healthIncrement: 0.0)])))
+                available.append(SLRegularSkill(definition: SLSkillDefinition(type: .bonusHealth, maxLevel: 1, levelEffects: [SLSkillLevelEffect(healthIncrement: 0.0)])))
             }
         }
         return Array(available.shuffled().prefix(3))
@@ -198,7 +198,7 @@ class SkillManager {
 
     /// Called when tapping on a regular skill in shop
     /// Adds the regular skill at level 1, or upgrades it
-    func acquireOrUpgradeRegularSkill(_ skill: RegularSkill) {
+    func acquireOrUpgradeRegularSkill(_ skill: SLRegularSkill) {
         if let owned = ownedRegularSkills.first(where: { $0.definition.type == skill.definition.type }) {
             // Already owned, upgrade it
             owned.upgrade()
@@ -212,19 +212,19 @@ class SkillManager {
     }
     
     /// Returns a random special skill choice from the available pool
-    func getRandomSpecialSkill() -> SkillType? {
+    func getRandomSpecialSkill() -> SLSkillType? {
         return allSpecialTypes.randomElement()
     }
     
     /// Returns all available special skills in the pool
-    func getAvailableSpecialSkills() -> [SkillType] {
+    func getAvailableSpecialSkills() -> [SLSkillType] {
         return allSpecialTypes
     }
 
     /// Called when tapping on a special skill in shop
     /// Adds the special skill
-    func acquireSpecialSkill(_ type: SkillType) {
-        let special = SpecialSkill(type: type)
+    func acquireSpecialSkill(_ type: SLSkillType) {
+        let special = SLSpecialSkill(type: type)
         special.activate()
         ownedSpecialSkills.append(special)
         reapplyAllSkills()
@@ -232,7 +232,7 @@ class SkillManager {
         // Remove skill from the available pool and replace it with bonusScore or bonusHealth
         if let index = allSpecialTypes.firstIndex(of: type) {
             allSpecialTypes.remove(at: index)
-            allSpecialTypes.append(SkillType.bonusHealth)
+            allSpecialTypes.append(SLSkillType.bonusHealth)
         }
     }
 
@@ -247,20 +247,20 @@ class SkillManager {
         }
     }
     
-    func createRegularSkillInstance(for type: SkillType) -> RegularSkill? {
+    func createRegularSkillInstance(for type: SLSkillType) -> SLRegularSkill? {
         // Check if the skill type is a regular skill
         if let definition = allRegularDefinitions.first(where: { $0.type == type }) {
-            return RegularSkill(definition: definition)
+            return SLRegularSkill(definition: definition)
         }
         
         // If the skill type is not found in either category, return nil
         return nil
     }
     
-    func createSpecialSkillInstance(for type: SkillType) -> SpecialSkill? {
+    func createSpecialSkillInstance(for type: SLSkillType) -> SLSpecialSkill? {
         // Check if the skill type is a special skill
         if allSpecialTypes.contains(type) {
-            return SpecialSkill(type: type)
+            return SLSpecialSkill(type: type)
         }
         
         // If the skill type is not found in either category, return nil
@@ -270,63 +270,63 @@ class SkillManager {
 
 
 // MARK: Extended this just to stay organized
-extension SkillManager {
+extension SLSkillManager {
     
     /// Hard code the definitions/characteristics of every skill in the SkillDefinition format
     private func setupSkillDefinitions() {
         // MARK: Base Stat Upgrade Regular Skills (4 Skills)
         // 1. Attack Damage
         allRegularDefinitions.append(
-            SkillDefinition(
+            SLSkillDefinition(
                 type: .attackDamage,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(damageIncrement: 2),
-                    SkillLevelEffect(damageIncrement: 3.5),
-                    SkillLevelEffect(damageIncrement: 4),
-                    SkillLevelEffect(damageIncrement: 6.5)
+                    SLSkillLevelEffect(damageIncrement: 2),
+                    SLSkillLevelEffect(damageIncrement: 3.5),
+                    SLSkillLevelEffect(damageIncrement: 4),
+                    SLSkillLevelEffect(damageIncrement: 6.5)
                 ]
             )
         )
         
         // 2. Attack Speed
         allRegularDefinitions.append(
-            SkillDefinition(
+            SLSkillDefinition(
                 type: .attackSpeed,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(attackSpeedIncrement: 0.1),
-                    SkillLevelEffect(attackSpeedIncrement: 0.15),
-                    SkillLevelEffect(attackSpeedIncrement: 0.2),
-                    SkillLevelEffect(attackSpeedIncrement: 0.25)
+                    SLSkillLevelEffect(attackSpeedIncrement: 0.1),
+                    SLSkillLevelEffect(attackSpeedIncrement: 0.15),
+                    SLSkillLevelEffect(attackSpeedIncrement: 0.2),
+                    SLSkillLevelEffect(attackSpeedIncrement: 0.25)
                 ]
             )
         )
 
         // 3. Movement Speed
         allRegularDefinitions.append(
-            SkillDefinition(
+            SLSkillDefinition(
                 type: .movementSpeed,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(movementSpeedIncrement: 15),
-                    SkillLevelEffect(movementSpeedIncrement: 20),
-                    SkillLevelEffect(movementSpeedIncrement: 20),
-                    SkillLevelEffect(movementSpeedIncrement: 25)
+                    SLSkillLevelEffect(movementSpeedIncrement: 15),
+                    SLSkillLevelEffect(movementSpeedIncrement: 20),
+                    SLSkillLevelEffect(movementSpeedIncrement: 20),
+                    SLSkillLevelEffect(movementSpeedIncrement: 25)
                 ]
             )
         )
 
         // 4. Attack Range
         allRegularDefinitions.append(
-            SkillDefinition(
+            SLSkillDefinition(
                 type: .attackRange,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(rangeIncrement: 50),
-                    SkillLevelEffect(rangeIncrement: 75),
-                    SkillLevelEffect(rangeIncrement: 100),
-                    SkillLevelEffect(rangeIncrement: 150)
+                    SLSkillLevelEffect(rangeIncrement: 50),
+                    SLSkillLevelEffect(rangeIncrement: 75),
+                    SLSkillLevelEffect(rangeIncrement: 100),
+                    SLSkillLevelEffect(rangeIncrement: 150)
                 ]
             )
         )
@@ -335,14 +335,14 @@ extension SkillManager {
         // 1. Spinning Blades
         /// Each upgrade increases all values
         allRegularDefinitions.append(
-            SkillDefinition(
+            SLSkillDefinition(
                 type: .spinningBlades,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(bladeCountIncrement: 1, bladeDamageIncrement: 1, bladeSpeedIncrement: 0.1),
-                    SkillLevelEffect(bladeCountIncrement: 1, bladeDamageIncrement: 2, bladeSpeedIncrement: 0.15),
-                    SkillLevelEffect(bladeCountIncrement: 2, bladeDamageIncrement: 3, bladeSpeedIncrement: 0.1),
-                    SkillLevelEffect(bladeCountIncrement: 2, bladeDamageIncrement: 4, bladeSpeedIncrement: 0.15)
+                    SLSkillLevelEffect(bladeCountIncrement: 1, bladeDamageIncrement: 1, bladeSpeedIncrement: 0.1),
+                    SLSkillLevelEffect(bladeCountIncrement: 1, bladeDamageIncrement: 2, bladeSpeedIncrement: 0.15),
+                    SLSkillLevelEffect(bladeCountIncrement: 2, bladeDamageIncrement: 3, bladeSpeedIncrement: 0.1),
+                    SLSkillLevelEffect(bladeCountIncrement: 2, bladeDamageIncrement: 4, bladeSpeedIncrement: 0.15)
                 ]
             )
         )
@@ -350,14 +350,14 @@ extension SkillManager {
         // 2. Protective Barrier
         /// Each upgrade increases all values
         allRegularDefinitions.append(
-            SkillDefinition(
+            SLSkillDefinition(
                 type: .protectiveBarrier,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(barrierScaleIncrement: 1.0, barrierDamageFactor: 0.2, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.1),
-                    SkillLevelEffect(barrierScaleIncrement: 1.1, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.2),
-                    SkillLevelEffect(barrierScaleIncrement: 1.2, barrierDamageFactor: 0.8, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.3),
-                    SkillLevelEffect(barrierScaleIncrement: 1.3, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.4)
+                    SLSkillLevelEffect(barrierScaleIncrement: 1.0, barrierDamageFactor: 0.2, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.1),
+                    SLSkillLevelEffect(barrierScaleIncrement: 1.1, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.2),
+                    SLSkillLevelEffect(barrierScaleIncrement: 1.2, barrierDamageFactor: 0.8, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.3),
+                    SLSkillLevelEffect(barrierScaleIncrement: 1.3, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.4)
                 ]
             )
         )
@@ -365,14 +365,14 @@ extension SkillManager {
         // 3. Health Upgrade
         /// Each upgrade adds +0.5 max health. Full restore logic handled by PlayerState method.
         allRegularDefinitions.append(
-            SkillDefinition(
+            SLSkillDefinition(
                 type: .healthUpgrade,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(healthIncrement: 0.5),
-                    SkillLevelEffect(healthIncrement: 1.0),
-                    SkillLevelEffect(healthIncrement: 1.5),
-                    SkillLevelEffect(healthIncrement: 2.5)
+                    SLSkillLevelEffect(healthIncrement: 0.5),
+                    SLSkillLevelEffect(healthIncrement: 1.0),
+                    SLSkillLevelEffect(healthIncrement: 1.5),
+                    SLSkillLevelEffect(healthIncrement: 2.5)
                 ]
             )
         )
@@ -380,14 +380,14 @@ extension SkillManager {
         // 4. Magnet
         /// Each level further increases coin pickup radius
         allRegularDefinitions.append(
-            SkillDefinition(
+            SLSkillDefinition(
                 type: .magnet,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(coinRadiusIncrement: 40),
-                    SkillLevelEffect(coinRadiusIncrement: 50),
-                    SkillLevelEffect(coinRadiusIncrement: 70),
-                    SkillLevelEffect(coinRadiusIncrement: 80)
+                    SLSkillLevelEffect(coinRadiusIncrement: 40),
+                    SLSkillLevelEffect(coinRadiusIncrement: 50),
+                    SLSkillLevelEffect(coinRadiusIncrement: 70),
+                    SLSkillLevelEffect(coinRadiusIncrement: 80)
                 ]
             )
         )
@@ -395,14 +395,14 @@ extension SkillManager {
         // 5. Freeze
         /// Improves grenade cooldown, freeze duration, and radius
         allRegularDefinitions.append(
-            SkillDefinition(
+            SLSkillDefinition(
                 type: .freeze,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(freezeGrenadeCooldownReduction: 0.1, freezeDurationIncrement: 2.5, freezeRadiusIncrement: 25),
-                    SkillLevelEffect(freezeGrenadeCooldownReduction: 0.15, freezeDurationIncrement: 3.5, freezeRadiusIncrement: 30),
-                    SkillLevelEffect(freezeGrenadeCooldownReduction: 0.2, freezeDurationIncrement: 4.0, freezeRadiusIncrement: 40),
-                    SkillLevelEffect(freezeGrenadeCooldownReduction: 0.3, freezeDurationIncrement: 5.0, freezeRadiusIncrement: 50)
+                    SLSkillLevelEffect(freezeGrenadeCooldownReduction: 0.1, freezeDurationIncrement: 2.5, freezeRadiusIncrement: 25),
+                    SLSkillLevelEffect(freezeGrenadeCooldownReduction: 0.15, freezeDurationIncrement: 3.5, freezeRadiusIncrement: 30),
+                    SLSkillLevelEffect(freezeGrenadeCooldownReduction: 0.2, freezeDurationIncrement: 4.0, freezeRadiusIncrement: 40),
+                    SLSkillLevelEffect(freezeGrenadeCooldownReduction: 0.3, freezeDurationIncrement: 5.0, freezeRadiusIncrement: 50)
                 ]
             )
         )

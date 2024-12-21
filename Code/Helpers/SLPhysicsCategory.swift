@@ -1,12 +1,12 @@
 //
-//  PhysicsCategory.swift
+//  SLPhysicsCategory.swift
 //  Zombocalypse
 //
 //  Created by Sam Richard on 12/10/24.
 //
 
 
-struct PhysicsCategory {
+struct SLPhysicsCategory {
     static let player: UInt32                 = 0x1 << 0
     static let enemy: UInt32                  = 0x1 << 1
     static let exploder: UInt32                  = 0x1 << 1

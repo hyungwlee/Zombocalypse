@@ -1,5 +1,5 @@
 //
-//  ZPGameInfo.swift
+//  SLGameInfo.swift
 //  Zombocalypse
 //
 //  
@@ -7,7 +7,7 @@
 
 import Foundation
 
-class ZPGameInfo {
+class SLGameInfo {
     
     var scale: CGFloat = 1.0
     

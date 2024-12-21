@@ -9,7 +9,7 @@ import SwiftUI
 import SpriteKit
 
 struct ContentView: View {
-    let context = ZPGameContext(dependencies: .init(), gameMode: .single)
+    let context = SLGameContext(dependencies: .init(), gameMode: .single)
     
     var body: some View {
         ZStack {

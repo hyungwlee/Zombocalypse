@@ -1,5 +1,5 @@
 //
-//  ZPJoystick.swift
+//  SLJoystick.swift
 //  Zombocalypse
 //
 //
@@ -7,7 +7,7 @@
 
 import SpriteKit
 
-class ZPJoystick: SKNode {
+class SLJoystick: SKNode {
     private let base: SKShapeNode
     private let knob: SKShapeNode
     var positionDelta = CGPoint.zero

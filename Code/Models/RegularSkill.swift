@@ -1,17 +1,18 @@
 //
-//  RegularSkill.swift
+//  SLRegularSkill 2.swift
 //  Zombocalypse
 //
-//  Created by Sam Richard on 12/5/24.
+//  Created by Sam Richard on 12/20/24.
 //
 
-class RegularSkill {
-    let definition: SkillDefinition
+
+class SLRegularSkill {
+    let definition: SLSkillDefinition
     let displayName: String
     private(set) var currentLevel: Int = 0
     
 
-    init(definition: SkillDefinition) {
+    init(definition: SLSkillDefinition) {
         self.definition = definition
         self.displayName = definition.type.displayName
     }
@@ -25,7 +26,7 @@ class RegularSkill {
         currentLevel += 1
     }
 
-    func apply(to player: PlayerState) {
+    func apply(to player: SLPlayerState) {
         guard currentLevel > 0 else { return }
         let effect = definition.levelEffects[currentLevel - 1]
         

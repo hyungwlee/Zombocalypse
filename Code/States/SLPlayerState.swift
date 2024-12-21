@@ -1,5 +1,5 @@
 //
-//  PlayerState.swift
+//  SLPlayerState.swift
 //  Zombocalypse
 //
 //  Created by Sam Richard on 12/5/24.
@@ -8,34 +8,34 @@
 import Foundation
 
 
-/// This allows us to use ZPGameScene as our "delegate" (sort of like a parent)
+/// This allows us to use SLGameScene as our "delegate" (sort of like a parent)
 /// We can call only these 5 methods that we will implement in our delegate
-protocol PlayerStateDelegate: AnyObject {
+protocol SLPlayerStateDelegate: AnyObject {
     // Regular Skills
-    func playerStateDidAddSpinningBlades(_ state: PlayerState)
-    func playerStateDidUpgradeBarrier(_ state: PlayerState)
-    func playerStateDidUpgradeHealth(_ state: PlayerState, restorePercentage: Double) /// example of something condtional to pass to the GameScene
-    func playerStateDidUpgradeMagnet(_ state: PlayerState)
-    func playerStateDidUpgradeFreeze(_ state: PlayerState)
+    func playerStateDidAddSpinningBlades(_ state: SLPlayerState)
+    func playerStateDidUpgradeBarrier(_ state: SLPlayerState)
+    func playerStateDidUpgradeHealth(_ state: SLPlayerState, restorePercentage: Double) /// example of something condtional to pass to the GameScene
+    func playerStateDidUpgradeMagnet(_ state: SLPlayerState)
+    func playerStateDidUpgradeFreeze(_ state: SLPlayerState)
     
     // Special Skills
-    func playerStateDidActivateHelpingHand(_ state: PlayerState)
+    func playerStateDidActivateHelpingHand(_ state: SLPlayerState)
     func playerStateDidDeactivateHelpingHand() /// to disable UI effects
-    func playerStateDidActivateReinforcedArrow(_ state: PlayerState)
-    func playerStateDidActivateSpectralShield(_ state: PlayerState)
+    func playerStateDidActivateReinforcedArrow(_ state: SLPlayerState)
+    func playerStateDidActivateSpectralShield(_ state: SLPlayerState)
     func playerStateDidDeactivateSpectralShield() /// to disable UI effects
-    func playerStateDidActivateMightyKnockback(_ state: PlayerState)
+    func playerStateDidActivateMightyKnockback(_ state: SLPlayerState)
     func playerStateDidDeactivateMightyKnockback()
-    func playerStateDidActivateBonusHealth(_ state: PlayerState, restorePercentage: Double)
+    func playerStateDidActivateBonusHealth(_ state: SLPlayerState, restorePercentage: Double)
 }
 
 
-/// We'll need to make an instance of PlayerState in our ZPGameScene to keep track of these values that are relevant to the player and the Skill Manager
-/// Then, we will set ZPGameScene as the delegate
-///    [put this with the rest of the variables at the top of ZPGameScene] var playerState = PlayerState()
+/// We'll need to make an instance of PlayerState in our SLGameScene to keep track of these values that are relevant to the player and the Skill Manager
+/// Then, we will set SLGameScene as the delegate
+///    [put this with the rest of the variables at the top of SLGameScene] var playerState = PlayerState()
 ///    [(probably put this in didMove()] playerState.delegate = self
-class PlayerState {
-    weak var delegate: PlayerStateDelegate?
+class SLPlayerState {
+    weak var delegate: SLPlayerStateDelegate?
     
     // Default values
     var baseDamage: Double = 100

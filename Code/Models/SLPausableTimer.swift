@@ -1,5 +1,5 @@
 //
-//  PausableTimer.swift
+//  SLPausableTimer.swift
 //  Zombocalypse
 //
 //  
@@ -8,7 +8,7 @@
 import Foundation
 import QuartzCore
 
-class PausableTimer {
+class SLPausableTimer {
     private var timer: Timer?
     private var interval: TimeInterval
     private var repeats: Bool
