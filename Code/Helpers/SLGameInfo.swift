@@ -13,9 +13,9 @@ class SLGameInfo {
     
     var score = 0
     
-    var zombieSpeed: CGFloat = 0.3
+    var zombieSpeed: CGFloat = 0.5
     var zombieHealth: CGFloat = 2.0
-    var wizardHealth: CGFloat = 100.0
+    var wizardHealth: CGFloat = 400.0
     
     var waveGracePeriod: CGFloat = 7.0
     var currentWaveIndex: Int = 0
@@ -34,9 +34,9 @@ class SLGameInfo {
     
     func reset() {
         score = 0
-        zombieSpeed = 0.3 * scale
-        zombieHealth = 5.0
-        wizardHealth = 100.0
+        zombieSpeed = 0.5 * scale
+        zombieHealth = 2.0
+        wizardHealth = 400.0
         waveGracePeriod = 7.0
         currentWaveIndex = 0
         pendingEnemies = 0

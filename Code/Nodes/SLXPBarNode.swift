@@ -37,9 +37,7 @@ class SLXPBarNode: SKNode {
         backgroundNode.setScale(scale)
         self.barWidth = backgroundNode.size.width
         self.barHeight = backgroundNode.size.height
-        print(barWidth, barHeight)
         backgroundNode.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        print(backgroundNode.size)
         //Initialize the fill node with green color
         fillNode = SKShapeNode(rectOf: CGSize(width: 0, height: barHeight), cornerRadius: barHeight / 2)
         fillNode.fillColor = .green

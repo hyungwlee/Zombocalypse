@@ -244,7 +244,7 @@ class SLWizard: SKSpriteNode {
     private func spawnRandomMeteors() {
         guard let scene = scene as? SLGameScene,
               let arenaBounds = scene.arenaBounds else { return }
-        for _ in 0..<3 {
+        for _ in 0..<5 {
             let randomX = CGFloat.random(in: arenaBounds.minX...arenaBounds.maxX)
             let randomY = CGFloat.random(in: arenaBounds.minY...arenaBounds.maxY)
             let targetPosition = CGPoint(x: randomX, y: randomY)
@@ -278,59 +278,59 @@ class SLWizard: SKSpriteNode {
         fireball.run(sequence)
     }
 
-    private func telegraphMeteor(at targetPosition: CGPoint) {
-        let warning = SKShapeNode(circleOfRadius: 80) // Larger warning size
-        warning.position = targetPosition
-        warning.strokeColor = .red
-        warning.lineWidth = 2
-        
-        //Add a label for the warning circle
-        let warningLabel = SKLabelNode(text: "MOVE AWAY!")
-        warningLabel.fontSize = 20
-        warningLabel.fontColor = .black
-        warningLabel.position = CGPoint(x: 0, y: -70)
-        warning.addChild(warningLabel)
-        
-        scene?.addChild(warning)
+//    private func telegraphMeteor(at targetPosition: CGPoint) {
+//        let warning = SKShapeNode(circleOfRadius: 80) // Larger warning size
+//        warning.position = targetPosition
+//        warning.strokeColor = .red
+//        warning.lineWidth = 2
+//        
+//        //Add a label for the warning circle
+//        let warningLabel = SKLabelNode(text: "MOVE AWAY!")
+//        warningLabel.fontSize = 20
+//        warningLabel.fontColor = .black
+//        warningLabel.position = CGPoint(x: 0, y: -70)
+//        warning.addChild(warningLabel)
+//        
+//        scene?.addChild(warning)
+//
+//        // Fade out the warning circle over 2 seconds and then drop the meteor
+//        let fadeOut = SKAction.fadeOut(withDuration: 2.0)
+//        let remove = SKAction.removeFromParent()
+//        let dropMeteor = SKAction.run { [weak self] in
+//            self?.spawnMeteor(at: targetPosition)
+//        }
+//        let sequence = SKAction.sequence([fadeOut, dropMeteor, remove])
+//        warning.run(sequence)
+//    }
 
-        // Fade out the warning circle over 2 seconds and then drop the meteor
-        let fadeOut = SKAction.fadeOut(withDuration: 2.0)
-        let remove = SKAction.removeFromParent()
-        let dropMeteor = SKAction.run { [weak self] in
-            self?.spawnMeteor(at: targetPosition)
-        }
-        let sequence = SKAction.sequence([fadeOut, dropMeteor, remove])
-        warning.run(sequence)
-    }
-
-    private func spawnMeteor(at position: CGPoint) {
-        guard let scene = scene as? SLGameScene else { return }
-        
-        let meteor = SKShapeNode(circleOfRadius: 80) // Larger meteor size
-        meteor.position = position
-        meteor.fillColor = .orange
-        meteor.strokeColor = .red
-        meteor.lineWidth = 3
-        
-        //Add a label for 'BOOM'
-        let bombLabel = SKLabelNode(text: "FIREBALL BOOM!")
-        bombLabel.fontSize = 20
-        bombLabel.fontColor = .black
-        bombLabel.position = CGPoint(x: 0, y: -70)
-        meteor.addChild(bombLabel)
-        
-        scene.addChild(meteor)
-
-        // Deal damage to the player if the meteor lands
-        if meteor.frame.intersects(scene.player.frame) {
-            scene.bossHitPlayer()
-        }
-
-        // Remove the meteor after a short delay
-        let remove = SKAction.removeFromParent()
-        let wait = SKAction.wait(forDuration: 0.5)
-        meteor.run(SKAction.sequence([wait, remove]))
-    }
+//    private func spawnMeteor(at position: CGPoint) {
+//        guard let scene = scene as? SLGameScene else { return }
+//        
+//        let meteor = SKShapeNode(circleOfRadius: 80) // Larger meteor size
+//        meteor.position = position
+//        meteor.fillColor = .orange
+//        meteor.strokeColor = .red
+//        meteor.lineWidth = 3
+//        
+//        //Add a label for 'BOOM'
+//        let bombLabel = SKLabelNode(text: "FIREBALL BOOM!")
+//        bombLabel.fontSize = 20
+//        bombLabel.fontColor = .black
+//        bombLabel.position = CGPoint(x: 0, y: -70)
+//        meteor.addChild(bombLabel)
+//        
+//        scene.addChild(meteor)
+//
+//        // Deal damage to the player if the meteor lands
+//        if meteor.frame.intersects(scene.player.frame) {
+//            scene.bossHitPlayer()
+//        }
+//
+//        // Remove the meteor after a short delay
+//        let remove = SKAction.removeFromParent()
+//        let wait = SKAction.wait(forDuration: 0.5)
+//        meteor.run(SKAction.sequence([wait, remove]))
+//    }
 
     private func performBeamAttack(towards targetPosition: CGPoint) {
         isChargingBeam = true // Stop moving while charging the beam
@@ -341,7 +341,6 @@ class SLWizard: SKSpriteNode {
         path.move(to: position)
         path.addLine(to: extendedBeamEnd(from: position, to: targetPosition))
         warning.path = path
-        print("size", self.size)
         warning.strokeColor = .red
         warning.lineWidth = size.width * 0.0177
         warning.alpha = 0.5
@@ -351,7 +350,7 @@ class SLWizard: SKSpriteNode {
         let fadeIn = SKAction.fadeAlpha(to: 1.0, duration: 0.3)
         let fadeOut = SKAction.fadeAlpha(to: 0.1, duration: 0.3)
         let flash = SKAction.sequence([fadeIn, fadeOut])
-        let repeatFlash = SKAction.repeat(flash, count: 5)
+        let repeatFlash = SKAction.repeat(flash, count: 2)
 
         // After telegraphing, spawn the actual beam
         let spawnBeam = SKAction.run { [weak self] in
