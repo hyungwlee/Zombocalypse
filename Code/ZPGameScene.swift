@@ -609,7 +609,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         if wave.isBoss {
             // Use the boss warning image
             SLSoundManager.shared.playSoundEffect(.bossAlarm)
-            SLSoundManager.shared.setSoundEffectVolume(.bossAlarm, volume: 0.1)
+            SLSoundManager.shared.setSoundEffectVolume(.bossAlarm, volume: 0.2)
+            
             showBannerNode(imageName: "sk_boss_warning", duration: 3.0)
         } else if wave.isHorde {
             // Use the horde incoming image
@@ -1556,8 +1557,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         let fadeOutAndRemove = SKAction.sequence([fadeOut, removeAction])
 
         projectile.run(SKAction.sequence([moveAction, fadeOutAndRemove]))
-//        SLSoundManager.shared.playSoundEffect(.arrowShot)
-//        SLSoundManager.shared.setSoundEffectVolume(.arrowShot, volume: 0.2)
+        
+        let shootSoundAction = SKAction.playSoundFileNamed("sl_arrow.mp3", waitForCompletion: false)
+        run(shootSoundAction)
     }
     
     func shootGrenade(in direction: CGPoint) {
@@ -1594,8 +1596,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         let sequence = SKAction.sequence([moveAction, waitAction, explodeAction, fadeOutAndRemove])
         grenade.run(sequence)
         
-        SLSoundManager.shared.playSoundEffect(.grenadeToss)
-        SLSoundManager.shared.setSoundEffectVolume(.grenadeToss, volume: 0.2)
+        let shootSoundAction = SKAction.playSoundFileNamed("sl_grenade_toss.mp3", waitForCompletion: false)
+        run(shootSoundAction)
             
     }
         
@@ -1635,8 +1637,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
         
     func absorbShieldHit() {
-        SLSoundManager.shared.playSoundEffect(.shieldBreak)
-        SLSoundManager.shared.setSoundEffectVolume(.shieldBreak, volume: 0.2)
+        let shootSoundAction = SKAction.playSoundFileNamed("sl_shield_break.mp3", waitForCompletion: false)
+        run(shootSoundAction)
         
         playerState.shieldHitsRemaining -= 1
         updateShieldAppearance()
@@ -1705,8 +1707,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         
         helpingHandProjectile.run(SKAction.sequence([combinedAction, fadeOutAndRemove]))
         
-        SLSoundManager.shared.playSoundEffect(.helpingHand)
-        SLSoundManager.shared.setSoundEffectVolume(.helpingHand, volume: 0.2)
+        let shootSoundAction = SKAction.playSoundFileNamed("sl_helping_hand.mp3", waitForCompletion: false)
+        run(shootSoundAction)
     }
 
     /// Finds the nearest enemy (zombie or wizard) within a specified radius.
@@ -1899,8 +1901,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     }
     
     func performMightyKnockback() {
-        SLSoundManager.shared.playSoundEffect(.knockback)
-        SLSoundManager.shared.setSoundEffectVolume(.knockback, volume: 0.2)
+        let shootSoundAction = SKAction.playSoundFileNamed("sl_knockback.mp3", waitForCompletion: false)
+        run(shootSoundAction)
+        
         // Radius of the knockback
         let knockbackRadius: CGFloat = layoutInfo.knockbackRadius
         let knockbackStrength: CGFloat = layoutInfo.knockbackStrength
@@ -2441,8 +2444,8 @@ extension ZPGameScene: SKPhysicsContactDelegate {
             
             if currentTime > lastFreezeSound + freezeSoundCoolDown  {
                 lastFreezeSound = currentTime
-                SLSoundManager.shared.playSoundEffect(.freezeSound)
-                SLSoundManager.shared.setSoundEffectVolume(.freezeSound, volume: 0.2)
+                let shootSoundAction = SKAction.playSoundFileNamed("sl_freeze_sound.mp3", waitForCompletion: false)
+                run(shootSoundAction)
             }
             
             if let enemyNode = firstBody.node as? ZPZombie {
@@ -2658,8 +2661,9 @@ extension ZPGameScene: SKPhysicsContactDelegate {
     
     func applyDamageToPlayer(from enemy: ZPZombie) {
         SLHapticManager.shared.triggerImpact(style: .heavy)
-        SLSoundManager.shared.playSoundEffect(.playerDamage)
-        SLSoundManager.shared.setSoundEffectVolume(.playerDamage, volume: 0.1)
+        let shootSoundAction = SKAction.playSoundFileNamed("sl_player_damage.mp3", waitForCompletion: false)
+        run(shootSoundAction)
+
         
         flashPlayer()
         playerLives -= 1

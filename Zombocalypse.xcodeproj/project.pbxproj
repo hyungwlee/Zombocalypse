@@ -35,7 +35,7 @@
 		9E71E76A2D1636E200A8BDD0 /* sl_game_over.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7692D1636E200A8BDD0 /* sl_game_over.mp3 */; };
 		9E71E76C2D1637B100A8BDD0 /* sl_freeze_sound.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E76B2D1637B100A8BDD0 /* sl_freeze_sound.mp3 */; };
 		9E71E76E2D1638C200A8BDD0 /* sl_grenade_toss.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E76D2D1638C200A8BDD0 /* sl_grenade_toss.mp3 */; };
-		9E71E7702D16399500A8BDD0 /* sl_helping_handle.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E76F2D16399500A8BDD0 /* sl_helping_handle.mp3 */; };
+		9E71E7702D16399500A8BDD0 /* sl_helping_hand.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E76F2D16399500A8BDD0 /* sl_helping_hand.mp3 */; };
 		9E71E7722D163B0D00A8BDD0 /* sl_knockback.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7712D163B0D00A8BDD0 /* sl_knockback.mp3 */; };
 		9E71E7742D163BB100A8BDD0 /* sl_shield_break.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7732D163BB100A8BDD0 /* sl_shield_break.mp3 */; };
 		9EA377C02D028B230000D5DB /* RegularSkill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA377BF2D028B230000D5DB /* RegularSkill.swift */; };
@@ -114,7 +114,7 @@
 		9E71E7692D1636E200A8BDD0 /* sl_game_over.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_game_over.mp3; sourceTree = "<group>"; };
 		9E71E76B2D1637B100A8BDD0 /* sl_freeze_sound.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_freeze_sound.mp3; sourceTree = "<group>"; };
 		9E71E76D2D1638C200A8BDD0 /* sl_grenade_toss.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_grenade_toss.mp3; sourceTree = "<group>"; };
-		9E71E76F2D16399500A8BDD0 /* sl_helping_handle.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_helping_handle.mp3; sourceTree = "<group>"; };
+		9E71E76F2D16399500A8BDD0 /* sl_helping_hand.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_helping_hand.mp3; sourceTree = "<group>"; };
 		9E71E7712D163B0D00A8BDD0 /* sl_knockback.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_knockback.mp3; sourceTree = "<group>"; };
 		9E71E7732D163BB100A8BDD0 /* sl_shield_break.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_shield_break.mp3; sourceTree = "<group>"; };
 		9EA377BF2D028B230000D5DB /* RegularSkill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularSkill.swift; sourceTree = "<group>"; };
@@ -243,7 +243,7 @@
 			children = (
 				9E71E7732D163BB100A8BDD0 /* sl_shield_break.mp3 */,
 				9E71E7712D163B0D00A8BDD0 /* sl_knockback.mp3 */,
-				9E71E76F2D16399500A8BDD0 /* sl_helping_handle.mp3 */,
+				9E71E76F2D16399500A8BDD0 /* sl_helping_hand.mp3 */,
 				9E71E76B2D1637B100A8BDD0 /* sl_freeze_sound.mp3 */,
 				9E71E7692D1636E200A8BDD0 /* sl_game_over.mp3 */,
 				9E71E76D2D1638C200A8BDD0 /* sl_grenade_toss.mp3 */,
@@ -511,7 +511,7 @@
 				9E71E76E2D1638C200A8BDD0 /* sl_grenade_toss.mp3 in Resources */,
 				9E381D422D121F5700FA8A84 /* InknutAntiqua-Regular.ttf in Resources */,
 				9E71E7622D16336300A8BDD0 /* sl_horde_horn.mp3 in Resources */,
-				9E71E7702D16399500A8BDD0 /* sl_helping_handle.mp3 in Resources */,
+				9E71E7702D16399500A8BDD0 /* sl_helping_hand.mp3 in Resources */,
 				9E71E7662D1635B400A8BDD0 /* sl_boss_alarm.mp3 in Resources */,
 				9E381D432D121F5700FA8A84 /* InknutAntiqua-Light.ttf in Resources */,
 				9E381D442D121F5700FA8A84 /* InknutAntiqua-Black.ttf in Resources */,

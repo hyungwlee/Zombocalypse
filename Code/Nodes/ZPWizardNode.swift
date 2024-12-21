@@ -355,8 +355,8 @@ class ZPWizard: SKSpriteNode {
 
         // After telegraphing, spawn the actual beam
         let spawnBeam = SKAction.run { [weak self] in
-            SLSoundManager.shared.playSoundEffect(.laserFiring)
-            SLSoundManager.shared.setSoundEffectVolume(.laserFiring, volume: 0.2)
+            let shootSoundAction = SKAction.playSoundFileNamed("sl_laser_firing.mp3", waitForCompletion: false)
+            self.run(shootSoundAction)
             self?.spawnBeam(towards: targetPosition)
         }
 

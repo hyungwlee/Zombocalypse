@@ -29,7 +29,7 @@ enum SLSoundEffect: String {
     case bossAlarm = "sl_boss_alarm"
     case wizardSpawn = "sl_wizard_spawn"
     case laserFiring = "sl_laser_firing"
-    case helpingHand = "sl_helping_handle"
+    case helpingHand = "sl_helping_hand"
     case knockback = "sl_knockback"
     case shieldBreak = "sl_shield_break"
     
