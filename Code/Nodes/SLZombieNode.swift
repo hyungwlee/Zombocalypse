@@ -146,15 +146,20 @@ class SLZombie: SKSpriteNode {
     }
     
     func takeDamage(amount: Double) {
-        health -= amount
-        flashRed() {// Trigger the flash effect when taking damage
-            if self.isDead {
-                if let gameScene = self.scene as? SLGameScene {
-                    gameScene.handleEnemyDefeat(at: self.position)
-                    gameScene.enemyManager.removeEnemy(self)
-                    //                self.die()
+        if self.isDead {
+            if let gameScene = self.scene as? SLGameScene {
+                gameScene.handleEnemyDefeat(at: self.position)
+                gameScene.enemyManager.removeEnemy(self)
+            }
+        } else {
+            health -= amount
+            flashRed() {
+                if self.isDead {
+                    if let gameScene = self.scene as? SLGameScene {
+                        gameScene.handleEnemyDefeat(at: self.position)
+                        gameScene.enemyManager.removeEnemy(self)
+                    }
                 }
-                //            removeFromParent()
             }
         }
     }
