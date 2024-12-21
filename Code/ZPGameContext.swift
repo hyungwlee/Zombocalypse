@@ -15,9 +15,7 @@ class ZPGameContext: GameContext {
     let gameMode: GameModeType
     let gameInfo: ZPGameInfo
     var layoutInfo: ZPLayoutInfo
-    
-    private(set) var stateMachine: GKStateMachine?
-    
+        
     init(dependencies: Dependencies, gameMode: GameModeType) {
         _ = SLHapticManager.shared // preload
         _ = SLSoundManager.shared // preload
@@ -34,27 +32,18 @@ class ZPGameContext: GameContext {
         gameInfo.scaleValues(scale: layoutInfo.screenScaleFactor)
     }
     
-    func configureStates() {
-        guard let gameScene else { return }
-        print("did configure states")
-        stateMachine = GKStateMachine(states: [
-            ZPGameIdleState(scene: gameScene, context: self)
-        ])
-    }
-    
     func configureLayouts() {
         let screenSize = UIScreen.main.bounds.size
-        print(screenSize)
+
         layoutInfo.mapSectionSize = CGSize(width: (screenSize.height * 2.0) * 0.95331, height: screenSize.height * 2.0)
         
         layoutInfo.enemySpawnSafeRadius = screenSize.width * 0.3
         layoutInfo.enemyDespawnDistance = screenSize.height * 0.6
         
-        layoutInfo.joystickBaseRadius = screenSize.height * 0.0523012552
-        print(layoutInfo.joystickBaseRadius)
+        layoutInfo.joystickBaseRadius = screenSize.width * 0.15
         layoutInfo.joystickKnobRadius = layoutInfo.joystickBaseRadius / 2
-        layoutInfo.moveJoyStickPosition = CGPoint(x: screenSize.width * -0.5 + layoutInfo.joystickBaseRadius * 2, y: screenSize.height * -0.5 + layoutInfo.joystickBaseRadius * 2)
-        layoutInfo.shootJoyStickPosition = CGPoint(x: screenSize.width * 0.5 - layoutInfo.joystickBaseRadius * 2, y: screenSize.height * -0.5 + layoutInfo.joystickBaseRadius * 2)
+        layoutInfo.moveJoyStickPosition = CGPoint(x: screenSize.width * -0.5 + layoutInfo.joystickBaseRadius * 1.5, y: screenSize.height * -0.5 + layoutInfo.joystickBaseRadius * 1.5)
+        layoutInfo.shootJoyStickPosition = CGPoint(x: screenSize.width * 0.5 - layoutInfo.joystickBaseRadius * 1.5, y: screenSize.height * -0.5 + layoutInfo.joystickBaseRadius * 1.5)
         
         layoutInfo.playerHeight = screenSize.height * 0.0732217573
         let playerYOffset = screenSize.height * -0.5

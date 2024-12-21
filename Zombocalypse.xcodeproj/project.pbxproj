@@ -59,7 +59,6 @@
 		FC070AA72CCAEBC500946357 /* ZPGameInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AA62CCAEBC500946357 /* ZPGameInfo.swift */; };
 		FC070AA92CCAF0FE00946357 /* ZPGameContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AA82CCAF0FE00946357 /* ZPGameContext.swift */; };
 		FC070AAB2CCAF10E00946357 /* ZPGameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AAA2CCAF10E00946357 /* ZPGameScene.swift */; };
-		FC070AAF2CCAF9CA00946357 /* ZPGameIdleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */; };
 		FC0CD3DF2D0AAFA8009106B5 /* HealthBarNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0CD3DE2D0AAFA8009106B5 /* HealthBarNode.swift */; };
 		FC0CD3E12D0C279B009106B5 /* PausableTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0CD3E02D0C279B009106B5 /* PausableTimer.swift */; };
 		FCC9B8D72CD4592A006077B4 /* ZPJoystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC9B8D62CD4592A006077B4 /* ZPJoystick.swift */; };
@@ -142,7 +141,6 @@
 		FC070AA62CCAEBC500946357 /* ZPGameInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameInfo.swift; sourceTree = "<group>"; };
 		FC070AA82CCAF0FE00946357 /* ZPGameContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameContext.swift; sourceTree = "<group>"; };
 		FC070AAA2CCAF10E00946357 /* ZPGameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameScene.swift; sourceTree = "<group>"; };
-		FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPGameIdleState.swift; sourceTree = "<group>"; };
 		FC0CD3DE2D0AAFA8009106B5 /* HealthBarNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthBarNode.swift; sourceTree = "<group>"; };
 		FC0CD3E02D0C279B009106B5 /* PausableTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PausableTimer.swift; sourceTree = "<group>"; };
 		FCC9B8D62CD4592A006077B4 /* ZPJoystick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZPJoystick.swift; sourceTree = "<group>"; };
@@ -342,7 +340,6 @@
 			isa = PBXGroup;
 			children = (
 				9EA377C32D028B510000D5DB /* PlayerState.swift */,
-				FC070AAE2CCAF9CA00946357 /* ZPGameIdleState.swift */,
 			);
 			path = States;
 			sourceTree = "<group>";
@@ -558,7 +555,6 @@
 				FC070A972CCAD22700946357 /* GameType.swift in Sources */,
 				FC070A982CCAD22700946357 /* GameContext.swift in Sources */,
 				9E7110432D08F2D800F441AC /* PhysicsCategory.swift in Sources */,
-				FC070AAF2CCAF9CA00946357 /* ZPGameIdleState.swift in Sources */,
 				FC070AA72CCAEBC500946357 /* ZPGameInfo.swift in Sources */,
 				9E71E74D2D162C7900A8BDD0 /* SLSoundManager.swift in Sources */,
 				FC070AAB2CCAF10E00946357 /* ZPGameScene.swift in Sources */,
