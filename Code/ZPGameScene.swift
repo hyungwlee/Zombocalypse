@@ -279,7 +279,9 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
             player.colorBlendFactor = 0.0
             
             // MARK: Physics
-            player.physicsBody = SKPhysicsBody(texture: player.texture!, size: player.size)
+            let playerPhysicsSize = CGSize(width: player.size.width, height: player.size.height * 0.7)
+            player.physicsBody = SKPhysicsBody(texture: player.texture!, size: playerPhysicsSize)
+//            player.physicsBody = SKPhysicsBody(texture: player.texture!, size: player.size)
             player.physicsBody?.categoryBitMask = PhysicsCategory.player
             player.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.xp | PhysicsCategory.bossBeam | PhysicsCategory.border | PhysicsCategory.bossArenaBorder
             player.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.bossArenaBorder
@@ -526,14 +528,12 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         startXPSpawnTimer()
         
         let currentWaveObject = waveCycle[gameInfo.currentWaveIndex]
-        if !currentWaveObject.allEnemiesSpawned {
-            let spawnAction = SKAction.run { [weak self] in
-                self?.spawnNextEnemy()
-            }
-            let waitAction = SKAction.wait(forDuration: currentWaveObject.spawnInterval)
-            let sequence = SKAction.sequence([waitAction, spawnAction])
-            run(sequence, withKey: "spawnNextEnemy")
+        let spawnAction = SKAction.run { [weak self] in
+            self?.spawnNextEnemy()
         }
+        let waitAction = SKAction.wait(forDuration: currentWaveObject.spawnInterval)
+        let sequence = SKAction.sequence([waitAction, spawnAction])
+        run(sequence, withKey: "spawnNextEnemy")
         
         for xpNode in xpNodesToRemove {
             self.playerState.currentXP += xpNode.xpAmount
@@ -1556,8 +1556,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         let fadeOutAndRemove = SKAction.sequence([fadeOut, removeAction])
 
         projectile.run(SKAction.sequence([moveAction, fadeOutAndRemove]))
-        SLSoundManager.shared.playSoundEffect(.arrowShot)
-        SLSoundManager.shared.setSoundEffectVolume(.arrowShot, volume: 0.2)
+//        SLSoundManager.shared.playSoundEffect(.arrowShot)
+//        SLSoundManager.shared.setSoundEffectVolume(.arrowShot, volume: 0.2)
     }
     
     func shootGrenade(in direction: CGPoint) {
@@ -1607,8 +1607,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         freezeExplosion.position = grenade.position
         freezeExplosion.zPosition = 4
         
-        freezeExplosion.fillColor = .cyan.withAlphaComponent(0.3)
-        freezeExplosion.strokeColor = .cyan
+        freezeExplosion.fillColor = UIColor(hex: "#18A0FB")?.withAlphaComponent(0.3) ?? .cyan.withAlphaComponent(0.3)
+        freezeExplosion.strokeColor = UIColor(hex: "#18A0FB") ?? .cyan
         freezeExplosion.lineWidth = explosionRadius * 0.04
         freezeExplosion.glowWidth = freezeExplosion.lineWidth * 2.0
         freezeExplosion.alpha = 0.0
@@ -2197,6 +2197,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     func showGameOverScreen() {
         gameOver = true
         guard let cameraNode = self.camera else { return }
+        
+        player.physicsBody?.velocity = .init(dx: 0, dy: 0)
         
         SLHapticManager.shared.triggerExplosionHaptic()
         SLSoundManager.shared.playSoundEffect(.gameOver)
