@@ -162,10 +162,10 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     var xpNodes: [SLXPNode] = []
     var xpNodesToRemove: [SLXPNode] = []
     var xpSpawnTimer: Timer?
-    let xpSpawnInterval: TimeInterval = 1.0
+    let xpSpawnInterval: TimeInterval = 2.0
     
     var hordeSpawnInterval: TimeInterval = 1.0
-    var normalSpawnInterval: TimeInterval = 3.0
+    var normalSpawnInterval: TimeInterval = 2.0
     
     // -----
 
@@ -569,6 +569,16 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     
     func initializeWaves() {
         //Define waves 1 through 7
+//        waveCycle = [
+//            Wave(waveNumber: 1, totalEnemies: 10, regularEnemies: 10, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+//            Wave(waveNumber: 2, totalEnemies: 15, regularEnemies: 15, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+//            Wave(waveNumber: 3, totalEnemies: 25, regularEnemies: 25, chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: false),
+//            Wave(waveNumber: 4, totalEnemies: 20, regularEnemies: 15, chargerEnemies: 5, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+//            Wave(waveNumber: 5, totalEnemies: 20, regularEnemies: 15, chargerEnemies: 0, exploderEnemies: 5, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+//            Wave(waveNumber: 6, totalEnemies: 35, regularEnemies: 20, chargerEnemies: 8, exploderEnemies: 7, isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: true),
+//            Wave(waveNumber: 7, totalEnemies: 1, regularEnemies: 0, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: true, spawnInterval: 0.0, requiresFullClearance: false)
+//        ]
+        
         waveCycle = [
             Wave(waveNumber: 1, totalEnemies: 10, regularEnemies: 10, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
             Wave(waveNumber: 2, totalEnemies: 15, regularEnemies: 15, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
@@ -590,7 +600,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         
         waveCounter += 1
         
-        normalSpawnInterval = max(0.1, normalSpawnInterval - 0.2)
+        normalSpawnInterval = max(0.1, normalSpawnInterval - 0.1)
 //        gameInfo.incrementZombieSpeed(by: 0.25)
         
         let newGracePeriod = max(1.0, gameInfo.waveGracePeriod - 1.0) // Decrease grace period, minimum 1 seconds
@@ -1489,17 +1499,17 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         //Define increased difficulty waves
         //For simplicity, we'll increase the number of enemies and adjust spawn intervals
         //Can further customize here based on game's balance needs later on
-        hordeSpawnInterval = max(0.1, hordeSpawnInterval - 0.5)
+        hordeSpawnInterval = max(0.1, hordeSpawnInterval - 0.2)
 
         
-        let cycleMultiplier = 2
+        let cycleMultiplier = 1.5
         //*******************************************************************************************
         //*******************************************************************************************
         //*******************************************************************************************
         // SEE NOTE ABOVE ^
         var tempWaveCycle: [Wave] = []
         for wave in waveCycle {
-            tempWaveCycle.append(Wave(waveNumber: wave.waveNumber, totalEnemies: wave.totalEnemies * Int(cycleMultiplier), regularEnemies: wave.regularEnemies * Int(cycleMultiplier), chargerEnemies: wave.chargerEnemies, exploderEnemies: wave.exploderEnemies, isHorde: wave.isHorde, isBoss: wave.isBoss, spawnInterval: wave.spawnInterval, requiresFullClearance: wave.requiresFullClearance))
+            tempWaveCycle.append(Wave(waveNumber: wave.waveNumber, totalEnemies: wave.totalEnemies * Int(cycleMultiplier), regularEnemies: wave.regularEnemies * Int(cycleMultiplier), chargerEnemies: wave.chargerEnemies * Int(cycleMultiplier), exploderEnemies: wave.exploderEnemies * Int(cycleMultiplier), isHorde: wave.isHorde, isBoss: wave.isBoss, spawnInterval: wave.spawnInterval, requiresFullClearance: wave.requiresFullClearance))
         }
         waveCycle.removeAll()
         waveCycle = tempWaveCycle
@@ -2076,6 +2086,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
                     self.playerState.currentXP += xpNode.xpAmount
                     self.upgradeShopManager.incrementXPCount()
                     self.updateXPBar()
+                    self.upgradeShopManager.checkForShop()
                     
                     // Remove the XP node from the scene
                     xpNode.removeFromParent()

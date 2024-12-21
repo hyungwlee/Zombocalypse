@@ -32,7 +32,7 @@ class SLRegularSkill {
         
         // Apply increments for base regular skills:
         player.currentDamage += effect.damageIncrement
-        player.currentAttackSpeed -= effect.attackSpeedIncrement
+        player.currentAttackSpeed -= effect.attackSpeedDecrement
         player.currentMovementSpeed += effect.movementSpeedIncrement
         player.currentRange += effect.rangeIncrement
 

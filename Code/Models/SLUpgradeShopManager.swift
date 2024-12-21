@@ -22,15 +22,16 @@ class SLUpgradeShopManager {
     
     func incrementXPCount() {
         XPCount += 1
-        checkForShop()
+//        checkForShop()
     }
     
-    private func checkForShop() {
+    func checkForShop() {
         guard XPCount >= nextShopXPThreshold, let scene = scene else { return }
 
-        let choices = skillManager.getRandomRegularChoices()
+        XPToNextLevel += 3
+        nextShopXPThreshold = XPCount + XPToNextLevel
         
-        // MARK: Uncomment this when scene is implemented
+        let choices = skillManager.getRandomRegularChoices()
         scene.showUpgradeShopOverlay(with: choices)
     }
     
@@ -39,7 +40,6 @@ class SLUpgradeShopManager {
         if skill.definition.type == .healthUpgrade || skill.definition.type == .bonusHealth {
             scene?.restoreHealth(1.0)
         }
-        XPToNextLevel += 1
-        nextShopXPThreshold = XPCount + XPToNextLevel
+
     }
 }

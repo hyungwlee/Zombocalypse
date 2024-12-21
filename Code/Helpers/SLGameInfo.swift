@@ -14,7 +14,7 @@ class SLGameInfo {
     var score = 0
     
     var zombieSpeed: CGFloat = 0.3
-    var zombieHealth: CGFloat = 5.0
+    var zombieHealth: CGFloat = 2.0
     var wizardHealth: CGFloat = 100.0
     
     var waveGracePeriod: CGFloat = 7.0
