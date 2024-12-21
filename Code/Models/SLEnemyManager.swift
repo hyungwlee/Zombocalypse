@@ -278,7 +278,7 @@ class SLEnemyManager {
         return scene.player.position
     }
 
-    private func randomSpawnPosition(avoidingRadius: CGFloat, around point: CGPoint, size: CGSize) -> CGPoint? {
+    func randomSpawnPosition(avoidingRadius: CGFloat, around point: CGPoint, size: CGSize) -> CGPoint? {
         guard let scene = scene else { return nil }
         var position: CGPoint
         let minY = scene.mapManager.bottomBound

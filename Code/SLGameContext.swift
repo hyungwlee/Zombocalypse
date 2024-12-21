@@ -38,7 +38,7 @@ class SLGameContext: GameContext {
         layoutInfo.mapSectionSize = CGSize(width: (screenSize.height * 2.0) * 0.95331, height: screenSize.height * 2.0)
         
         layoutInfo.enemySpawnSafeRadius = screenSize.width * 0.3
-        layoutInfo.enemyDespawnDistance = screenSize.height * 0.6
+        layoutInfo.enemyDespawnDistance = screenSize.height * 0.55
         
         layoutInfo.joystickBaseRadius = screenSize.width * 0.15
         layoutInfo.joystickKnobRadius = layoutInfo.joystickBaseRadius / 2

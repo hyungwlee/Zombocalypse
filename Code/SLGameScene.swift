@@ -162,10 +162,10 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     var xpNodes: [SLXPNode] = []
     var xpNodesToRemove: [SLXPNode] = []
     var xpSpawnTimer: Timer?
-    let xpSpawnInterval: TimeInterval = 2.0
+    let xpSpawnInterval: TimeInterval = 5.0
     
-    var hordeSpawnInterval: TimeInterval = 1.0
-    var normalSpawnInterval: TimeInterval = 2.0
+    var hordeSpawnInterval: TimeInterval = 0.1
+    var normalSpawnInterval: TimeInterval = 1.0
     
     // -----
 
@@ -580,12 +580,12 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
 //        ]
         
         waveCycle = [
-            Wave(waveNumber: 1, totalEnemies: 10, regularEnemies: 10, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
-            Wave(waveNumber: 2, totalEnemies: 15, regularEnemies: 15, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
-            Wave(waveNumber: 3, totalEnemies: 25, regularEnemies: 25, chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: false),
-            Wave(waveNumber: 4, totalEnemies: 20, regularEnemies: 15, chargerEnemies: 5, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
-            Wave(waveNumber: 5, totalEnemies: 20, regularEnemies: 15, chargerEnemies: 0, exploderEnemies: 5, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
-            Wave(waveNumber: 6, totalEnemies: 35, regularEnemies: 20, chargerEnemies: 8, exploderEnemies: 7, isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: true),
+            Wave(waveNumber: 1, totalEnemies: 20, regularEnemies: 20, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+            Wave(waveNumber: 2, totalEnemies: 30, regularEnemies: 30, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+            Wave(waveNumber: 3, totalEnemies: 40, regularEnemies: 40, chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: false),
+            Wave(waveNumber: 4, totalEnemies: 25, regularEnemies: 20, chargerEnemies: 5, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+            Wave(waveNumber: 5, totalEnemies: 25, regularEnemies: 20, chargerEnemies: 0, exploderEnemies: 5, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+            Wave(waveNumber: 6, totalEnemies: 65, regularEnemies: 50, chargerEnemies: 8, exploderEnemies: 7, isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: true),
             Wave(waveNumber: 7, totalEnemies: 1, regularEnemies: 0, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: true, spawnInterval: 0.0, requiresFullClearance: false)
         ]
         
@@ -612,7 +612,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
 //        print("after", gameInfo.pendingEnemies)
 
         gameInfo.updateEnemiesToSpawn(to: wave.totalEnemies)
-        gameInfo.incrementZombieHealth(by: 0.25)
+        gameInfo.incrementZombieHealth(by: 1.0)
 //        zombieHealth += 2
 
         updateProgressLabel()
@@ -931,12 +931,12 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     
     func playerStateDidUpgradeMagnet(_ state: SLPlayerState) {
         // Only need this if we add UI effects after activation
-        print("Magnet Radius increased!")
+//        print("Magnet Radius increased!")
     }
     
     func playerStateDidUpgradeFreeze(_ state: SLPlayerState) {
         // Only need this if we add UI effects after activation
-        print("Freeze Grenade Activated!")
+//        print("Freeze Grenade Activated!")
     }
     
     // SPECIAL SKILLS
@@ -957,7 +957,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     
     func playerStateDidActivateReinforcedArrow(_ state: SLPlayerState) {
         // Only need this if we add UI effects after activation
-        print("Reinforced Arrow activated!")
+//        print("Reinforced Arrow activated!")
     }
     
     func playerStateDidActivateSpectralShield(_ state: SLPlayerState) { /// ACTIVATE
@@ -969,7 +969,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     }
     
     func playerStateDidActivateMightyKnockback(_ state: SLPlayerState) {
-        print("Mightyknockback activated!")
+//        print("Mightyknockback activated!")
         activateMightyKnockback()
     }
     
@@ -1009,44 +1009,18 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         for zombie in enemyManager.enemies {
             let distanceFromPlayer = zombie.position.distance(to: player.position)
             if distanceFromPlayer > layoutInfo.enemyDespawnDistance {
-                var newPosition: CGPoint
-                let maxAttempts = 10
-                var attempts = 0
-                var validPositionFound = false
+                print("ENEMY FAR AWAY: \(zombie) at distance \(distanceFromPlayer)")
                 
-                repeat {
-                    let angle = CGFloat.random(in: 0...2 * .pi)
-                    let radius = CGFloat.random(in: layoutInfo.enemySpawnSafeRadius...layoutInfo.enemyDespawnDistance)
-                    
-                    newPosition = CGPoint(
-                        x: player.position.x + radius * cos(angle),
-                        y: player.position.y + radius * sin(angle)
-                    )
-                    
-                    let newDistance = newPosition.distance(to: player.position)
-                    
-                    // Check if the new position is within the desired range
-                    let isWithinRange = newDistance >= layoutInfo.enemySpawnSafeRadius &&
-                    newDistance <= layoutInfo.enemyDespawnDistance
-                    
-                    // Check for overlap with other enemies
-                    let doesOverlap = enemyManager.enemies.contains { otherZombie in
-                        otherZombie !== zombie && otherZombie.frame.contains(newPosition)
-                    }
-                    
-                    if isWithinRange && !doesOverlap {
-                        validPositionFound = true
-                    }
-                    
-                    attempts += 1
-                } while (!validPositionFound && attempts < maxAttempts)
-
-                if validPositionFound {
+                if let newPosition = enemyManager.randomSpawnPosition(avoidingRadius: layoutInfo.enemySpawnSafeRadius, around: player.position, size: zombie.size) {
+                    // Optionally, add additional checks or animations here
                     zombie.position = newPosition
+                    print("Zombie respawned at \(newPosition)")
                 } else {
-                    print("Failed to respawn zombie after \(maxAttempts) attempts.")
-                    zombie.position = .zero
-                        // may need to remove the zombie instead
+                    // Handle failure to find a valid position
+                    print("Failed to respawn zombie after maximum attempts.")
+                    // Optionally, remove the zombie from the scene or reposition it to a default location
+                    enemyManager.removeEnemy(zombie)
+                    handleEnemyDefeat(at: zombie.position)
                 }
             }
         }
@@ -1400,7 +1374,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     
     
     func startBossStage() {
-        print("startBossStage", gameInfo.currentWaveIndex, "<", waveCycle.count)
+//        print("startBossStage", gameInfo.currentWaveIndex, "<", waveCycle.count)
         guard gameInfo.currentWaveIndex < waveCycle.count else { return }
         let wave = waveCycle[gameInfo.currentWaveIndex]
         guard wave.isBoss else { return }
@@ -1419,7 +1393,6 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
 //            self.spawnWizardBoss()
 //        }
         waveTransitionTimer = SLPausableTimer(interval: 3.0, repeats: false) { [weak self] in
-            print("timer mark")
             self?.waveMessageLabel.isHidden = true
             self?.isTransitioningWave = false
             self?.spawnWizardBoss()
@@ -1625,7 +1598,6 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         
     func explodeGrenade(_ grenade: SKSpriteNode) {
         let explosionRadius = playerState.freezeRadius * layoutInfo.screenScaleFactor
-        print(explosionRadius)
         
         let freezeExplosion = SKShapeNode(circleOfRadius: explosionRadius)
         freezeExplosion.position = grenade.position
@@ -2243,7 +2215,6 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         let gameOverTitle = SKSpriteNode(imageNamed: "sl_game_over")
         let gameOverScale = layoutInfo.gameOverWidth / gameOverTitle.size.width
         gameOverTitle.setScale(gameOverScale)
-        print(gameOverTitle.size)
         gameOverTitle.position = layoutInfo.gameOverPosition
         gameOverTitle.zPosition = 11
         gameOverTitle.alpha = 0.0
