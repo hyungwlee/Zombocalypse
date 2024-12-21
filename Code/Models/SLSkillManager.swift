@@ -131,7 +131,7 @@ enum SLSkillType {
 /// This should be all fields adjusted by upgrading regular skills
 struct SLSkillLevelEffect {
     var damageIncrement: Double = 0.0
-    var attackSpeedIncrement: Double = 0.0
+    var attackSpeedDecrement: Double = 0.0
     var movementSpeedIncrement: Double = 0.0
     var rangeIncrement: Double = 0.0
 
@@ -178,9 +178,8 @@ class SLSkillManager {
     /// Called when opening the shop
     /// Returns 3 random regular choices
     func getRandomRegularChoices() -> [SLRegularSkill] {
-        // find definition of regular skill in allRegularDefinitions
+        // Gather all available regular skills that are not maxed
         var available = allRegularDefinitions.compactMap { def -> SLRegularSkill? in
-            // Check if we already own this skill
             if let owned = ownedRegularSkills.first(where: { $0.definition.type == def.type }) {
                 return owned.isMaxed ? nil : owned
             } else {
@@ -188,12 +187,66 @@ class SLSkillManager {
                 return SLRegularSkill(definition: def)
             }
         }
-        if available.count < 3 {
-            for _ in available.count ..< 3 {
-                available.append(SLRegularSkill(definition: SLSkillDefinition(type: .bonusHealth, maxLevel: 1, levelEffects: [SLSkillLevelEffect(healthIncrement: 0.0)])))
+        
+        // If there are fewer than 3 available skills, we'll need to add bonusHealth later
+        let bonusSkillsNeeded = max(0, 3 - available.count)
+        
+        // Sort available skills by current level ascending
+        available.sort { (skill1, skill2) -> Bool in
+            return skill1.currentLevel < skill2.currentLevel
+        }
+        
+        // Assign weights: lower-level skills have higher weights
+        // For example, weight = (maxLevel - currentLevel + 1)
+        let maxPossibleWeight = available.map { $0.definition.maxLevel }.max() ?? 1
+        let weightedSkills = available.map { skill -> (SLRegularSkill, Int) in
+            let weight = maxPossibleWeight - skill.currentLevel + 1
+            return (skill, weight)
+        }
+        
+        // Perform weighted random selection without replacement
+        var selectedSkills: [SLRegularSkill] = []
+        var remainingSkills = weightedSkills
+        
+        for _ in 0..<min(3, available.count) {
+            let totalWeight = remainingSkills.reduce(0) { $0 + $1.1 }
+            guard totalWeight > 0 else { break }
+            
+            let randomValue = Int.random(in: 1...totalWeight)
+            var cumulative = 0
+            var selectedIndex: Int?
+            
+            for (index, tuple) in remainingSkills.enumerated() {
+                cumulative += tuple.1
+                if randomValue <= cumulative {
+                    selectedIndex = index
+                    break
+                }
+            }
+            
+            if let index = selectedIndex {
+                let selectedSkill = remainingSkills[index].0
+                selectedSkills.append(selectedSkill)
+                remainingSkills.remove(at: index)
             }
         }
-        return Array(available.shuffled().prefix(3))
+        
+        // If we still need more skills, add bonusHealth
+        if selectedSkills.count < 3 {
+            for _ in selectedSkills.count..<3 {
+                selectedSkills.append(
+                    SLRegularSkill(
+                        definition: SLSkillDefinition(
+                            type: .bonusHealth,
+                            maxLevel: 1,
+                            levelEffects: [SLSkillLevelEffect(healthIncrement: 0.0)]
+                        )
+                    )
+                )
+            }
+        }
+        
+        return selectedSkills
     }
 
     /// Called when tapping on a regular skill in shop
@@ -284,7 +337,7 @@ extension SLSkillManager {
                     SLSkillLevelEffect(damageIncrement: 3),
                     SLSkillLevelEffect(damageIncrement: 5),
                     SLSkillLevelEffect(damageIncrement: 7),
-                    SLSkillLevelEffect(damageIncrement: 10)
+                    SLSkillLevelEffect(damageIncrement: 12)
                 ]
             )
         )
@@ -295,10 +348,10 @@ extension SLSkillManager {
                 type: .attackSpeed,
                 maxLevel: 4,
                 levelEffects: [
-                    SLSkillLevelEffect(attackSpeedIncrement: 0.2),
-                    SLSkillLevelEffect(attackSpeedIncrement: 0.25),
-                    SLSkillLevelEffect(attackSpeedIncrement: 0.3),
-                    SLSkillLevelEffect(attackSpeedIncrement: 0.5)
+                    SLSkillLevelEffect(attackSpeedDecrement: 0.2),
+                    SLSkillLevelEffect(attackSpeedDecrement: 0.35),
+                    SLSkillLevelEffect(attackSpeedDecrement: 0.45),
+                    SLSkillLevelEffect(attackSpeedDecrement: 0.65)
                 ]
             )
         )
@@ -310,9 +363,9 @@ extension SLSkillManager {
                 maxLevel: 4,
                 levelEffects: [
                     SLSkillLevelEffect(movementSpeedIncrement: 15),
-                    SLSkillLevelEffect(movementSpeedIncrement: 20),
-                    SLSkillLevelEffect(movementSpeedIncrement: 20),
-                    SLSkillLevelEffect(movementSpeedIncrement: 25)
+                    SLSkillLevelEffect(movementSpeedIncrement: 25),
+                    SLSkillLevelEffect(movementSpeedIncrement: 40),
+                    SLSkillLevelEffect(movementSpeedIncrement: 60)
                 ]
             )
         )
@@ -323,10 +376,10 @@ extension SLSkillManager {
                 type: .attackRange,
                 maxLevel: 4,
                 levelEffects: [
-                    SLSkillLevelEffect(rangeIncrement: 50),
-                    SLSkillLevelEffect(rangeIncrement: 75),
-                    SLSkillLevelEffect(rangeIncrement: 100),
-                    SLSkillLevelEffect(rangeIncrement: 150)
+                    SLSkillLevelEffect(rangeIncrement: 35),
+                    SLSkillLevelEffect(rangeIncrement: 70),
+                    SLSkillLevelEffect(rangeIncrement: 105),
+                    SLSkillLevelEffect(rangeIncrement: 200)
                 ]
             )
         )
@@ -340,9 +393,9 @@ extension SLSkillManager {
                 maxLevel: 4,
                 levelEffects: [
                     SLSkillLevelEffect(bladeCountIncrement: 1, bladeDamageIncrement: 1, bladeSpeedIncrement: 0.1),
-                    SLSkillLevelEffect(bladeCountIncrement: 1, bladeDamageIncrement: 2, bladeSpeedIncrement: 0.15),
-                    SLSkillLevelEffect(bladeCountIncrement: 2, bladeDamageIncrement: 3, bladeSpeedIncrement: 0.1),
-                    SLSkillLevelEffect(bladeCountIncrement: 2, bladeDamageIncrement: 4, bladeSpeedIncrement: 0.15)
+                    SLSkillLevelEffect(bladeCountIncrement: 3, bladeDamageIncrement: 2, bladeSpeedIncrement: 0.15),
+                    SLSkillLevelEffect(bladeCountIncrement: 7, bladeDamageIncrement: 3, bladeSpeedIncrement: 0.15),
+                    SLSkillLevelEffect(bladeCountIncrement: 10, bladeDamageIncrement: 4, bladeSpeedIncrement: 0.2)
                 ]
             )
         )
@@ -354,10 +407,10 @@ extension SLSkillManager {
                 type: .protectiveBarrier,
                 maxLevel: 4,
                 levelEffects: [
-                    SLSkillLevelEffect(barrierScaleIncrement: 1.0, barrierDamageFactor: 0.2, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.1),
-                    SLSkillLevelEffect(barrierScaleIncrement: 1.1, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.2),
-                    SLSkillLevelEffect(barrierScaleIncrement: 1.2, barrierDamageFactor: 0.8, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.3),
-                    SLSkillLevelEffect(barrierScaleIncrement: 1.3, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.4)
+                    SLSkillLevelEffect(barrierScaleIncrement: 1.0, barrierDamageFactor: 0.25, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.2),
+                    SLSkillLevelEffect(barrierScaleIncrement: 1.1, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.35),
+                    SLSkillLevelEffect(barrierScaleIncrement: 1.4, barrierDamageFactor: 0.75, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.45),
+                    SLSkillLevelEffect(barrierScaleIncrement: 1.55, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.65)
                 ]
             )
         )
@@ -369,10 +422,10 @@ extension SLSkillManager {
                 type: .healthUpgrade,
                 maxLevel: 4,
                 levelEffects: [
-                    SLSkillLevelEffect(healthIncrement: 0.5),
                     SLSkillLevelEffect(healthIncrement: 1.0),
-                    SLSkillLevelEffect(healthIncrement: 1.5),
-                    SLSkillLevelEffect(healthIncrement: 2.5)
+                    SLSkillLevelEffect(healthIncrement: 2.0),
+                    SLSkillLevelEffect(healthIncrement: 3.5),
+                    SLSkillLevelEffect(healthIncrement: 6.0)
                 ]
             )
         )
@@ -385,9 +438,9 @@ extension SLSkillManager {
                 maxLevel: 4,
                 levelEffects: [
                     SLSkillLevelEffect(coinRadiusIncrement: 5),
-                    SLSkillLevelEffect(coinRadiusIncrement: 15),
+                    SLSkillLevelEffect(coinRadiusIncrement: 12),
                     SLSkillLevelEffect(coinRadiusIncrement: 20),
-                    SLSkillLevelEffect(coinRadiusIncrement: 30)
+                    SLSkillLevelEffect(coinRadiusIncrement: 40)
                 ]
             )
         )
@@ -399,10 +452,10 @@ extension SLSkillManager {
                 type: .freeze,
                 maxLevel: 4,
                 levelEffects: [
-                    SLSkillLevelEffect(freezeGrenadeCooldownReduction: 0.1, freezeDurationIncrement: 2.5, freezeRadiusIncrement: 25),
-                    SLSkillLevelEffect(freezeGrenadeCooldownReduction: 0.15, freezeDurationIncrement: 3.5, freezeRadiusIncrement: 30),
-                    SLSkillLevelEffect(freezeGrenadeCooldownReduction: 0.2, freezeDurationIncrement: 4.0, freezeRadiusIncrement: 40),
-                    SLSkillLevelEffect(freezeGrenadeCooldownReduction: 0.3, freezeDurationIncrement: 5.0, freezeRadiusIncrement: 50)
+                    SLSkillLevelEffect(freezeGrenadeCooldownReduction: 0.1, freezeDurationIncrement: 0.5, freezeRadiusIncrement: 25),
+                    SLSkillLevelEffect(freezeGrenadeCooldownReduction: 0.15, freezeDurationIncrement: 2.0, freezeRadiusIncrement: 30),
+                    SLSkillLevelEffect(freezeGrenadeCooldownReduction: 0.25, freezeDurationIncrement: 4.0, freezeRadiusIncrement: 50),
+                    SLSkillLevelEffect(freezeGrenadeCooldownReduction: 0.5, freezeDurationIncrement: 6.0, freezeRadiusIncrement: 80)
                 ]
             )
         )
