@@ -84,6 +84,8 @@ class BossSpinnerOverlayNode: SKNode {
         
         specialSkills = skillManager.getAvailableSpecialSkills()
         
+        SLSoundManager.shared.playSoundEffect(.openSpinner)
+        
         setupOverlay()
     }
     
@@ -281,12 +283,16 @@ class BossSpinnerOverlayNode: SKNode {
             // If we're idle, check if we tapped the spin button
             for node in nodesAtPoint {
                 if node.name == "spinButton" {
+                    SLHapticManager.shared.triggerImpact(style: .medium)
+                    SLSoundManager.shared.playSoundEffect(.buttonPress)
                     handleButtonPress()
                     return
                 }
             }
         case .result:
             // After showing chosen skill, tapping anywhere will close
+            SLHapticManager.shared.triggerImpact(style: .medium)
+            SLSoundManager.shared.playSoundEffect(.buttonPress)
             applyChosenSkillAndClose()
         default:
             break
@@ -334,6 +340,8 @@ class BossSpinnerOverlayNode: SKNode {
     // MARK: - Popup Display and Animation
     private func showChosenSkillPopup() {
         guard let chosenSkill = chosenSkill else { return }
+        
+        SLHapticManager.shared.triggerNotification(type: .warning)
         
         // Add an additional opaque black background to further darken the UI
         let popupOpaqueBackground = SKSpriteNode(color: UIColor.black.withAlphaComponent(0.6), size: CGSize(width: bgWidth, height: bgHeight))

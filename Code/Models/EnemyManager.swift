@@ -167,11 +167,20 @@ class EnemyManager {
         let group = SKAction.group([fadeOut, scaleDown])
         
         enemy.run(group) {
-            
             if let index = self.enemies.firstIndex(where: { $0 === enemy }) {
                 self.enemies.remove(at: index)
             }
             enemy.removeFromParent()
+        }
+        
+        let animationTimeout: TimeInterval = 0.2
+        DispatchQueue.main.asyncAfter(deadline: .now() + animationTimeout) {
+            if self.enemies.contains(where: { $0 === enemy }) {
+                if let index = self.enemies.firstIndex(where: { $0 === enemy }) {
+                    self.enemies.remove(at: index)
+                }
+                enemy.removeFromParent()
+            }
         }
         
         //Notify the scene to stop damaging if necessary
@@ -231,6 +240,7 @@ class EnemyManager {
         let minX = -scene.size.width / 2 + size.width / 2
         let maxX = scene.size.width / 2 - size.width / 2
 
+        let despawnRadius = scene.layoutInfo.enemyDespawnDistance
         let maxAttempts = 100
         var attempts = 0
 
@@ -241,10 +251,11 @@ class EnemyManager {
             )
 
             let clearOfEnemies = !enemies.contains(where: { $0.frame.contains(position) })
-            let enoughDistance = position.distance(to: point) >= avoidingRadius
+            let outsideSafeRadius = position.distance(to: point) >= avoidingRadius
+            let outsideDespawnRadius = position.distance(to: point) <= despawnRadius
             let clearOfObstacles = scene.mapManager.positionIsClear(position: position, entitySize: size)
             
-            if enoughDistance && clearOfEnemies && clearOfObstacles {
+            if outsideSafeRadius && outsideDespawnRadius && clearOfEnemies && clearOfObstacles {
                 return position
             }
 

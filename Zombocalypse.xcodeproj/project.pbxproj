@@ -19,6 +19,25 @@
 		9E3B877E2D07B92E00C5110B /* XPBarNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E3B877D2D07B92E00C5110B /* XPBarNode.swift */; };
 		9E7110412D08D67400F441AC /* EnemyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7110402D08D67400F441AC /* EnemyManager.swift */; };
 		9E7110432D08F2D800F441AC /* PhysicsCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7110422D08F2D800F441AC /* PhysicsCategory.swift */; };
+		9E71E7492D162A2000A8BDD0 /* SLHapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E71E7482D162A2000A8BDD0 /* SLHapticManager.swift */; };
+		9E71E74D2D162C7900A8BDD0 /* SLSoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E71E74C2D162C7900A8BDD0 /* SLSoundManager.swift */; };
+		9E71E7522D162D2D00A8BDD0 /* sl_open_shop.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7512D162D2D00A8BDD0 /* sl_open_shop.mp3 */; };
+		9E71E7562D162E9D00A8BDD0 /* sl_open_spinner.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7552D162E9D00A8BDD0 /* sl_open_spinner.mp3 */; };
+		9E71E7582D16306C00A8BDD0 /* sl_arrow.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7572D16306C00A8BDD0 /* sl_arrow.mp3 */; };
+		9E71E75A2D16308200A8BDD0 /* sl_bg_music.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7592D16308200A8BDD0 /* sl_bg_music.mp3 */; };
+		9E71E75C2D1631CA00A8BDD0 /* sl_crossbow_firing.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E75B2D1631CA00A8BDD0 /* sl_crossbow_firing.mp3 */; };
+		9E71E75E2D16324A00A8BDD0 /* sl_player_damage.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E75D2D16324A00A8BDD0 /* sl_player_damage.mp3 */; };
+		9E71E7602D1632CD00A8BDD0 /* sl_wizard_spawn.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E75F2D1632CD00A8BDD0 /* sl_wizard_spawn.mp3 */; };
+		9E71E7622D16336300A8BDD0 /* sl_horde_horn.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7612D16336300A8BDD0 /* sl_horde_horn.mp3 */; };
+		9E71E7642D1633C900A8BDD0 /* sl_button_press.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7632D1633C900A8BDD0 /* sl_button_press.mp3 */; };
+		9E71E7662D1635B400A8BDD0 /* sl_boss_alarm.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7652D1635B400A8BDD0 /* sl_boss_alarm.mp3 */; };
+		9E71E7682D16362F00A8BDD0 /* sl_laser_firing.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7672D16362F00A8BDD0 /* sl_laser_firing.mp3 */; };
+		9E71E76A2D1636E200A8BDD0 /* sl_game_over.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7692D1636E200A8BDD0 /* sl_game_over.mp3 */; };
+		9E71E76C2D1637B100A8BDD0 /* sl_freeze_sound.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E76B2D1637B100A8BDD0 /* sl_freeze_sound.mp3 */; };
+		9E71E76E2D1638C200A8BDD0 /* sl_grenade_toss.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E76D2D1638C200A8BDD0 /* sl_grenade_toss.mp3 */; };
+		9E71E7702D16399500A8BDD0 /* sl_helping_handle.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E76F2D16399500A8BDD0 /* sl_helping_handle.mp3 */; };
+		9E71E7722D163B0D00A8BDD0 /* sl_knockback.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7712D163B0D00A8BDD0 /* sl_knockback.mp3 */; };
+		9E71E7742D163BB100A8BDD0 /* sl_shield_break.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9E71E7732D163BB100A8BDD0 /* sl_shield_break.mp3 */; };
 		9EA377C02D028B230000D5DB /* RegularSkill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA377BF2D028B230000D5DB /* RegularSkill.swift */; };
 		9EA377C22D028B460000D5DB /* SpecialSkill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA377C12D028B460000D5DB /* SpecialSkill.swift */; };
 		9EA377C42D028B510000D5DB /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA377C32D028B510000D5DB /* PlayerState.swift */; };
@@ -80,6 +99,25 @@
 		9E3B877D2D07B92E00C5110B /* XPBarNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPBarNode.swift; sourceTree = "<group>"; };
 		9E7110402D08D67400F441AC /* EnemyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyManager.swift; sourceTree = "<group>"; };
 		9E7110422D08F2D800F441AC /* PhysicsCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsCategory.swift; sourceTree = "<group>"; };
+		9E71E7482D162A2000A8BDD0 /* SLHapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SLHapticManager.swift; sourceTree = "<group>"; };
+		9E71E74C2D162C7900A8BDD0 /* SLSoundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SLSoundManager.swift; sourceTree = "<group>"; };
+		9E71E7512D162D2D00A8BDD0 /* sl_open_shop.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_open_shop.mp3; sourceTree = "<group>"; };
+		9E71E7552D162E9D00A8BDD0 /* sl_open_spinner.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_open_spinner.mp3; sourceTree = "<group>"; };
+		9E71E7572D16306C00A8BDD0 /* sl_arrow.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_arrow.mp3; sourceTree = "<group>"; };
+		9E71E7592D16308200A8BDD0 /* sl_bg_music.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_bg_music.mp3; sourceTree = "<group>"; };
+		9E71E75B2D1631CA00A8BDD0 /* sl_crossbow_firing.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_crossbow_firing.mp3; sourceTree = "<group>"; };
+		9E71E75D2D16324A00A8BDD0 /* sl_player_damage.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_player_damage.mp3; sourceTree = "<group>"; };
+		9E71E75F2D1632CD00A8BDD0 /* sl_wizard_spawn.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_wizard_spawn.mp3; sourceTree = "<group>"; };
+		9E71E7612D16336300A8BDD0 /* sl_horde_horn.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_horde_horn.mp3; sourceTree = "<group>"; };
+		9E71E7632D1633C900A8BDD0 /* sl_button_press.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_button_press.mp3; sourceTree = "<group>"; };
+		9E71E7652D1635B400A8BDD0 /* sl_boss_alarm.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_boss_alarm.mp3; sourceTree = "<group>"; };
+		9E71E7672D16362F00A8BDD0 /* sl_laser_firing.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_laser_firing.mp3; sourceTree = "<group>"; };
+		9E71E7692D1636E200A8BDD0 /* sl_game_over.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_game_over.mp3; sourceTree = "<group>"; };
+		9E71E76B2D1637B100A8BDD0 /* sl_freeze_sound.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_freeze_sound.mp3; sourceTree = "<group>"; };
+		9E71E76D2D1638C200A8BDD0 /* sl_grenade_toss.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_grenade_toss.mp3; sourceTree = "<group>"; };
+		9E71E76F2D16399500A8BDD0 /* sl_helping_handle.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_helping_handle.mp3; sourceTree = "<group>"; };
+		9E71E7712D163B0D00A8BDD0 /* sl_knockback.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_knockback.mp3; sourceTree = "<group>"; };
+		9E71E7732D163BB100A8BDD0 /* sl_shield_break.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = sl_shield_break.mp3; sourceTree = "<group>"; };
 		9EA377BF2D028B230000D5DB /* RegularSkill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegularSkill.swift; sourceTree = "<group>"; };
 		9EA377C12D028B460000D5DB /* SpecialSkill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpecialSkill.swift; sourceTree = "<group>"; };
 		9EA377C32D028B510000D5DB /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
@@ -185,9 +223,51 @@
 			path = Inknut_Antiqua;
 			sourceTree = "<group>";
 		};
+		9E71E74E2D162CC200A8BDD0 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				9E71E7502D162CCC00A8BDD0 /* SFX */,
+				9E71E74F2D162CC700A8BDD0 /* Music */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		9E71E74F2D162CC700A8BDD0 /* Music */ = {
+			isa = PBXGroup;
+			children = (
+				9E71E7592D16308200A8BDD0 /* sl_bg_music.mp3 */,
+			);
+			path = Music;
+			sourceTree = "<group>";
+		};
+		9E71E7502D162CCC00A8BDD0 /* SFX */ = {
+			isa = PBXGroup;
+			children = (
+				9E71E7732D163BB100A8BDD0 /* sl_shield_break.mp3 */,
+				9E71E7712D163B0D00A8BDD0 /* sl_knockback.mp3 */,
+				9E71E76F2D16399500A8BDD0 /* sl_helping_handle.mp3 */,
+				9E71E76B2D1637B100A8BDD0 /* sl_freeze_sound.mp3 */,
+				9E71E7692D1636E200A8BDD0 /* sl_game_over.mp3 */,
+				9E71E76D2D1638C200A8BDD0 /* sl_grenade_toss.mp3 */,
+				9E71E7672D16362F00A8BDD0 /* sl_laser_firing.mp3 */,
+				9E71E7652D1635B400A8BDD0 /* sl_boss_alarm.mp3 */,
+				9E71E7632D1633C900A8BDD0 /* sl_button_press.mp3 */,
+				9E71E7612D16336300A8BDD0 /* sl_horde_horn.mp3 */,
+				9E71E75F2D1632CD00A8BDD0 /* sl_wizard_spawn.mp3 */,
+				9E71E75D2D16324A00A8BDD0 /* sl_player_damage.mp3 */,
+				9E71E75B2D1631CA00A8BDD0 /* sl_crossbow_firing.mp3 */,
+				9E71E7572D16306C00A8BDD0 /* sl_arrow.mp3 */,
+				9E71E7512D162D2D00A8BDD0 /* sl_open_shop.mp3 */,
+				9E71E7552D162E9D00A8BDD0 /* sl_open_spinner.mp3 */,
+			);
+			path = SFX;
+			sourceTree = "<group>";
+		};
 		9EA377BE2D028B1C0000D5DB /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				9E71E74C2D162C7900A8BDD0 /* SLSoundManager.swift */,
+				9E71E7482D162A2000A8BDD0 /* SLHapticManager.swift */,
 				9E381CE22D10F00B00FA8A84 /* MapManager.swift */,
 				9E7110402D08D67400F441AC /* EnemyManager.swift */,
 				9EA378722D0577920000D5DB /* OverlayManager.swift */,
@@ -240,6 +320,7 @@
 		FC070A9E2CCAD36200946357 /* Assets */ = {
 			isa = PBXGroup;
 			children = (
+				9E71E74E2D162CC200A8BDD0 /* Audio */,
 				9E381D3E2D121F5700FA8A84 /* Inknut_Antiqua */,
 				FC070A842CCAB90300946357 /* Assets.xcassets */,
 			);
@@ -415,15 +496,32 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E71E75A2D16308200A8BDD0 /* sl_bg_music.mp3 in Resources */,
 				FC070A882CCAB90300946357 /* Assets.xcassets in Resources */,
+				9E71E7722D163B0D00A8BDD0 /* sl_knockback.mp3 in Resources */,
+				9E71E7602D1632CD00A8BDD0 /* sl_wizard_spawn.mp3 in Resources */,
 				9E381D3F2D121F5700FA8A84 /* InknutAntiqua-SemiBold.ttf in Resources */,
+				9E71E76C2D1637B100A8BDD0 /* sl_freeze_sound.mp3 in Resources */,
+				9E71E7682D16362F00A8BDD0 /* sl_laser_firing.mp3 in Resources */,
+				9E71E7642D1633C900A8BDD0 /* sl_button_press.mp3 in Resources */,
+				9E71E7522D162D2D00A8BDD0 /* sl_open_shop.mp3 in Resources */,
 				9EFEA6BF2D129137004DAC9A /* SKKnockBack.sks in Resources */,
+				9E71E75C2D1631CA00A8BDD0 /* sl_crossbow_firing.mp3 in Resources */,
 				9E381D402D121F5700FA8A84 /* InknutAntiqua-Medium.ttf in Resources */,
+				9E71E7582D16306C00A8BDD0 /* sl_arrow.mp3 in Resources */,
 				9E381D412D121F5700FA8A84 /* OFL.txt in Resources */,
+				9E71E7742D163BB100A8BDD0 /* sl_shield_break.mp3 in Resources */,
+				9E71E76E2D1638C200A8BDD0 /* sl_grenade_toss.mp3 in Resources */,
 				9E381D422D121F5700FA8A84 /* InknutAntiqua-Regular.ttf in Resources */,
+				9E71E7622D16336300A8BDD0 /* sl_horde_horn.mp3 in Resources */,
+				9E71E7702D16399500A8BDD0 /* sl_helping_handle.mp3 in Resources */,
+				9E71E7662D1635B400A8BDD0 /* sl_boss_alarm.mp3 in Resources */,
 				9E381D432D121F5700FA8A84 /* InknutAntiqua-Light.ttf in Resources */,
 				9E381D442D121F5700FA8A84 /* InknutAntiqua-Black.ttf in Resources */,
 				9EFEA6BC2D1284A0004DAC9A /* SKExplosion.sks in Resources */,
+				9E71E76A2D1636E200A8BDD0 /* sl_game_over.mp3 in Resources */,
+				9E71E75E2D16324A00A8BDD0 /* sl_player_damage.mp3 in Resources */,
+				9E71E7562D162E9D00A8BDD0 /* sl_open_spinner.mp3 in Resources */,
 				9EFEA6BD2D1284A0004DAC9A /* Assets.xcassets in Resources */,
 				9E381D452D121F5700FA8A84 /* InknutAntiqua-ExtraBold.ttf in Resources */,
 				9E381D462D121F5700FA8A84 /* InknutAntiqua-Bold.ttf in Resources */,
@@ -453,6 +551,7 @@
 			files = (
 				9EA377C22D028B460000D5DB /* SpecialSkill.swift in Sources */,
 				FC0CD3DF2D0AAFA8009106B5 /* HealthBarNode.swift in Sources */,
+				9E71E7492D162A2000A8BDD0 /* SLHapticManager.swift in Sources */,
 				FCC9B8DB2CE55505006077B4 /* ZPChargerZombieNode.swift in Sources */,
 				9EA378752D05781F0000D5DB /* BossSpinnerOverlayNode.swift in Sources */,
 				9E381CE32D10F00C00FA8A84 /* MapManager.swift in Sources */,
@@ -461,6 +560,7 @@
 				9E7110432D08F2D800F441AC /* PhysicsCategory.swift in Sources */,
 				FC070AAF2CCAF9CA00946357 /* ZPGameIdleState.swift in Sources */,
 				FC070AA72CCAEBC500946357 /* ZPGameInfo.swift in Sources */,
+				9E71E74D2D162C7900A8BDD0 /* SLSoundManager.swift in Sources */,
 				FC070AAB2CCAF10E00946357 /* ZPGameScene.swift in Sources */,
 				FC0CD3E12D0C279B009106B5 /* PausableTimer.swift in Sources */,
 				9EA378732D0577920000D5DB /* OverlayManager.swift in Sources */,
@@ -644,11 +744,12 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Zombocalypse/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Skelesade;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -674,11 +775,12 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Zombocalypse/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Skelesade;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

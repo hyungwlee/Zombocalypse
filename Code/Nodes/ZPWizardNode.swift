@@ -120,6 +120,9 @@ class ZPWizard: SKSpriteNode {
     }
     
     private func startSpawnAnimation() {
+        SLSoundManager.shared.playSoundEffect(.wizardSpawn)
+        SLSoundManager.shared.setSoundEffectVolume(.wizardSpawn, volume: 0.2)
+        
         spawnAnimationStarted = true
         
         // Add spawnImage to the wizard node
@@ -352,6 +355,8 @@ class ZPWizard: SKSpriteNode {
 
         // After telegraphing, spawn the actual beam
         let spawnBeam = SKAction.run { [weak self] in
+            SLSoundManager.shared.playSoundEffect(.laserFiring)
+            SLSoundManager.shared.setSoundEffectVolume(.laserFiring, volume: 0.2)
             self?.spawnBeam(towards: targetPosition)
         }
 
