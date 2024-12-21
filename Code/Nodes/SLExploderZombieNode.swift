@@ -50,27 +50,16 @@ class SLExploderZombieNode: SLZombie {
     
     func update(currentTime: TimeInterval, playerPosition: CGPoint) {
         if isFrozen || isZombiePaused {
-            self.removeAction(forKey: "fillAnimation")
-            self.removeAction(forKey: "vibration")
-            self.removeAction(forKey: "explodeSequence")
-            self.removeAction(forKey: "chargeMovement") // If applicable
-            self.removeAction(forKey: "chargeCooldown") // If applicable
-
+            removeAllActions()
             isPreparingToExplode = false
             blastIndicator?.alpha = 0.3
             blastIndicator?.fillColor = .clear
-
-            // Optionally, add a cooldown before the zombie can act again
-            let freezeCooldownAction = SKAction.wait(forDuration: explosionCooldown)
-            self.run(freezeCooldownAction, withKey: "freezeCooldown")
-
             return
         }
         
         let distanceToPlayer = hypot(playerPosition.x - position.x, playerPosition.y - position.y)
         
         if !isPreparingToExplode && distanceToPlayer < explosionRange && currentTime - lastExplosionAttemptTime > explosionCooldown {
-            print("ex", distanceToPlayer, playerPosition, position)
             prepareToExplode()
             lastExplosionAttemptTime = currentTime
         } else if !isPreparingToExplode {
@@ -129,7 +118,7 @@ class SLExploderZombieNode: SLZombie {
         let explosionCenter = self.position
         //print("Exploding with damage: \(explosionDamage)")
         
-        if let explosionEmitter = SKEmitterNode(fileNamed: "SKExplosion") {
+        if let explosionEmitter = SKEmitterNode(fileNamed: "SLExplosion") {
             explosionEmitter.position = explosionCenter
             explosionEmitter.zPosition = 100 // Ensure it renders above other nodes
             explosionEmitter.targetNode = gameScene // Ensure particles interact with the scene

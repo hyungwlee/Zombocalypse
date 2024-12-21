@@ -578,6 +578,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
             Wave(waveNumber: 6, totalEnemies: 35, regularEnemies: 20, chargerEnemies: 8, exploderEnemies: 7, isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: true),
             Wave(waveNumber: 7, totalEnemies: 1, regularEnemies: 0, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: true, spawnInterval: 0.0, requiresFullClearance: false)
         ]
+        
     }
     
     func startNextWave() {
@@ -1476,7 +1477,6 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     }
     
     func restartCycleWithIncreasedDifficulty() {
-        print("restarting")
         //Remove existing waves
         waveCycle.removeAll()
         
@@ -1918,7 +1918,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         }
 
         // Add visual effect
-        let knockbackEmitter = SKEmitterNode(fileNamed: "SKKnockBack")
+        let knockbackEmitter = SKEmitterNode(fileNamed: "SLKnockBack")
         knockbackEmitter?.position = player.position
         knockbackEmitter?.zPosition = player.zPosition - 1
 

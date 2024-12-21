@@ -14,9 +14,20 @@ class SLEnemyManager {
     var enemies: [SLZombie] = []
     var wizardBoss: SLWizard?  // If you have only one boss at a time
     
+    private let positionThreshold: CGFloat = 50.0 // Define your XY threshold here
+    private var distanceThreshold: CGFloat {
+        guard let scene = scene else { return CGFloat.infinity }
+        return scene.size.width * 0.5
+    }
+    private var enemyStabilityDuration: [SLZombie: TimeInterval] = [:]
+    private var enemyInitialPositions: [SLZombie: CGPoint] = [:]
+
+    
+    
     init(scene: SLGameScene) {
         self.scene = scene
     }
+    
     
     // MARK: - Spawning
 
@@ -152,7 +163,34 @@ class SLEnemyManager {
         } else if wizardBoss?.isAlive == false {
             handleBossDefeat()
         }
-    }
+        
+        // Position-based inactivity check
+        for enemy in enemies.reversed() {
+            let currentPosition = enemy.position
+            let initialPosition = enemyInitialPositions[enemy] ?? currentPosition
+            let distanceMoved = currentPosition.distance(to: initialPosition)
+            
+            if distanceMoved <= positionThreshold {
+                if let startTime = enemyStabilityDuration[enemy] {
+
+                    if currentTime >= startTime + 15.0 {
+                        print("REMOVE FROM INACTIVITY")
+                        scene?.handleEnemyDefeat(at: enemy.position)
+                        removeEnemy(enemy)
+                        enemyStabilityDuration.removeValue(forKey: enemy)
+                        enemyInitialPositions.removeValue(forKey: enemy)
+                    }
+                } else {
+                    // Record the time when the enemy first enters the threshold
+                    enemyStabilityDuration[enemy] = currentTime
+                    enemyInitialPositions[enemy] = initialPosition
+                }
+            } else {
+                // Reset if the enemy moves beyond the threshold
+                enemyStabilityDuration.removeValue(forKey: enemy)
+                enemyInitialPositions[enemy] = currentPosition
+            }
+        }    }
     
     // MARK: - Collision and Removal
 

@@ -146,19 +146,18 @@ class SLZombie: SKSpriteNode {
     }
     
     func takeDamage(amount: Double) {
-        if self.isDead {
+        if isDead {
             if let gameScene = self.scene as? SLGameScene {
                 gameScene.handleEnemyDefeat(at: self.position)
                 gameScene.enemyManager.removeEnemy(self)
             }
-        } else {
-            health -= amount
-            flashRed() {
-                if self.isDead {
-                    if let gameScene = self.scene as? SLGameScene {
-                        gameScene.handleEnemyDefeat(at: self.position)
-                        gameScene.enemyManager.removeEnemy(self)
-                    }
+        }
+        health -= amount
+        flashRed() {
+            if self.isDead {
+                if let gameScene = self.scene as? SLGameScene {
+                    gameScene.handleEnemyDefeat(at: self.position)
+                    gameScene.enemyManager.removeEnemy(self)
                 }
             }
         }
