@@ -578,6 +578,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         waveCounter += 1
         
         normalSpawnInterval = max(0.1, normalSpawnInterval - 0.2)
+        gameInfo.incrementZombieSpeed(by: 0.05)
         
         let newGracePeriod = max(1.0, gameInfo.waveGracePeriod - 1.0) // Decrease grace period, minimum 1 seconds
         gameInfo.updateWaveGracePeriod(to: newGracePeriod)
@@ -585,7 +586,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         let wave = waveCycle[gameInfo.currentWaveIndex]
         gameInfo.incrementPendingEnemies(by: wave.totalEnemies)
         gameInfo.incrementEnemiesToSpawn(by: wave.totalEnemies)
-        gameInfo.incrementZombieHealth(by: 2.0)
+        gameInfo.incrementZombieHealth(by: 1.0)
 //        zombieHealth += 2
 
         updateProgressLabel()
@@ -1443,9 +1444,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         updateProgressLabel()
         
         //Increase difficulty variables
-        gameInfo.incrementZombieSpeed(by: 0.1)
-        gameInfo.incrementZombieHealth(by: 2.0)
-        gameInfo.incrementWizardHealth(by: 2.0)
+        gameInfo.incrementWizardHealth(by: gameInfo.wizardHealth)
         
         gameInfo.updateWaveGracePeriod(to: max(1.0, gameInfo.waveGracePeriod - 2.0)) // Decrease grace period, minimum 5 seconds
         miniWaveInterval = max(1.0, miniWaveInterval - 0.1)

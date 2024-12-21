@@ -281,10 +281,10 @@ extension SkillManager {
                 type: .attackDamage,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(damageIncrement: 1.5),
                     SkillLevelEffect(damageIncrement: 2),
-                    SkillLevelEffect(damageIncrement: 2.5),
-                    SkillLevelEffect(damageIncrement: 3)
+                    SkillLevelEffect(damageIncrement: 3.5),
+                    SkillLevelEffect(damageIncrement: 4),
+                    SkillLevelEffect(damageIncrement: 6.5)
                 ]
             )
         )
@@ -309,10 +309,10 @@ extension SkillManager {
                 type: .movementSpeed,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(movementSpeedIncrement: 0.1),
-                    SkillLevelEffect(movementSpeedIncrement: 0.15),
-                    SkillLevelEffect(movementSpeedIncrement: 0.2),
-                    SkillLevelEffect(movementSpeedIncrement: 0.3)
+                    SkillLevelEffect(movementSpeedIncrement: 15),
+                    SkillLevelEffect(movementSpeedIncrement: 20),
+                    SkillLevelEffect(movementSpeedIncrement: 20),
+                    SkillLevelEffect(movementSpeedIncrement: 25)
                 ]
             )
         )
@@ -339,10 +339,10 @@ extension SkillManager {
                 type: .spinningBlades,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(bladeCountIncrement: 1, bladeDamageIncrement: 2, bladeSpeedIncrement: 0.1),
-                    SkillLevelEffect(bladeCountIncrement: 2, bladeDamageIncrement: 3, bladeSpeedIncrement: 0.15),
-                    SkillLevelEffect(bladeCountIncrement: 3, bladeDamageIncrement: 4, bladeSpeedIncrement: 0.2),
-                    SkillLevelEffect(bladeCountIncrement: 4, bladeDamageIncrement: 5, bladeSpeedIncrement: 0.3)
+                    SkillLevelEffect(bladeCountIncrement: 1, bladeDamageIncrement: 1, bladeSpeedIncrement: 0.1),
+                    SkillLevelEffect(bladeCountIncrement: 1, bladeDamageIncrement: 2, bladeSpeedIncrement: 0.15),
+                    SkillLevelEffect(bladeCountIncrement: 2, bladeDamageIncrement: 3, bladeSpeedIncrement: 0.1),
+                    SkillLevelEffect(bladeCountIncrement: 2, bladeDamageIncrement: 4, bladeSpeedIncrement: 0.15)
                 ]
             )
         )
@@ -354,10 +354,10 @@ extension SkillManager {
                 type: .protectiveBarrier,
                 maxLevel: 4,
                 levelEffects: [
-                    SkillLevelEffect(barrierScaleIncrement: 1.0, barrierDamageFactor: 0.2, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.05),
-                    SkillLevelEffect(barrierScaleIncrement: 1.3, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.1),
-                    SkillLevelEffect(barrierScaleIncrement: 1.6, barrierDamageFactor: 0.8, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.15),
-                    SkillLevelEffect(barrierScaleIncrement: 2.0, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.2)
+                    SkillLevelEffect(barrierScaleIncrement: 1.0, barrierDamageFactor: 0.2, barrierPulseFrequencyIncrement: 0.1, barrierSlowAmountIncrement: 0.1),
+                    SkillLevelEffect(barrierScaleIncrement: 1.1, barrierDamageFactor: 0.5, barrierPulseFrequencyIncrement: 0.15, barrierSlowAmountIncrement: 0.2),
+                    SkillLevelEffect(barrierScaleIncrement: 1.2, barrierDamageFactor: 0.8, barrierPulseFrequencyIncrement: 0.2, barrierSlowAmountIncrement: 0.3),
+                    SkillLevelEffect(barrierScaleIncrement: 1.3, barrierDamageFactor: 1.2, barrierPulseFrequencyIncrement: 0.25, barrierSlowAmountIncrement: 0.4)
                 ]
             )
         )
