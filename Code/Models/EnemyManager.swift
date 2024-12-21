@@ -161,6 +161,9 @@ class EnemyManager {
         enemy.physicsBody?.collisionBitMask = PhysicsCategory.none
         enemy.physicsBody?.contactTestBitMask = PhysicsCategory.none
         
+        enemy.removeAllActions()
+        enemy.removeIceNode()
+        
         let fadeOut = SKAction.fadeOut(withDuration: 0.1)
         let scale = enemy.xScale
         let scaleDown = SKAction.scale(to: scale * 0.5, duration: 0.1)

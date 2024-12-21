@@ -203,7 +203,7 @@ class ZPZombie: SKSpriteNode {
         ice.run(spawnGroup)
     }
     
-    private func removeIceNode() {
+    func removeIceNode() {
         guard let ice = iceNode else { return }
         
         let fadeOut = SKAction.fadeAlpha(to: 0.0, duration: 0.1)
@@ -220,7 +220,6 @@ class ZPZombie: SKSpriteNode {
         guard !isFlashing else { return }
         isFlashing = true
         
-        let flashDuration: TimeInterval = 0.2
         let originalColor = self.color
         let flashColor = SKColor.white
         
@@ -237,6 +236,6 @@ class ZPZombie: SKSpriteNode {
             self?.colorBlendFactor = 0.0
         }
         
-        self.run(SKAction.sequence([repeatFlash, completion]))
+        self.run(SKAction.sequence([repeatFlash, completion]), withKey: "flash")
     }
 }
