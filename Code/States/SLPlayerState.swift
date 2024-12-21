@@ -53,7 +53,7 @@ class SLPlayerState {
     var currentMaxHealth: Double = 0
     var currentXPRadius: Double = 0
     
-    let projectileSpeed: Double = 100.0
+    let projectileSpeed: Double = 250.0
     
     // XP
     var currentXP: Int = 0

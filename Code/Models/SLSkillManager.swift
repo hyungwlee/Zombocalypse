@@ -295,10 +295,10 @@ extension SLSkillManager {
                 type: .attackSpeed,
                 maxLevel: 4,
                 levelEffects: [
-                    SLSkillLevelEffect(attackSpeedIncrement: 0.1),
-                    SLSkillLevelEffect(attackSpeedIncrement: 0.15),
                     SLSkillLevelEffect(attackSpeedIncrement: 0.2),
-                    SLSkillLevelEffect(attackSpeedIncrement: 0.25)
+                    SLSkillLevelEffect(attackSpeedIncrement: 0.25),
+                    SLSkillLevelEffect(attackSpeedIncrement: 0.3),
+                    SLSkillLevelEffect(attackSpeedIncrement: 0.5)
                 ]
             )
         )
