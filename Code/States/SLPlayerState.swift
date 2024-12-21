@@ -38,7 +38,7 @@ class SLPlayerState {
     weak var delegate: SLPlayerStateDelegate?
     
     // Default values
-    var baseDamage: Double = 100
+    var baseDamage: Double = 1
     var baseAttackSpeed: Double = 1.0
     var baseMovementSpeed: Double = 100.0
     var baseRange: Double = 200.0
