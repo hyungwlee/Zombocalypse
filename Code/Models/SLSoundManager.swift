@@ -9,12 +9,6 @@
 import AVFoundation
 
 enum SLSoundEffect: String {
-    case buttonClick = "button_click"
-    case explosion = "explosion"
-    case zombieGrowl = "zombie_growl"
-    case powerUp = "power_up"
-    case waveStart = "wave_start"
-    case waveEnd = "wave_end"
     
     case openShop = "sl_open_shop"
     case openSpinner = "sl_open_spinner"
@@ -23,15 +17,18 @@ enum SLSoundEffect: String {
     
     case arrowShot = "sl_arrow"
     case playerDamage = "sl_player_damage"
+    
     case freezeSound = "sl_freeze_sound"
     case grenadeToss = "sl_grenade_toss"
+    case helpingHand = "sl_helping_hand"
+    case knockback = "sl_knockback"
+    case shieldBreak = "sl_shield_break"
     
     case bossAlarm = "sl_boss_alarm"
     case wizardSpawn = "sl_wizard_spawn"
     case laserFiring = "sl_laser_firing"
-    case helpingHand = "sl_helping_hand"
-    case knockback = "sl_knockback"
-    case shieldBreak = "sl_shield_break"
+    
+
     
     case gameOver = "sl_game_over"
     
