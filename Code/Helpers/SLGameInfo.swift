@@ -15,7 +15,7 @@ class SLGameInfo {
     
     var zombieSpeed: CGFloat = 0.3
     var zombieHealth: CGFloat = 5.0
-    var wizardHealth: CGFloat = 30.0
+    var wizardHealth: CGFloat = 100.0
     
     var waveGracePeriod: CGFloat = 7.0
     var currentWaveIndex: Int = 0
@@ -36,7 +36,7 @@ class SLGameInfo {
         score = 0
         zombieSpeed = 0.3 * scale
         zombieHealth = 5.0
-        wizardHealth = 30.0
+        wizardHealth = 100.0
         waveGracePeriod = 7.0
         currentWaveIndex = 0
         pendingEnemies = 0

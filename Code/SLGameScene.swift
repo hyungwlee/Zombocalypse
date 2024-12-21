@@ -245,14 +245,14 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
 //        let spinningBladesSkill = skillManager.createRegularSkillInstance(for: .spinningBlades)
 //        skillManager.acquireOrUpgradeRegularSkill(spinningBladesSkill!)
         
-        let protectiveBarrierSkill = skillManager.createRegularSkillInstance(for: .protectiveBarrier)
-        skillManager.acquireOrUpgradeRegularSkill(protectiveBarrierSkill!)
+//        let protectiveBarrierSkill = skillManager.createRegularSkillInstance(for: .protectiveBarrier)
+//        skillManager.acquireOrUpgradeRegularSkill(protectiveBarrierSkill!)
         
-        let freezeSkill = skillManager.createRegularSkillInstance(for: .freeze)
-        skillManager.acquireOrUpgradeRegularSkill(freezeSkill!)
+//        let freezeSkill = skillManager.createRegularSkillInstance(for: .freeze)
+//        skillManager.acquireOrUpgradeRegularSkill(freezeSkill!)
 
 //        skillManager.acquireSpecialSkill(.helpingHand)
-        skillManager.acquireSpecialSkill(.spectralShield)
+//        skillManager.acquireSpecialSkill(.spectralShield)
 //        skillManager.acquireSpecialSkill(.reinforcedArrow)
 //        skillManager.acquireSpecialSkill(.mightyKnockback)
     }
@@ -570,12 +570,12 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     func initializeWaves() {
         //Define waves 1 through 7
         waveCycle = [
-            Wave(waveNumber: 1, totalEnemies: 10, regularEnemies: 1, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
-            Wave(waveNumber: 2, totalEnemies: 15, regularEnemies: 15, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.8, requiresFullClearance: false),
-            Wave(waveNumber: 3, totalEnemies: 25, regularEnemies: 25, chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: 1.0, requiresFullClearance: false),
-            Wave(waveNumber: 4, totalEnemies: 20, regularEnemies: 15, chargerEnemies: 5, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: 2.3, requiresFullClearance: false),
-            Wave(waveNumber: 5, totalEnemies: 20, regularEnemies: 15, chargerEnemies: 0, exploderEnemies: 5, isHorde: false, isBoss: false, spawnInterval: 2.1, requiresFullClearance: false),
-            Wave(waveNumber: 6, totalEnemies: 35, regularEnemies: 20, chargerEnemies: 8, exploderEnemies: 7, isHorde: true, isBoss: false, spawnInterval: 1.0, requiresFullClearance: true),
+            Wave(waveNumber: 1, totalEnemies: 10, regularEnemies: 10, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+            Wave(waveNumber: 2, totalEnemies: 15, regularEnemies: 15, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+            Wave(waveNumber: 3, totalEnemies: 25, regularEnemies: 25, chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: false),
+            Wave(waveNumber: 4, totalEnemies: 20, regularEnemies: 15, chargerEnemies: 5, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+            Wave(waveNumber: 5, totalEnemies: 20, regularEnemies: 15, chargerEnemies: 0, exploderEnemies: 5, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false),
+            Wave(waveNumber: 6, totalEnemies: 35, regularEnemies: 20, chargerEnemies: 8, exploderEnemies: 7, isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: true),
             Wave(waveNumber: 7, totalEnemies: 1, regularEnemies: 0, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: true, spawnInterval: 0.0, requiresFullClearance: false)
         ]
         
@@ -591,7 +591,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         waveCounter += 1
         
         normalSpawnInterval = max(0.1, normalSpawnInterval - 0.2)
-        gameInfo.incrementZombieSpeed(by: 0.05)
+        gameInfo.incrementZombieSpeed(by: 0.25)
         
         let newGracePeriod = max(1.0, gameInfo.waveGracePeriod - 1.0) // Decrease grace period, minimum 1 seconds
         gameInfo.updateWaveGracePeriod(to: newGracePeriod)
@@ -617,7 +617,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
             // Use the horde incoming image
             SLSoundManager.shared.playSoundEffect(.horn)
             SLSoundManager.shared.setSoundEffectVolume(.horn, volume: 0.2)
-            print("showBanner!")
+            
             showBannerNode(imageName: "sl_horde_incoming", duration: 3.0)
         } else {
             // Normal wave start message can remain text-based or also be replaced.
@@ -1209,7 +1209,6 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         
 
         let attackSpeed = (playerState.currentAttackSpeed > 0 ? playerState.currentAttackSpeed : 2.0)
-//        print(attackSpeed)
         shootingProgress = CGFloat(timeSinceLastShot / attackSpeed)
         shootingProgress = min(shootingProgress, 1.0) // Clamp to 1.0
         

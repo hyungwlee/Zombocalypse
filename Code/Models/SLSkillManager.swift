@@ -281,10 +281,10 @@ extension SLSkillManager {
                 type: .attackDamage,
                 maxLevel: 4,
                 levelEffects: [
-                    SLSkillLevelEffect(damageIncrement: 2),
-                    SLSkillLevelEffect(damageIncrement: 3.5),
-                    SLSkillLevelEffect(damageIncrement: 4),
-                    SLSkillLevelEffect(damageIncrement: 6.5)
+                    SLSkillLevelEffect(damageIncrement: 3),
+                    SLSkillLevelEffect(damageIncrement: 5),
+                    SLSkillLevelEffect(damageIncrement: 7),
+                    SLSkillLevelEffect(damageIncrement: 10)
                 ]
             )
         )
@@ -384,10 +384,10 @@ extension SLSkillManager {
                 type: .magnet,
                 maxLevel: 4,
                 levelEffects: [
-                    SLSkillLevelEffect(coinRadiusIncrement: 40),
-                    SLSkillLevelEffect(coinRadiusIncrement: 50),
-                    SLSkillLevelEffect(coinRadiusIncrement: 70),
-                    SLSkillLevelEffect(coinRadiusIncrement: 80)
+                    SLSkillLevelEffect(coinRadiusIncrement: 5),
+                    SLSkillLevelEffect(coinRadiusIncrement: 15),
+                    SLSkillLevelEffect(coinRadiusIncrement: 20),
+                    SLSkillLevelEffect(coinRadiusIncrement: 30)
                 ]
             )
         )
