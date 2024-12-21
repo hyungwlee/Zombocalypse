@@ -143,34 +143,28 @@ class XPBarNode: SKNode {
 //        let fraction = CGFloat(currentXP) / CGFloat(xpThreshold)
         let fraction = CGFloat(currentXP - (xpThreshold - xpToNextLevel)) / CGFloat(xpToNextLevel)
         let clampedFraction = min(max(fraction, 0), 1.0)
-        
-        let newWidth = barWidth * clampedFraction
-          
-        let newSize = CGSize(width: newWidth, height: barHeight)
-        let newPath = CGPath(roundedRect: CGRect(origin: .zero, size: newSize), cornerWidth: barHeight / 4, cornerHeight: barHeight / 4, transform: nil)
-//        fillNode.path = newPath
-        
+
         if animated {
             let duration = animationDuration
-            // Animate the path change
+            let startFraction = previousFraction // Start from the current progress
+            previousFraction = clampedFraction  // Update the stored progress fraction
+
             let animation = SKAction.customAction(withDuration: duration) { [weak self] node, elapsedTime in
                 guard let self = self else { return }
                 let progress = elapsedTime / CGFloat(duration)
-                let currentFraction = previousFraction + (clampedFraction - previousFraction) * progress
+                let currentFraction = startFraction + (clampedFraction - startFraction) * progress
                 let currentWidth = self.barWidth * currentFraction
-                let currentPath = CGPath(roundedRect: CGRect(origin: CGPoint.zero, size: CGSize(width: currentWidth, height: self.barHeight)), cornerWidth: self.barHeight / 2, cornerHeight: self.barHeight / 2, transform: nil)
+                let currentPath = CGPath(roundedRect: CGRect(origin: .zero, size: CGSize(width: currentWidth, height: self.barHeight)), cornerWidth: self.barHeight / 2, cornerHeight: self.barHeight / 2, transform: nil)
                 self.fillNode.path = currentPath
             }
             fillNode.run(animation)
         } else {
+            previousFraction = clampedFraction
+            let newWidth = barWidth * clampedFraction
+            let newPath = CGPath(roundedRect: CGRect(origin: .zero, size: CGSize(width: newWidth, height: barHeight)), cornerWidth: barHeight / 2, cornerHeight: barHeight / 2, transform: nil)
             fillNode.path = newPath
         }
-        
-        
-        // Update labels
-        //thresholdLabel.text = "\(xpThreshold)"
-        //xpLabel.text = "\(currentXP)"
-//        levelLabel.text="\(currentLevel)"
+
         let levelLabelFontSize = barWidth * 0.090909090909
         let strokeColor = UIColor.black
         let strokeWidth: Int = -Int(barWidth * 0.0194805195)
