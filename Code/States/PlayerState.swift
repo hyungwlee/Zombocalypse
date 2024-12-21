@@ -38,7 +38,7 @@ class PlayerState {
     weak var delegate: PlayerStateDelegate?
     
     // Default values
-    var baseDamage: Double = 1
+    var baseDamage: Double = 100
     var baseAttackSpeed: Double = 1.0
     var baseMovementSpeed: Double = 100.0
     var baseRange: Double = 200.0

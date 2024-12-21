@@ -50,10 +50,20 @@ class ZPExploderZombieNode: ZPZombie {
     
     func update(currentTime: TimeInterval, playerPosition: CGPoint) {
         if isFrozen || isZombiePaused {
-            removeAllActions()
+            self.removeAction(forKey: "fillAnimation")
+            self.removeAction(forKey: "vibration")
+            self.removeAction(forKey: "explodeSequence")
+            self.removeAction(forKey: "chargeMovement") // If applicable
+            self.removeAction(forKey: "chargeCooldown") // If applicable
+
             isPreparingToExplode = false
             blastIndicator?.alpha = 0.3
             blastIndicator?.fillColor = .clear
+
+            // Optionally, add a cooldown before the zombie can act again
+            let freezeCooldownAction = SKAction.wait(forDuration: explosionCooldown)
+            self.run(freezeCooldownAction, withKey: "freezeCooldown")
+
             return
         }
         
@@ -70,7 +80,7 @@ class ZPExploderZombieNode: ZPZombie {
     
     private func prepareToExplode() {
         isPreparingToExplode = true
-        
+
         // Start the blast radius fill-up animation
         blastIndicator?.fillColor = .orange
         let fillAnimation = SKAction.customAction(withDuration: explosionPreparationTime) { [weak self] node, elapsedTime in
@@ -79,6 +89,10 @@ class ZPExploderZombieNode: ZPZombie {
             blastIndicator.alpha = fillPercent
         }
         
+        // Assign a unique key to the fill animation
+        let fillAnimationKey = "fillAnimation"
+        self.run(fillAnimation, withKey: fillAnimationKey)
+
         // Vibration effect before exploding
         let vibrationAction = SKAction.sequence([
             SKAction.moveBy(x: -5 * scaleFactor, y: 0, duration: 0.05),
@@ -87,15 +101,23 @@ class ZPExploderZombieNode: ZPZombie {
         ])
         let vibrationLoop = SKAction.repeat(vibrationAction, count: Int(explosionPreparationTime / 0.2))
         
+        // Assign a unique key to the vibration loop
+        let vibrationKey = "vibration"
+        self.run(vibrationLoop, withKey: vibrationKey)
+
         // Explosion action after charging up
         let explodeAction = SKAction.run { [weak self] in
             self?.explode()
         }
+        let explodeSequence = SKAction.sequence([
+            SKAction.wait(forDuration: explosionPreparationTime),
+            explodeAction
+        ])
         
-        run(SKAction.group([vibrationLoop, fillAnimation]))
-        run(SKAction.sequence([SKAction.wait(forDuration: explosionPreparationTime), explodeAction]))
+        // Assign a unique key to the explosion sequence
+        let explodeSequenceKey = "explodeSequence"
+        self.run(explodeSequence, withKey: explodeSequenceKey)
     }
-    
     private func explode() {
         guard let gameScene = scene as? ZPGameScene else { return }
         

@@ -61,10 +61,13 @@ class ZPChargerZombieNode: ZPZombie {
     func update(currentTime: TimeInterval, playerPosition: CGPoint) {
         // Freeze grenade interupts and resets
         if isFrozen || isZombiePaused {
-            self.removeAllActions()
+            self.removeAction(forKey: "chargeMovement")
+            self.removeAction(forKey: "chargeCooldown")
+            self.removeAction(forKey: "vibration")
+
             self.isCharging = false
             let cooldown = SKAction.wait(forDuration: self.chargeCooldown)
-            self.run(cooldown)
+            self.run(cooldown, withKey: "chargeCooldown")
         }
         
         updateSwordOrientation(playerPosition: playerPosition)
@@ -104,8 +107,8 @@ class ZPChargerZombieNode: ZPZombie {
                 SKAction.moveBy(x: -5 * scaleFactor, y: 0, duration: 0.05)
             ])
             let vibrationLoop = SKAction.repeat(vibrationAction, count: Int(chargePreparationTime / 0.2))
-            self.run(vibrationLoop)
-
+            self.run(vibrationLoop, withKey: "vibration")
+            
             // Prepare and perform charge
             let prepareToCharge = SKAction.wait(forDuration: chargePreparationTime)
             let chargeAction = SKAction.run { [weak self] in
@@ -145,12 +148,11 @@ class ZPChargerZombieNode: ZPZombie {
         
     private func moveToChargeTarget(targetPoint: CGPoint) {
         let moveToTarget = SKAction.move(to: targetPoint, duration: 0.5)
-        self.run(moveToTarget)
+        self.run(moveToTarget, withKey: "chargeMovement")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.isCharging = false
-            print("False")
             let cooldown = SKAction.wait(forDuration: self.chargeCooldown)
-            self.run(cooldown)
+            self.run(cooldown, withKey: "chargeCooldown")
         }
     }
     

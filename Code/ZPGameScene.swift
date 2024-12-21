@@ -2117,7 +2117,7 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
     func spawnRandomXPNode() {
         guard let player = player else { return }
 
-        let spawnBuffer: CGFloat = layoutInfo.xpSpawnBuffer
+        let spawnBuffer: CGFloat = layoutInfo.xpSpawnBuffer + playerState.currentXPRadius
         let spawnRadius: CGFloat = layoutInfo.xpSpawnRadius
         let xpSize = layoutInfo.xpSpawnSize
         
