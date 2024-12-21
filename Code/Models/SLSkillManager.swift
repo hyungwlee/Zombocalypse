@@ -281,10 +281,10 @@ extension SLSkillManager {
                 type: .attackDamage,
                 maxLevel: 4,
                 levelEffects: [
-                    SLSkillLevelEffect(damageIncrement: 2),
-                    SLSkillLevelEffect(damageIncrement: 3.5),
-                    SLSkillLevelEffect(damageIncrement: 4),
-                    SLSkillLevelEffect(damageIncrement: 6.5)
+                    SLSkillLevelEffect(damageIncrement: 3),
+                    SLSkillLevelEffect(damageIncrement: 5),
+                    SLSkillLevelEffect(damageIncrement: 7),
+                    SLSkillLevelEffect(damageIncrement: 10)
                 ]
             )
         )
