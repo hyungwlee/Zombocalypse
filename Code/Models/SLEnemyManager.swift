@@ -169,10 +169,14 @@ class SLEnemyManager {
             let currentPosition = enemy.position
             let initialPosition = enemyInitialPositions[enemy] ?? currentPosition
             let distanceMoved = currentPosition.distance(to: initialPosition)
+            let distanceFromPlayer = currentPosition.distance(to: playerPosition)
             
-            if distanceMoved <= positionThreshold {
+            // Define the threshold for being far enough from the player
+            let farFromPlayerThreshold: CGFloat = distanceThreshold // You can adjust this value as needed
+            
+            if distanceMoved <= positionThreshold && distanceFromPlayer >= farFromPlayerThreshold {
                 if let startTime = enemyStabilityDuration[enemy] {
-
+                    
                     if currentTime >= startTime + 15.0 {
                         print("REMOVE FROM INACTIVITY")
                         scene?.handleEnemyDefeat(at: enemy.position)
@@ -190,7 +194,8 @@ class SLEnemyManager {
                 enemyStabilityDuration.removeValue(forKey: enemy)
                 enemyInitialPositions[enemy] = currentPosition
             }
-        }    }
+        }
+    }
     
     // MARK: - Collision and Removal
 
