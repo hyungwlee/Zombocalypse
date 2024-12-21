@@ -1,5 +1,5 @@
 //
-//  EnemyManager.swift
+//  SLEnemyManager.swift
 //  Zombocalypse
 //
 //  Created by Sam Richard on 12/10/24.
@@ -8,13 +8,13 @@
 
 import SpriteKit
 
-class EnemyManager {
+class SLEnemyManager {
     // References
-    weak var scene: ZPGameScene?  // The scene in which enemies are placed
-    var enemies: [ZPZombie] = []
-    var wizardBoss: ZPWizard?  // If you have only one boss at a time
+    weak var scene: SLGameScene?  // The scene in which enemies are placed
+    var enemies: [SLZombie] = []
+    var wizardBoss: SLWizard?  // If you have only one boss at a time
     
-    init(scene: ZPGameScene) {
+    init(scene: SLGameScene) {
         self.scene = scene
     }
     
@@ -23,11 +23,11 @@ class EnemyManager {
     func spawnRegularZombie(health: Double, speed: CGFloat) {
         guard let scene else { return }
         
-        let zombie = ZPZombie(health: health, textureName: "sk_skeleton", speed: speed, desiredHeight: scene.layoutInfo.skeletonHeight)
+        let zombie = SLZombie(health: health, textureName: "sl_skeleton", speed: speed, desiredHeight: scene.layoutInfo.skeletonHeight)
         zombie.physicsBody = SKPhysicsBody(texture: zombie.texture!, size: zombie.size)
-        zombie.physicsBody?.categoryBitMask = PhysicsCategory.enemy
-        zombie.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
-        zombie.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.shield
+        zombie.physicsBody?.categoryBitMask = SLPhysicsCategory.enemy
+        zombie.physicsBody?.contactTestBitMask = SLPhysicsCategory.player | SLPhysicsCategory.projectile | SLPhysicsCategory.protectiveBarrier | SLPhysicsCategory.shield | SLPhysicsCategory.blade | SLPhysicsCategory.freeze
+        zombie.physicsBody?.collisionBitMask = SLPhysicsCategory.border | SLPhysicsCategory.shield
         zombie.physicsBody?.affectedByGravity = false
         zombie.physicsBody?.allowsRotation = false
         
@@ -47,11 +47,11 @@ class EnemyManager {
     func spawnChargerZombie(health: Double, speed: CGFloat) {
         guard let scene else { return }
 
-        let charger = ZPChargerZombieNode(health: health, textureName: "sl_charger", movementSpeed: speed, desiredHeight: scene.layoutInfo.chargerHeight, scaleFactor: scene.layoutInfo.screenScaleFactor)
+        let charger = SLChargerZombieNode(health: health, textureName: "sl_charger", movementSpeed: speed, desiredHeight: scene.layoutInfo.chargerHeight, scaleFactor: scene.layoutInfo.screenScaleFactor)
         charger.physicsBody = SKPhysicsBody(texture: charger.texture!, size: charger.size)
-        charger.physicsBody?.categoryBitMask = PhysicsCategory.enemy
-        charger.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
-        charger.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.shield
+        charger.physicsBody?.categoryBitMask = SLPhysicsCategory.enemy
+        charger.physicsBody?.contactTestBitMask = SLPhysicsCategory.player | SLPhysicsCategory.projectile | SLPhysicsCategory.protectiveBarrier | SLPhysicsCategory.shield | SLPhysicsCategory.blade | SLPhysicsCategory.freeze
+        charger.physicsBody?.collisionBitMask = SLPhysicsCategory.border | SLPhysicsCategory.shield
         charger.physicsBody?.affectedByGravity = false
         charger.physicsBody?.allowsRotation = false
         
@@ -71,11 +71,11 @@ class EnemyManager {
     func spawnExploderZombie(health: Double, speed: CGFloat) {
         guard let scene else { return }
 
-        let exploder = ZPExploderZombieNode(health: health, textureName: "sk_exploder", movementSpeed: speed, desiredHeight: scene.layoutInfo.exploderHeight, scaleFactor: scene.layoutInfo.screenScaleFactor)
+        let exploder = SLExploderZombieNode(health: health, textureName: "sl_exploder", movementSpeed: speed, desiredHeight: scene.layoutInfo.exploderHeight, scaleFactor: scene.layoutInfo.screenScaleFactor)
         exploder.physicsBody = SKPhysicsBody(texture: exploder.texture!, size: exploder.size)
-        exploder.physicsBody?.categoryBitMask = PhysicsCategory.exploder
-        exploder.physicsBody?.contactTestBitMask = PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
-        exploder.physicsBody?.collisionBitMask = PhysicsCategory.border | PhysicsCategory.shield
+        exploder.physicsBody?.categoryBitMask = SLPhysicsCategory.exploder
+        exploder.physicsBody?.contactTestBitMask = SLPhysicsCategory.projectile | SLPhysicsCategory.protectiveBarrier | SLPhysicsCategory.shield | SLPhysicsCategory.blade | SLPhysicsCategory.freeze
+        exploder.physicsBody?.collisionBitMask = SLPhysicsCategory.border | SLPhysicsCategory.shield
         exploder.physicsBody?.affectedByGravity = false
         exploder.physicsBody?.allowsRotation = false
         
@@ -97,12 +97,12 @@ class EnemyManager {
 
         wizardBoss?.removeFromParent()
         
-        let wizard = ZPWizard(health: health, desiredHeight: scene.layoutInfo.bossHeight, spawnLocation: spawnLocation, screenScaleFactor: scene.layoutInfo.screenScaleFactor)
+        let wizard = SLWizard(health: health, desiredHeight: scene.layoutInfo.bossHeight, spawnLocation: spawnLocation, screenScaleFactor: scene.layoutInfo.screenScaleFactor)
         
         wizard.physicsBody = SKPhysicsBody(rectangleOf: wizard.size)
-        wizard.physicsBody?.categoryBitMask = PhysicsCategory.boss
-        wizard.physicsBody?.contactTestBitMask = PhysicsCategory.player | PhysicsCategory.projectile | PhysicsCategory.protectiveBarrier | PhysicsCategory.shield | PhysicsCategory.blade | PhysicsCategory.freeze
-        wizard.physicsBody?.collisionBitMask = PhysicsCategory.shield
+        wizard.physicsBody?.categoryBitMask = SLPhysicsCategory.boss
+        wizard.physicsBody?.contactTestBitMask = SLPhysicsCategory.player | SLPhysicsCategory.projectile | SLPhysicsCategory.protectiveBarrier | SLPhysicsCategory.shield | SLPhysicsCategory.blade | SLPhysicsCategory.freeze
+        wizard.physicsBody?.collisionBitMask = SLPhysicsCategory.shield
         wizard.physicsBody?.affectedByGravity = false
         wizard.physicsBody?.allowsRotation = false
         
@@ -131,9 +131,9 @@ class EnemyManager {
         // Update each enemy
         for (index, enemy) in enemies.enumerated().reversed() {
             // Enemy-type specific update logic:
-            if let charger = enemy as? ZPChargerZombieNode {
+            if let charger = enemy as? SLChargerZombieNode {
                 charger.update(currentTime: currentTime, playerPosition: playerPosition)
-            } else if let exploder = enemy as? ZPExploderZombieNode {
+            } else if let exploder = enemy as? SLExploderZombieNode {
                 exploder.update(currentTime: currentTime, playerPosition: playerPosition)
             } else {
                 // Regular zombies use their default movement
@@ -156,10 +156,10 @@ class EnemyManager {
     
     // MARK: - Collision and Removal
 
-    func removeEnemy(_ enemy: ZPZombie) {
-        enemy.physicsBody?.categoryBitMask = PhysicsCategory.none
-        enemy.physicsBody?.collisionBitMask = PhysicsCategory.none
-        enemy.physicsBody?.contactTestBitMask = PhysicsCategory.none
+    func removeEnemy(_ enemy: SLZombie) {
+        enemy.physicsBody?.categoryBitMask = SLPhysicsCategory.none
+        enemy.physicsBody?.collisionBitMask = SLPhysicsCategory.none
+        enemy.physicsBody?.contactTestBitMask = SLPhysicsCategory.none
         
         enemy.removeAllActions()
         enemy.removeIceNode()
@@ -209,7 +209,7 @@ class EnemyManager {
     
     // MARK: - Helpers
     
-    private func preventZombieOverlap(for zombie: ZPZombie, at index: Int) {
+    private func preventZombieOverlap(for zombie: SLZombie, at index: Int) {
         for (otherIndex, otherZombie) in enemies.enumerated() where otherIndex != index {
             if zombie.frame.intersects(otherZombie.frame) {
                 let zombieCenter = zombie.position

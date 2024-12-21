@@ -1,5 +1,5 @@
 //
-//  HealthBarNode.swift
+//  SLHealthBarNode.swift
 //  Zombocalypse
 //
 //
@@ -8,7 +8,7 @@
 
 import SpriteKit
 
-class HealthBarNode: SKNode {
+class SLHealthBarNode: SKNode {
     
     // MARK: - Properties
     

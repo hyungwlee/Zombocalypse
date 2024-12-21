@@ -1,5 +1,5 @@
 //
-//  ZPChargerZombieNode.swift
+//  SLChargerZombieNode.swift
 //  Zombocalypse
 //
 //  
@@ -19,7 +19,7 @@ extension CGVector {
     }
 }
 
-class ZPChargerZombieNode: ZPZombie {
+class SLChargerZombieNode: SLZombie {
     private var isCharging = false
     private var chargeCooldown: TimeInterval = 3.0 // 1-second cooldown after charge
     private var chargePreparationTime: TimeInterval = 2.0 // 2-second delay before charge
@@ -31,7 +31,7 @@ class ZPChargerZombieNode: ZPZombie {
     private var swordNode: SKSpriteNode?
     private var chargeTargetPoint: CGPoint?
     
-    // Initialize with chargerMovementSpeed, pass it to the super class ZPZombie
+    // Initialize with chargerMovementSpeed, pass it to the super class SLZombie
     init(health: Double, textureName: String, movementSpeed chargerMovementSpeed: CGFloat, desiredHeight: CGFloat, scaleFactor: CGFloat) {
         self.scaleFactor = scaleFactor
         super.init(health: health, textureName: textureName, speed: chargerMovementSpeed, desiredHeight: desiredHeight)

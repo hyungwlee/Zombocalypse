@@ -1,5 +1,5 @@
 //
-//  ZPGameContext.swift
+//  SLGameContext.swift
 //  Zombocalypse
 //
 //  
@@ -8,24 +8,24 @@
 import Combine
 import GameplayKit
 
-class ZPGameContext: GameContext {
-    var gameScene: ZPGameScene? {
-        scene as? ZPGameScene
+class SLGameContext: GameContext {
+    var gameScene: SLGameScene? {
+        scene as? SLGameScene
     }
     let gameMode: GameModeType
-    let gameInfo: ZPGameInfo
-    var layoutInfo: ZPLayoutInfo
+    let gameInfo: SLGameInfo
+    var layoutInfo: SLLayoutInfo
         
     init(dependencies: Dependencies, gameMode: GameModeType) {
         _ = SLHapticManager.shared // preload
         _ = SLSoundManager.shared // preload
         
         self.gameMode = gameMode
-        self.gameInfo = ZPGameInfo()
-        self.layoutInfo = ZPLayoutInfo(screenSize: UIScreen.main.bounds.size)
+        self.gameInfo = SLGameInfo()
+        self.layoutInfo = SLLayoutInfo(screenSize: UIScreen.main.bounds.size)
         super.init(dependencies: dependencies)
         
-        self.scene = ZPGameScene(context: self, size: UIScreen.main.bounds.size)
+        self.scene = SLGameScene(context: self, size: UIScreen.main.bounds.size)
         
         configureLayouts()
         

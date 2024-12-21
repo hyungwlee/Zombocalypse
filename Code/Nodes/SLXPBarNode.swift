@@ -1,5 +1,5 @@
 //
-//  XPBarNode.swift
+//  SLXPBarNode.swift
 //  Zombocalypse
 //
 //  Created by Sam Richard on 12/9/24.
@@ -8,7 +8,7 @@
 
 import SpriteKit
 
-class XPBarNode: SKNode {
+class SLXPBarNode: SKNode {
     private let barWidth: CGFloat
     private let barHeight: CGFloat
     private let backgroundNode: SKSpriteNode
@@ -30,7 +30,7 @@ class XPBarNode: SKNode {
     
     // Initialize the bar with a given width and height
     init(width: CGFloat) {
-        self.xpBarTexture = SKTexture(imageNamed: "sk_xp_bar")
+        self.xpBarTexture = SKTexture(imageNamed: "sl_xp_bar")
         backgroundNode = SKSpriteNode(texture: xpBarTexture)
 
         let scale = width / backgroundNode.size.width

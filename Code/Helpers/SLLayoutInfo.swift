@@ -1,5 +1,5 @@
 //
-//  ZPLayoutInfo.swift
+//  SLLayoutInfo.swift
 //  Zombocalypse
 //
 //  
@@ -10,7 +10,7 @@ import SwiftUI
 import SpriteKit
 
 
-struct ZPLayoutInfo {
+struct SLLayoutInfo {
     let screenSize: CGSize
     
     // MARK: Constants

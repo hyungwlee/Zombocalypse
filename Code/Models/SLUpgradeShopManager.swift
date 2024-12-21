@@ -1,5 +1,5 @@
 //
-//  UpgradeShopManager.swift
+//  SLUpgradeShopManager.swift
 //  Zombocalypse
 //
 //  Created by Sam Richard on 12/7/24.
@@ -8,14 +8,14 @@
 
 import Foundation
 
-class UpgradeShopManager {
+class SLUpgradeShopManager {
     var XPCount: Int = 0
     var XPToNextLevel: Int = 1
     var nextShopXPThreshold: Int = 1
-    private weak var scene: ZPGameScene?
-    private var skillManager: SkillManager
+    private weak var scene: SLGameScene?
+    private var skillManager: SLSkillManager
     
-    init(scene: ZPGameScene, skillManager: SkillManager) {
+    init(scene: SLGameScene, skillManager: SLSkillManager) {
         self.scene = scene
         self.skillManager = skillManager
     }
@@ -34,7 +34,7 @@ class UpgradeShopManager {
         scene.showUpgradeShopOverlay(with: choices)
     }
     
-    func playerDidSelectSkill(_ skill: RegularSkill) {
+    func playerDidSelectSkill(_ skill: SLRegularSkill) {
         skillManager.acquireOrUpgradeRegularSkill(skill)
         if skill.definition.type == .healthUpgrade || skill.definition.type == .bonusHealth {
             scene?.restoreHealth(1.0)

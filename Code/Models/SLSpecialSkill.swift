@@ -1,16 +1,16 @@
 //
-//  SpecialSkill.swift
+//  SLSpecialSkill.swift
 //  Zombocalypse
 //
 //  Created by Sam Richard on 12/5/24.
 //
 
 
-class SpecialSkill {
-    let type: SkillType
+class SLSpecialSkill {
+    let type: SLSkillType
     var isActive: Bool = false
 
-    init(type: SkillType) {
+    init(type: SLSkillType) {
         self.type = type
     }
 
@@ -18,7 +18,7 @@ class SpecialSkill {
         isActive = true
     }
 
-    func apply(to player: PlayerState) {
+    func apply(to player: SLPlayerState) {
         guard isActive else { return }
         
         switch type {

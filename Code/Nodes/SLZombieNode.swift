@@ -1,5 +1,5 @@
 //
-//  ZPZombieNode.swift
+//  SLZombieNode.swift
 //  Zombocalypse
 //
 //
@@ -7,7 +7,7 @@
 
 import SpriteKit
 
-class ZPZombie: SKSpriteNode {
+class SLZombie: SKSpriteNode {
     var baseColor: SKColor = .red
     
     var movementSpeed: CGFloat
@@ -24,7 +24,7 @@ class ZPZombie: SKSpriteNode {
     var isZombiePaused: Bool = false
     var isFrozen: Bool = false
     var freezeEndTime: TimeInterval = 0
-    private let healthBar: HealthBarNode
+    private let healthBar: SLHealthBarNode
     private var iceNode: SKSpriteNode?
     
     private var isFlashing: Bool = false
@@ -58,7 +58,7 @@ class ZPZombie: SKSpriteNode {
         self.baseSpeed = speed
         
         let barSize = CGSize(width: skeletonTexture.size().width * 0.9, height: skeletonTexture.size().width * 0.1)
-        self.healthBar = HealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
+        self.healthBar = SLHealthBarNode(size: barSize, maxHealth: health, foregroundColor: .red, backgroundColor: .darkGray)
 
         super.init(texture: skeletonTexture, color: .red, size: skeletonTexture.size())
         
@@ -81,15 +81,15 @@ class ZPZombie: SKSpriteNode {
     private func loadDeathAnimation() {
         let frameCount = 14
         deathFrames = (1...frameCount).map { frameNumber in
-            SKTexture(imageNamed: "sk_skeleton_death_\(frameNumber)")
+            SKTexture(imageNamed: "sl_skeleton_death_\(frameNumber)")
         }
     }
     
     func die() {
         // Disable physics to prevent further interactions
-        self.physicsBody?.categoryBitMask = PhysicsCategory.none
-        self.physicsBody?.contactTestBitMask = PhysicsCategory.none
-        self.physicsBody?.collisionBitMask = PhysicsCategory.none
+        self.physicsBody?.categoryBitMask = SLPhysicsCategory.none
+        self.physicsBody?.contactTestBitMask = SLPhysicsCategory.none
+        self.physicsBody?.collisionBitMask = SLPhysicsCategory.none
         
         // Optionally, disable any movement or actions
         self.removeAllActions()
@@ -121,7 +121,7 @@ class ZPZombie: SKSpriteNode {
         
         self.run(sequence) { [weak self] in
             guard let self = self else { return }
-            if let gameScene = self.scene as? ZPGameScene {
+            if let gameScene = self.scene as? SLGameScene {
                 // Remove the zombie from the enemy manager
                 gameScene.enemyManager.removeEnemy(self)
             }
@@ -149,7 +149,7 @@ class ZPZombie: SKSpriteNode {
         health -= amount
         flashRed() {// Trigger the flash effect when taking damage
             if self.isDead {
-                if let gameScene = self.scene as? ZPGameScene {
+                if let gameScene = self.scene as? SLGameScene {
                     gameScene.handleEnemyDefeat(at: self.position)
                     gameScene.enemyManager.removeEnemy(self)
                     //                self.die()
@@ -187,7 +187,7 @@ class ZPZombie: SKSpriteNode {
     private func addIceNode() {
         if iceNode != nil { return }
         
-        let ice = SKSpriteNode(imageNamed: "sk_ice")
+        let ice = SKSpriteNode(imageNamed: "sl_ice")
         let iceScale = (self.size.height * 3.9) / ice.size.height
         ice.name = "iceNode"
         ice.setScale(0.0)

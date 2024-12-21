@@ -1,5 +1,5 @@
 //
-//  MapManager.swift
+//  SLMapManager.swift
 //  Zombocalypse
 //
 //  Created by Sam Richard on 12/16/24.
@@ -8,7 +8,7 @@
 
 import SpriteKit
 
-class MapManager {
+class SLMapManager {
     weak var scene: SKScene?
     
     private var mainSections: [SKSpriteNode] = []
@@ -25,7 +25,7 @@ class MapManager {
     private let sectionWidth: CGFloat
     private let sectionHeight: CGFloat
     private let numSections: Int
-    private let fenceTextureName: String = "sk_fence"
+    private let fenceTextureName: String = "sl_fence"
     
     public var topBound: CGFloat = 0
     public var bottomBound: CGFloat = 0
@@ -42,7 +42,7 @@ class MapManager {
     
     private var bottomBoundary: SKNode?
     
-    init(sectionWidth: CGFloat, sectionHeight: CGFloat, numSections: Int, scene: ZPGameScene) {
+    init(sectionWidth: CGFloat, sectionHeight: CGFloat, numSections: Int, scene: SLGameScene) {
         self.sectionWidth = sectionWidth
         self.sectionHeight = sectionHeight
         self.numSections = numSections
@@ -109,9 +109,9 @@ class MapManager {
             fence.name = "topFence_\(index)"
             
             fence.physicsBody = SKPhysicsBody(texture: fence.texture!, size: fence.size)
-            fence.physicsBody?.categoryBitMask = PhysicsCategory.border
-            fence.physicsBody?.contactTestBitMask = PhysicsCategory.player
-            fence.physicsBody?.collisionBitMask = PhysicsCategory.player
+            fence.physicsBody?.categoryBitMask = SLPhysicsCategory.border
+            fence.physicsBody?.contactTestBitMask = SLPhysicsCategory.player
+            fence.physicsBody?.collisionBitMask = SLPhysicsCategory.player
             fence.physicsBody?.affectedByGravity = false
             fence.physicsBody?.isDynamic = false
             
@@ -142,9 +142,9 @@ class MapManager {
             
             boundary.physicsBody = SKPhysicsBody(edgeFrom: CGPoint(x: -sectionWidth * CGFloat(numSections) / 2, y: 0),
                                                 to: CGPoint(x: sectionWidth * CGFloat(numSections) / 2, y: 0))
-            boundary.physicsBody?.categoryBitMask = PhysicsCategory.border
-            boundary.physicsBody?.contactTestBitMask = PhysicsCategory.player
-            boundary.physicsBody?.collisionBitMask = PhysicsCategory.player
+            boundary.physicsBody?.categoryBitMask = SLPhysicsCategory.border
+            boundary.physicsBody?.contactTestBitMask = SLPhysicsCategory.player
+            boundary.physicsBody?.collisionBitMask = SLPhysicsCategory.player
             boundary.physicsBody?.affectedByGravity = false
             boundary.physicsBody?.isDynamic = false
             
@@ -153,7 +153,7 @@ class MapManager {
         }
     }
     
-    /// Adds physical objects ("sk_stump" and "sk_tombstone") around each main section
+    /// Adds physical objects ("sl_stump" and "sl_tombstone") around each main section
     private func addPhysicalObjects(to scene: SKScene) {
         for (_, section) in mainSections.enumerated() {
             
@@ -163,16 +163,16 @@ class MapManager {
             let tombTopYOffsets: [CGFloat] = [sectionWidth * 0.23, sectionWidth * 0.485, sectionWidth * 0.34]
             
             for (index, xOffset) in stumpTopXOffsets.enumerated() {
-                // Add "sk_stump"
-                let stump = SKSpriteNode(imageNamed: "sk_stump")
+                // Add "sl_stump"
+                let stump = SKSpriteNode(imageNamed: "sl_stump")
                 stump.size = CGSize(width: sectionWidth * stumpWidthFactor, height: sectionWidth * stumpHeightFactor)
                 stump.position = CGPoint(x: xOffset, y: stumpTopYOffsets[index]) // Relative to section's center
                 stump.zPosition = 1
                 
                 stump.physicsBody = SKPhysicsBody(texture: stump.texture!, size: stump.size)
-                stump.physicsBody?.categoryBitMask = PhysicsCategory.border
-                stump.physicsBody?.contactTestBitMask = PhysicsCategory.player
-                stump.physicsBody?.collisionBitMask = PhysicsCategory.player
+                stump.physicsBody?.categoryBitMask = SLPhysicsCategory.border
+                stump.physicsBody?.contactTestBitMask = SLPhysicsCategory.player
+                stump.physicsBody?.collisionBitMask = SLPhysicsCategory.player
                 stump.physicsBody?.affectedByGravity = false
                 stump.physicsBody?.isDynamic = false
                 
@@ -182,17 +182,17 @@ class MapManager {
             
             for (index, xOffset) in tombTopXOffsets.enumerated() {
                 
-                // Add "sk_tombstone"
-                let tombstone = SKSpriteNode(imageNamed: "sk_tombstone")
+                // Add "sl_tombstone"
+                let tombstone = SKSpriteNode(imageNamed: "sl_tombstone")
                 tombstone.size = CGSize(width: sectionWidth * tombWidthFactor, height: sectionWidth * tombHeightFactor)
                 tombstone.position = CGPoint(x: xOffset, y: tombTopYOffsets[index]) // Slight Y offset to avoid overlap
                 tombstone.zPosition = 1
                 
                 // Configure Physics Body
                 tombstone.physicsBody = SKPhysicsBody(texture: tombstone.texture!, size: tombstone.size)
-                tombstone.physicsBody?.categoryBitMask = PhysicsCategory.border
-                tombstone.physicsBody?.contactTestBitMask = PhysicsCategory.player
-                tombstone.physicsBody?.collisionBitMask = PhysicsCategory.player
+                tombstone.physicsBody?.categoryBitMask = SLPhysicsCategory.border
+                tombstone.physicsBody?.contactTestBitMask = SLPhysicsCategory.player
+                tombstone.physicsBody?.collisionBitMask = SLPhysicsCategory.player
                 tombstone.physicsBody?.affectedByGravity = false
                 tombstone.physicsBody?.isDynamic = false
                 
@@ -201,7 +201,7 @@ class MapManager {
                 topTombstones.append(tombstone)
             }
             
-            // **Bottom Half: 2 "sk_stump" and 2 "sk_tombstone"**
+            // **Bottom Half: 2 "sl_stump" and 2 "sl_tombstone"**
             let bottomHalfY = -sectionHeight / 4
             
             // Define horizontal offsets for bottom objects (spread evenly)
@@ -211,16 +211,16 @@ class MapManager {
             let tombBottomYOffsets: [CGFloat] = [-sectionWidth * 0.38, -sectionWidth * 0.28]
             
             for (index, xOffset) in stumpBottomXOffsets.enumerated() {
-                // Add "sk_stump"
-                let stump = SKSpriteNode(imageNamed: "sk_stump")
+                // Add "sl_stump"
+                let stump = SKSpriteNode(imageNamed: "sl_stump")
                 stump.size = CGSize(width: sectionWidth * tombWidthFactor, height: sectionWidth * tombHeightFactor)
                 stump.position = CGPoint(x: xOffset, y: stumpBottomYOffsets[index])
                 stump.zPosition = 1
                 
                 stump.physicsBody = SKPhysicsBody(texture: stump.texture!, size: stump.size)
-                stump.physicsBody?.categoryBitMask = PhysicsCategory.border
-                stump.physicsBody?.contactTestBitMask = PhysicsCategory.player
-                stump.physicsBody?.collisionBitMask = PhysicsCategory.player
+                stump.physicsBody?.categoryBitMask = SLPhysicsCategory.border
+                stump.physicsBody?.contactTestBitMask = SLPhysicsCategory.player
+                stump.physicsBody?.collisionBitMask = SLPhysicsCategory.player
                 stump.physicsBody?.affectedByGravity = false
                 stump.physicsBody?.isDynamic = false
                 
@@ -229,16 +229,16 @@ class MapManager {
             }
             
             for (index, xOffset) in tombBottomXOffsets.enumerated() {
-                // Add "sk_tombstone"
-                let tombstone = SKSpriteNode(imageNamed: "sk_tombstone")
+                // Add "sl_tombstone"
+                let tombstone = SKSpriteNode(imageNamed: "sl_tombstone")
                 tombstone.size = CGSize(width: sectionWidth * tombWidthFactor, height: sectionWidth * tombHeightFactor)
                 tombstone.position = CGPoint(x: xOffset, y: tombBottomYOffsets[index])
                 tombstone.zPosition = 1
                 
                 tombstone.physicsBody = SKPhysicsBody(texture: tombstone.texture!, size: tombstone.size)
-                tombstone.physicsBody?.categoryBitMask = PhysicsCategory.border
-                tombstone.physicsBody?.contactTestBitMask = PhysicsCategory.player
-                tombstone.physicsBody?.collisionBitMask = PhysicsCategory.player
+                tombstone.physicsBody?.categoryBitMask = SLPhysicsCategory.border
+                tombstone.physicsBody?.contactTestBitMask = SLPhysicsCategory.player
+                tombstone.physicsBody?.collisionBitMask = SLPhysicsCategory.player
                 tombstone.physicsBody?.affectedByGravity = false
                 tombstone.physicsBody?.isDynamic = false
                 

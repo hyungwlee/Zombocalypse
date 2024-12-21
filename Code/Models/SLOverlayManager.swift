@@ -1,5 +1,5 @@
 //
-//  OverlayManager.swift
+//  SLOverlayManager.swift
 //  Zombocalypse
 //
 //  Created by Sam Richard on 12/7/24.
@@ -8,12 +8,12 @@
 import SpriteKit
 
 // MARK: The purpose of this file is to make sure the special and regular skill overlays work in harmony
-class OverlayManager {
-    weak var scene: ZPGameScene?
+class SLOverlayManager {
+    weak var scene: SLGameScene?
     private var overlayQueue: [SKNode] = []
     private var isShowingOverlay: Bool = false
     
-    init(scene: ZPGameScene) {
+    init(scene: SLGameScene) {
         self.scene = scene
     }
     

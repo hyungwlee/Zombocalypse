@@ -1,5 +1,5 @@
 //
-//  UpgradeShopOverlayNode.swift
+//  SLUpgradeShopOverlayNode.swift
 //  Zombocalypse
 //
 //  Created by Sam Richard on 12/7/24.
@@ -8,11 +8,11 @@
 
 import SpriteKit
 
-class UpgradeShopOverlayNode: SKNode {
-    weak var manager: UpgradeShopManager?
-    weak var overlayManager: OverlayManager?
-    weak var skillManager: SkillManager?
-    var choices: [RegularSkill] = []
+class SLUpgradeShopOverlayNode: SKNode {
+    weak var manager: SLUpgradeShopManager?
+    weak var overlayManager: SLOverlayManager?
+    weak var skillManager: SLSkillManager?
+    var choices: [SLRegularSkill] = []
     
     private let darkOverlay = SKSpriteNode()
     private var skillStatusNodes: [SKNode] = []
@@ -36,7 +36,7 @@ class UpgradeShopOverlayNode: SKNode {
     private var skillBg: SKSpriteNode!
     
     
-    init(choices: [RegularSkill], manager: UpgradeShopManager, overlayManager: OverlayManager, skillManager: SkillManager, overlaySize: CGSize,
+    init(choices: [SLRegularSkill], manager: SLUpgradeShopManager, overlayManager: SLOverlayManager, skillManager: SLSkillManager, overlaySize: CGSize,
     scaleFactor: CGFloat) {
         self.manager = manager
         self.choices = choices
@@ -74,8 +74,8 @@ class UpgradeShopOverlayNode: SKNode {
         let fadeIn = SKAction.fadeAlpha(to: 0.7, duration: 0.3)
         darkOverlay.run(fadeIn)
         
-        // "sk_level_up" title at the top
-        let titleNode = SKSpriteNode(imageNamed: "sk_level_up")
+        // "sl_level_up" title at the top
+        let titleNode = SKSpriteNode(imageNamed: "sl_level_up")
         titleNode.zPosition = 101
         titleNode.position = CGPoint(x: 0, y: bgHeight * 0.35 - titleNode.size.height / 2)
         titleNode.alpha = 0.0  // Start invisible
@@ -139,7 +139,7 @@ class UpgradeShopOverlayNode: SKNode {
             for (col, def) in rowDefs.enumerated() {
                 let currentLevel = skillManager.ownedRegularSkills.first(where: { $0.definition.type == def.type })?.currentLevel ?? 0
                 
-                let skillStatusBg = SKSpriteNode(imageNamed: "sk_skill_status")
+                let skillStatusBg = SKSpriteNode(imageNamed: "sl_skill_status")
                 skillStatusBg.setScale(scaleFactor)
                 skillStatusBg.zPosition = 101
                 skillStatusBg.position = CGPoint(x: columnXOffsets[col], y: yPos)
@@ -164,7 +164,7 @@ class UpgradeShopOverlayNode: SKNode {
                 let starSpacing: CGFloat = 14 * scaleFactor
                 let startX: CGFloat = -skillStatusBg.size.width * 0.05
                 for i in 0..<maxStars {
-                    let starImageName = (i < currentLevel) ? "sk_status_star_full" : "sk_status_star_empty"
+                    let starImageName = (i < currentLevel) ? "sl_status_star_full" : "sl_status_star_empty"
                     let starNode = SKSpriteNode(imageNamed: starImageName)
                     starNode.setScale(starScale)
                     starNode.zPosition = 102
@@ -184,18 +184,18 @@ class UpgradeShopOverlayNode: SKNode {
     }
     
     private func displaySkillChoicesContainer(startY: CGFloat) {
-        // sk_shop_bg that houses the three choices
-        skillBg = SKSpriteNode(imageNamed: "sk_shop_bg")
+        // sl_shop_bg that houses the three choices
+        skillBg = SKSpriteNode(imageNamed: "sl_shop_bg")
         skillBg.setScale(scaleFactor)
         skillBg.zPosition = 101
         skillBg.position = CGPoint(x: 0, y: startY - skillBg.size.height / 2)
         addChild(skillBg)
         
-        // Now place the three choices (sk_skill_option) inside skillBg
+        // Now place the three choices (sl_skill_option) inside skillBg
         let choiceStartY = skillBg.size.height * 0.4
         var yPos = choiceStartY
         for (index, skill) in choices.enumerated() {
-            let choiceBg = SKSpriteNode(imageNamed: "sk_skill_option")
+            let choiceBg = SKSpriteNode(imageNamed: "sl_skill_option")
             choiceBg.setScale(scaleFactor)
             choiceBg.zPosition = 102
             choiceBg.position = CGPoint(x: 0, y: yPos - choiceBg.size.height / 2)
@@ -269,7 +269,7 @@ class UpgradeShopOverlayNode: SKNode {
             let maxStars = 4 // Assuming maxLevel is 4
             
             for i in 0..<maxStars {
-                let starImageName = (i < currentLevel) ? "sk_select_star_full" : "sk_select_star_empty"
+                let starImageName = (i < currentLevel) ? "sl_select_star_full" : "sl_select_star_empty"
                 let starNode = SKSpriteNode(imageNamed: starImageName)
                 starNode.setScale(starScale)
                 starNode.zPosition = 103
@@ -287,7 +287,7 @@ class UpgradeShopOverlayNode: SKNode {
     
     // MARK: - Helper Methods
     
-extension UpgradeShopOverlayNode {
+extension SLUpgradeShopOverlayNode {
     
     /// Splits the input text into multiple lines based on the maximum width and font.
     ///

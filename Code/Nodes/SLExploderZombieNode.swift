@@ -1,5 +1,5 @@
 //
-//  ZPExploderZombieNode.swift
+//  SLExploderZombieNode.swift
 //  Zombocalypse
 //
 //
@@ -8,7 +8,7 @@
 import SpriteKit
 import CoreGraphics
 
-class ZPExploderZombieNode: ZPZombie {
+class SLExploderZombieNode: SLZombie {
     private var isPreparingToExplode = false
     private var explosionPreparationTime: TimeInterval = 2.0 // 2 seconds to charge before exploding
     private var lastExplosionAttemptTime: TimeInterval = 0
@@ -119,7 +119,7 @@ class ZPExploderZombieNode: ZPZombie {
         self.run(explodeSequence, withKey: explodeSequenceKey)
     }
     private func explode() {
-        guard let gameScene = scene as? ZPGameScene else { return }
+        guard let gameScene = scene as? SLGameScene else { return }
         
         isPreparingToExplode = false
         blastIndicator?.alpha = 0.3
@@ -148,7 +148,7 @@ class ZPExploderZombieNode: ZPZombie {
         }
         
         // Apply damage to zombies within the explosion radius
-        gameScene.children.compactMap { $0 as? ZPZombie }.forEach { zombie in
+        gameScene.children.compactMap { $0 as? SLZombie }.forEach { zombie in
             //Exclude self to prevent double handling
             if zombie === self { return }
             let distanceToZombie = hypot(zombie.position.x - explosionCenter.x, zombie.position.y - explosionCenter.y)
