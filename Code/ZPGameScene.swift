@@ -512,6 +512,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         waveTransitionTimer?.pause()
         stopXPSpawnTimer()
         
+        removeAction(forKey: "spawnNextEnemy")
+        
         player.physicsBody?.velocity = .zero
     }
     
@@ -522,6 +524,16 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
         enemyManager.resumeAll()
         waveTransitionTimer?.resume()
         startXPSpawnTimer()
+        
+        let currentWaveObject = waveCycle[gameInfo.currentWaveIndex]
+        if !currentWaveObject.allEnemiesSpawned {
+            let spawnAction = SKAction.run { [weak self] in
+                self?.spawnNextEnemy()
+            }
+            let waitAction = SKAction.wait(forDuration: currentWaveObject.spawnInterval)
+            let sequence = SKAction.sequence([waitAction, spawnAction])
+            run(sequence, withKey: "spawnNextEnemy")
+        }
         
         for xpNode in xpNodesToRemove {
             self.playerState.currentXP += xpNode.xpAmount
