@@ -248,8 +248,8 @@ class ZPGameScene: SKScene, PlayerStateDelegate {
 //        let protectiveBarrierSkill = skillManager.createRegularSkillInstance(for: .protectiveBarrier)
 //        skillManager.acquireOrUpgradeRegularSkill(protectiveBarrierSkill!)
         
-        let freezeSkill = skillManager.createRegularSkillInstance(for: .freeze)
-        skillManager.acquireOrUpgradeRegularSkill(freezeSkill!)
+//        let freezeSkill = skillManager.createRegularSkillInstance(for: .freeze)
+//        skillManager.acquireOrUpgradeRegularSkill(freezeSkill!)
 
 //        skillManager.acquireSpecialSkill(.helpingHand)
 //        skillManager.acquireSpecialSkill(.spectralShield)
@@ -2492,13 +2492,9 @@ extension ZPGameScene: SKPhysicsContactDelegate {
             if let enemyNode = firstBody.node as? ZPZombie {
                 enemyNode.isSlowedByBarrier = false
                 enemyNode.movementSpeed = enemyNode.baseSpeed
-                enemyNode.color = enemyNode.baseColor
-                enemyNode.colorBlendFactor = 1.0
             } else if let bossNode = firstBody.node as? ZPWizard {
                 bossNode.isSlowedByBarrier = false
                 bossNode.movementSpeed = bossNode.baseSpeed
-                bossNode.color = bossNode.baseColor
-                bossNode.colorBlendFactor = 1.0
             }
         }
         
