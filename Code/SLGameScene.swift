@@ -591,15 +591,18 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         waveCounter += 1
         
         normalSpawnInterval = max(0.1, normalSpawnInterval - 0.2)
-        gameInfo.incrementZombieSpeed(by: 0.25)
+//        gameInfo.incrementZombieSpeed(by: 0.25)
         
         let newGracePeriod = max(1.0, gameInfo.waveGracePeriod - 1.0) // Decrease grace period, minimum 1 seconds
         gameInfo.updateWaveGracePeriod(to: newGracePeriod)
         
         let wave = waveCycle[gameInfo.currentWaveIndex]
-        gameInfo.incrementPendingEnemies(by: wave.totalEnemies)
-        gameInfo.incrementEnemiesToSpawn(by: wave.totalEnemies)
-        gameInfo.incrementZombieHealth(by: 1.0)
+//        print("before", gameInfo.pendingEnemies)
+//        gameInfo.incrementPendingEnemies(by: wave.totalEnemies)
+//        print("after", gameInfo.pendingEnemies)
+
+        gameInfo.updateEnemiesToSpawn(to: wave.totalEnemies)
+        gameInfo.incrementZombieHealth(by: 0.25)
 //        zombieHealth += 2
 
         updateProgressLabel()
@@ -650,10 +653,9 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
             displayedEnemyMessages.insert(wave.waveNumber)
         }
         
-//        print("-")
-//        print("wave", wave)
         if wave.isBoss {
-            clearAllEnemies() //Clear existing enemies only for boss waves
+            waveTransitionTimer?.callback = {}
+            clearAllEnemies()
             startBossStage()
             
         } else {
@@ -704,6 +706,8 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         
         // Check if all enemies have been spawned
         if wave.allEnemiesSpawned {
+            print("spawn and all enemies spawned")
+
             handleWaveProgression()
             waveCycle[gameInfo.currentWaveIndex] = wave // Update the wave with new spawn counts
             return
@@ -784,7 +788,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         if isBossStage {
             progressLabel.text = "Defeat the boss!"
         }
-        else if gameInfo.pendingEnemies > 0 {
+        else if enemyManager.enemies.count > 0 {
             progressLabel.text = "Enemies left: \(gameInfo.pendingEnemies)"
         }
         else {
@@ -1251,9 +1255,10 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         
         if gameInfo.currentWaveIndex < waveCycle.count {
             let wave = waveCycle[gameInfo.currentWaveIndex]
-            if wave.allEnemiesSpawned && gameInfo.pendingEnemies <= 0 && !isBossStage {
-                handleWaveProgression()
-            }
+            if wave.allEnemiesSpawned && enemyManager.enemies.count <= 0 && !isBossStage {
+
+                    handleWaveProgression()
+                }
         }
         
     }
@@ -1346,9 +1351,9 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     
     func afterGracePeriodEnds() {
         waveTransitionTimer?.callback = {}
-        
         if self.waveCycle[gameInfo.currentWaveIndex].requiresFullClearance {
-            if self.gameInfo.pendingEnemies > 0 {
+
+            if self.enemyManager.enemies.count > 0 {
                 // Do not proceed. Wait until all enemies are defeated
                 self.waveMessageLabel.text = "Defeat all enemies to proceed.."
                 self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
@@ -1360,7 +1365,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
             }
         } else {
             // Regular wave progression
-            if self.gameInfo.pendingEnemies > 0 {
+            if self.enemyManager.enemies.count > 0 {
                 self.waveMessageLabel.text = "Next wave starting.."
                 self.waveMessageLabel.position = CGPoint(x: 0, y: size.height * 0.3)
                 self.waveMessageLabel.zPosition = 5
@@ -1379,6 +1384,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     }
     
     func clearAllEnemies() {
+//        gameInfo.pendingEnemies = 0
         enemyManager.removeAllEnemies()
     }
     
@@ -1478,7 +1484,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     
     func restartCycleWithIncreasedDifficulty() {
         //Remove existing waves
-        waveCycle.removeAll()
+
         
         //Define increased difficulty waves
         //For simplicity, we'll increase the number of enemies and adjust spawn intervals
@@ -1491,27 +1497,33 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         //*******************************************************************************************
         //*******************************************************************************************
         // SEE NOTE ABOVE ^
-        
-        for waveNumber in 1...7 {
-            switch waveNumber {
-            case 1:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 10 * Int(cycleMultiplier), regularEnemies: 10 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false))
-            case 2:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 15 * Int(cycleMultiplier), regularEnemies: 15 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false))
-            case 3:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 25 * Int(cycleMultiplier), regularEnemies: 25 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: false))
-            case 4:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 20 * Int(cycleMultiplier), regularEnemies: 15 * Int(cycleMultiplier), chargerEnemies: 5 * Int(cycleMultiplier), exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false))
-            case 5:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 20 * Int(cycleMultiplier), regularEnemies: 15 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 5 * Int(cycleMultiplier), isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false))
-            case 6:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 35 * Int(cycleMultiplier), regularEnemies: 20 * Int(cycleMultiplier), chargerEnemies: 8 * Int(cycleMultiplier), exploderEnemies: 7 * Int(cycleMultiplier), isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: true))
-            case 7:
-                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 1, regularEnemies: 0, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: true, spawnInterval: 0.0, requiresFullClearance: false))
-            default:
-                break
-            }
+        var tempWaveCycle: [Wave] = []
+        for wave in waveCycle {
+            tempWaveCycle.append(Wave(waveNumber: wave.waveNumber, totalEnemies: wave.totalEnemies * Int(cycleMultiplier), regularEnemies: wave.regularEnemies * Int(cycleMultiplier), chargerEnemies: wave.chargerEnemies, exploderEnemies: wave.exploderEnemies, isHorde: wave.isHorde, isBoss: wave.isBoss, spawnInterval: wave.spawnInterval, requiresFullClearance: wave.requiresFullClearance))
         }
+        waveCycle.removeAll()
+        waveCycle = tempWaveCycle
+        
+//        for waveNumber in 1...7 {
+//            switch waveNumber {
+//            case 1:
+//                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 10 * Int(cycleMultiplier), regularEnemies: 10 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false))
+//            case 2:
+//                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 15 * Int(cycleMultiplier), regularEnemies: 15 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false))
+//            case 3:
+//                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 25 * Int(cycleMultiplier), regularEnemies: 25 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 0, isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: false))
+//            case 4:
+//                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 20 * Int(cycleMultiplier), regularEnemies: 15 * Int(cycleMultiplier), chargerEnemies: 5 * Int(cycleMultiplier), exploderEnemies: 0, isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false))
+//            case 5:
+//                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 20 * Int(cycleMultiplier), regularEnemies: 15 * Int(cycleMultiplier), chargerEnemies: 0, exploderEnemies: 5 * Int(cycleMultiplier), isHorde: false, isBoss: false, spawnInterval: normalSpawnInterval, requiresFullClearance: false))
+//            case 6:
+//                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 35 * Int(cycleMultiplier), regularEnemies: 20 * Int(cycleMultiplier), chargerEnemies: 8 * Int(cycleMultiplier), exploderEnemies: 7 * Int(cycleMultiplier), isHorde: true, isBoss: false, spawnInterval: hordeSpawnInterval, requiresFullClearance: true))
+//            case 7:
+//                waveCycle.append(Wave(waveNumber: waveNumber, totalEnemies: 1, regularEnemies: 0, chargerEnemies: 0, exploderEnemies: 0, isHorde: false, isBoss: true, spawnInterval: 0.0, requiresFullClearance: false))
+//            default:
+//                break
+//            }
+//        }
         
         gameInfo.resetWaveIndex()
         gameInfo.resetPendingEnemies()
@@ -2025,7 +2037,7 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         updateProgressLabel()
         
         //If pendingEnemies is zero and wave progression is not already ongoing
-        if gameInfo.pendingEnemies == 0 {
+        if enemyManager.enemies.count == 0 {
             if waveCycle[gameInfo.currentWaveIndex].requiresFullClearance {
                 //proceed to next wave immediately
                 //cancel any scheduled wave progression

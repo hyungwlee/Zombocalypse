@@ -79,12 +79,28 @@ class SLGameInfo {
         }
     }
     
+    func updatePendingEnemies(to enemies: Int) {
+        pendingEnemies = enemies
+        
+        if pendingEnemies < 0 {
+            pendingEnemies = 0
+        }
+    }
+    
     func resetPendingEnemies() {
         pendingEnemies = 0
     }
     
     func incrementEnemiesToSpawn(by enemies: Int) {
         enemiesToSpawn += enemies
+        
+        if enemiesToSpawn < 0 {
+            enemiesToSpawn = 0
+        }
+    }
+    
+    func updateEnemiesToSpawn(to enemies: Int) {
+        enemiesToSpawn = enemies
         
         if enemiesToSpawn < 0 {
             enemiesToSpawn = 0
