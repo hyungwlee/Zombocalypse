@@ -2235,6 +2235,9 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     func presentGameOverFlow() {
         guard let cameraNode = self.camera else { return }
         
+        //Prevent adding multiple gameOverScreens
+        if cameraNode.childNode(withName: "gameOverScreen") != nil { return }
+        
         // 4. Create the game over node with buttons
         let gameOverNode = SKShapeNode(rect: CGRect(x: -size.width * 0.4, y: -size.height * 0.2, width: size.width * 0.8, height: size.height * 0.4), cornerRadius: 20)
         gameOverNode.fillColor = .black.withAlphaComponent(0.8)
@@ -2298,11 +2301,21 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
     }
     
     func restartGame() {
-        if let cameraNode = self.camera {
-            cameraNode.childNode(withName: "gameOverScreen")?.removeFromParent()
-            cameraNode.childNode(withName: "redOverlay")?.removeFromParent()
-            cameraNode.childNode(withName: "gameOverImage")?.removeFromParent()
+        guard let cameraNode = self.camera else { return }
+        
+        let overlayNames = ["gameOverScreen", "redOverlay", "gameOverImage"]
+        for name in overlayNames {
+            cameraNode.childNode(withName: name)?.removeFromParent()
         }
+        
+        xpBarNode?.removeFromParent()
+        xpBarNode = nil
+        
+        //Reset containers for skills
+        bladesContainer?.removeAllChildren()
+        barrierContainer?.removeAllChildren()
+        shieldContainer?.removeAllChildren()
+        
         player.position = layoutInfo.playerStartingPosition
         joystick.endTouch()
         shootJoystick.endTouch()
@@ -2325,6 +2338,8 @@ class SLGameScene: SKScene, SLPlayerStateDelegate {
         
         playerState.currentXP = 0
         playerState.resetToBaseStats()
+        upgradeShopManager.resetXP()
+        skillManager.reset()
         
         if let existingWizard = wizardBoss {
             existingWizard.removeFromParent()

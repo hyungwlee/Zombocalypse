@@ -18,6 +18,13 @@ class SLUpgradeShopManager {
     init(scene: SLGameScene, skillManager: SLSkillManager) {
         self.scene = scene
         self.skillManager = skillManager
+        resetXP()
+    }
+    
+    func resetXP() {
+        XPCount = 0
+        XPToNextLevel = 1
+        nextShopXPThreshold = 1
     }
     
     func incrementXPCount() {
