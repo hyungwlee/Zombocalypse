@@ -174,6 +174,12 @@ class SLSkillManager {
         self.player = player
         setupSkillDefinitions()
     }
+    
+    func reset() {
+        ownedRegularSkills.removeAll()
+        ownedSpecialSkills.removeAll()
+        print("SLSkillManager - resetting all owned skills.")
+    }
 
     /// Called when opening the shop
     /// Returns 3 random regular choices
